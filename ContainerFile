@@ -1,0 +1,20 @@
+from fedora:42 as base
+
+# Development target
+from base as dev
+# Install common packages
+run dnf update -y && \
+    dnf install -y \
+    git \
+    sudo \
+    python3 \
+    && dnf clean all
+# Create vscode user
+run useradd -m -s /bin/bash vscode && \
+    echo "vscode ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/vscode && \
+    chmod 0440 /etc/sudoers.d/vscode
+# Set working directory
+workdir /workspace
+# Set default user
+user vscode
+env PATH="/home/vscode/.local/bin:${PATH}" 

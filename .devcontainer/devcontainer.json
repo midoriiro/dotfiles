@@ -1,0 +1,19 @@
+{
+    "name": ".dotfiles",
+    "build": {
+        "dockerfile": "../ContainerFile",
+        "context": "..",
+        "target": "dev"
+    },
+    "containerUser": "vscode",
+    "remoteUser": "vscode",
+    "remoteEnv": {
+        "CONTAINER_HOST": "tcp://127.0.0.1:8888"
+    },
+    "workspaceMount": "source=devfiles-workspace,target=/workspace,type=volume",
+    "workspaceFolder": "/workspace",
+    "runArgs": [
+        "--network",
+        "host"
+    ]
+}
