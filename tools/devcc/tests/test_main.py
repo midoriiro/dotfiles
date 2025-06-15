@@ -14,32 +14,32 @@ def test_app_initialization(app: App):
     assert isinstance(app.context, Context)
     assert app.typer is not None
 
-def test_app_register(app: App, runner: CliRunner):
+def test_app_register(app: App, runner: CliRunner, runner_args):
     """Test that the app registers commands correctly."""
     # Test that the commands are registered
-    result = runner.invoke(app.typer, ["--help"])
+    result = runner.invoke(app.typer, ["--help"], **runner_args)
     assert result.exit_code == 0
     assert "runtime" in result.output
     assert "workspace" in result.output
     assert "expose" in result.output
 
-def test_app_context_initialization(app: App, runner: CliRunner):
+def test_app_context_initialization(app: App, runner: CliRunner, runner_args):
     """Test that the context is initialized correctly with options."""
     # Test with output path
     output_path = Path("/tmp/test.json")
-    result = runner.invoke(app.typer, ["--output", str(output_path)])
+    result = runner.invoke(app.typer, ["--output", str(output_path)], **runner_args)
     assert result.exit_code == 0
     assert app.context.output == output_path
     
     # Test with dry run
-    result = runner.invoke(app.typer, ["--dry-run"])
+    result = runner.invoke(app.typer, ["--dry-run"], **runner_args)
     assert result.exit_code == 0
     assert app.context.dry_run is True
 
-def test_app_context_finalization(app: App, runner: CliRunner):
+def test_app_context_finalization(app: App, runner: CliRunner, runner_args):
     """Test that the context is finalized correctly."""
     # Run a simple command to trigger finalization
-    result = runner.invoke(app.typer, ["--dry-run", "runtime"])
+    result = runner.invoke(app.typer, ["--dry-run", "runtime"], **runner_args)
     assert result.exit_code == 0
     
     # Check that finalization message is printed
@@ -83,8 +83,10 @@ def test_main_module_execution():
     assert "Usage:" in result.stdout 
 
 
-def test_app_with_all_features_and_options(app: App, runner: CliRunner):
+def test_app_with_all_features_and_options(app: App, runner: CliRunner, runner_args, tmp_path_factory):
     """Test the app with all features and options set."""
+    container_file = tmp_path_factory.mktemp("container_file")
+    context_file = tmp_path_factory.mktemp("context_file")
     # Example of invoking the app with all options
     result = runner.invoke(app.typer, [
         "--output", "/tmp/test.json",
@@ -97,8 +99,12 @@ def test_app_with_all_features_and_options(app: App, runner: CliRunner):
         "--name", "testworkspace",
         "--volume-name", "testvolume",
         "expose",
-        "--address", "unix:///tmp/container.sock"
-    ], catch_exceptions=False)
+        "--address", "unix:///tmp/container.sock",
+        "container", "build", 
+        "--container-file", str(container_file),
+        "--context", str(context_file),
+        "--target", "development"
+    ], **runner_args)
     assert result.exit_code == 0
     assert app.context.output == Path("/tmp/test.json")
     assert app.context.dry_run is True
@@ -115,6 +121,9 @@ def test_app_with_all_features_and_options(app: App, runner: CliRunner):
     assert app.context.features["workspace"].workspaceMount.type == MountType.VOLUME
     assert app.context.features["workspace"].workspaceMount.options == "consistency=cached"
     assert app.context.features["expose"].address.to_string() == "unix:///tmp/container.sock"
+    assert app.context.features["container"].build.container_file == str(container_file)
+    assert app.context.features["container"].build.context == str(context_file)
+    assert app.context.features["container"].build.target == "development"
     expected_output = {
         "name": "testworkspace",
         "workspaceMount": "source=testvolume,target=/workspace,type=volume,options=consistency=cached",
@@ -125,7 +134,12 @@ def test_app_with_all_features_and_options(app: App, runner: CliRunner):
         },
         "mounts": [
             "source=/host/path,target=/container/path,type=bind,options=ro"
-        ]
+        ],
+        "build": {
+            "dockerFile": str(container_file),
+            "context": str(context_file),
+            "target": "development"
+        }
     }
     output_dict = json.loads(result.output)
     assert output_dict == expected_output
