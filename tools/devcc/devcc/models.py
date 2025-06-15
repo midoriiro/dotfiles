@@ -17,6 +17,10 @@ class MountPoint(BaseModel):
     type: MountType = Field(..., description="Type of mount (bind or volume)")
     options: Optional[str] = Field(None, description="Additional mount options")
 
+    def __str__(self) -> str:
+        options_str = f",options={self.options}" if self.options else ""
+        return f"source={self.source},target={self.target},type={self.type.value}{options_str}"
+
 
 class Env(BaseModel):
     key: str = Field(..., description="Environment variable key")
@@ -89,17 +93,33 @@ class ConnectionURL(BaseModel):
             if not self.path:
                 raise ValueError("path is required for unix:// scheme")
             return f"{self.scheme}{self.path}"
+        
+    def __str__(self) -> str:
+        return self.to_string()
 
 
 class Feature(BaseModel):
     """Base model for all features."""
-    pass
+    
+    def compose(self) -> Dict:
+        """Compose the feature into a dictionary according to the devcontainer spec."""
+        raise NotImplementedError("Subclasses must implement this method")
 
 
 class ExposeFeature(Feature):
     """Configuration for container-out-container settings."""
     socket: Optional[MountPoint] = Field(None, description="Socket mount point")
     address: Optional[ConnectionURL] = Field(None, description="Container connection URL")
+    
+    def compose(self) -> Dict:
+        """Compose the ExposeFeature into a dictionary according to the devcontainer spec."""
+        composed = {}
+        # Transform data as needed for devcontainer spec
+        if self.socket:
+            composed['mounts'] = [str(self.socket)]
+        if self.address:
+            composed['containerEnv'] = [str(self.address)]
+        return composed
 
 
 class RuntimeFeature(Feature):
@@ -109,9 +129,35 @@ class RuntimeFeature(Feature):
     containerEnv: Optional[List[Env]] = Field(None, description="Container environment variables")
     remoteEnv: Optional[List[Env]] = Field(None, description="Remote environment variables")
     mounts: Optional[List[MountPoint]] = Field(None, description="Mount points")
+    
+    def compose(self) -> Dict:
+        """Compose the RuntimeFeature into a dictionary according to the devcontainer spec."""
+        composed = {}
+        # Transform data as needed for devcontainer spec
+        if self.remoteUser:
+            composed['remoteUser'] = self.remoteUser
+        if self.containerUser:
+            composed['containerUser'] = self.containerUser
+        if self.containerEnv:
+            composed['containerEnv'] = {env.key: env.value for env in self.containerEnv}
+        if self.remoteEnv:
+            composed['remoteEnv'] = {env.key: env.value for env in self.remoteEnv}
+        if self.mounts:
+            composed['mounts'] = [str(mount) for mount in self.mounts]
+        return composed
 
 
 class WorkspaceFeature(Feature):
     """Configuration for workspace settings."""
     name: Optional[str] = Field(None, description="Workspace name")
     workspaceMount: Optional[MountPoint] = Field(None, description="Workspace mount point")
+    
+    def compose(self) -> Dict:
+        """Compose the WorkspaceFeature into a dictionary according to the devcontainer spec."""
+        composed = {}
+        # Transform data as needed for devcontainer spec
+        if self.name:
+            composed['name'] = self.name
+        if self.workspaceMount:
+            composed['workspaceMount'] = str(self.workspaceMount)
+        return composed
