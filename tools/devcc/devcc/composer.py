@@ -15,7 +15,7 @@ class Composer:
     
     def compose(self) -> Dict:
         """Compose all features into a final configuration."""
-        feature_order = ["workspace", "runtime", "expose"]
+        feature_order = ["workspace", "runtime", "expose", "container"]
         for feature_name in feature_order:
             if feature_name in self.context.features:
                 feature = self.context.features[feature_name]

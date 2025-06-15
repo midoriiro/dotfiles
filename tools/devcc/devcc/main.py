@@ -4,6 +4,7 @@ from typing import Annotated, Any, List, Optional
 import typer
 from pydantic import BaseModel, field_validator
 
+from devcc.commands.container import app as container_command
 from devcc.commands.expose import command as expose_command
 from devcc.commands.runtime import command as runtime_command
 from devcc.commands.workspace import command as workspace_command
@@ -29,6 +30,7 @@ class App:
         self.__typer.command(name="runtime")(runtime_command)
         self.__typer.command(name="workspace")(workspace_command)
         self.__typer.command(name="expose")(expose_command)
+        self.__typer.add_typer(container_command, name="container")
 
     def register(self):
         @self.__typer.callback(invoke_without_command=True)
