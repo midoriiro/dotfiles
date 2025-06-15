@@ -6,13 +6,13 @@ from devcc.models import MountType
 
 
 def test_workspace_command_with_name(app: App, runner: CliRunner):
-    result = runner.invoke(app.typer, ["workspace", "--name", "testworkspace"])
+    result = runner.invoke(app.typer, ["--dry-run", "workspace", "--name", "testworkspace"])
     assert result.exit_code == 0
     assert app.context.features["workspace"].name == "testworkspace"
     assert app.context.features["workspace"].workspaceMount is None
 
 def test_workspace_command_with_volume(app: App, runner: CliRunner):
-    result = runner.invoke(app.typer, ["workspace", "--volume-name", "testvolume"])
+    result = runner.invoke(app.typer, ["--dry-run", "workspace", "--volume-name", "testvolume"])
     assert result.exit_code == 0
     assert app.context.features["workspace"].name is None
     assert app.context.features["workspace"].workspaceMount.source == "testvolume"
@@ -21,7 +21,7 @@ def test_workspace_command_with_volume(app: App, runner: CliRunner):
     assert app.context.features["workspace"].workspaceMount.options == "consistency=cached"
 
 def test_workspace_command_with_both(app: App, runner: CliRunner):
-    result = runner.invoke(app.typer, ["workspace", "--name", "testworkspace", "--volume-name", "testvolume"])
+    result = runner.invoke(app.typer, ["--dry-run", "workspace", "--name", "testworkspace", "--volume-name", "testvolume"])
     assert result.exit_code == 0
     assert app.context.features["workspace"].name == "testworkspace"
     assert app.context.features["workspace"].workspaceMount.source == "testvolume"
@@ -74,7 +74,7 @@ def test_workspace_command_with_volume_name_starting_with_number(app: App, runne
     assert app.context.features.get("workspace") is None
 
 def test_workspace_command_with_valid_volume_name(app: App, runner: CliRunner):
-    result = runner.invoke(app.typer, ["workspace", "--volume-name", "test-volume_123"])
+    result = runner.invoke(app.typer, ["--dry-run", "workspace", "--volume-name", "test-volume_123"])
     assert result.exit_code == 0
     assert app.context.features["workspace"].workspaceMount.source == "test-volume_123"
     assert app.context.features["workspace"].workspaceMount.target == "/workspace"

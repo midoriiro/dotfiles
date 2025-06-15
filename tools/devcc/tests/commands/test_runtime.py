@@ -6,33 +6,33 @@ from devcc.models import Env, MountPoint, MountType, RuntimeFeature
 
 
 def test_runtime_command_with_remote_user(app: App, runner: CliRunner):
-    result = runner.invoke(app.typer, ["runtime", "--user", "remote:testuser"])
+    result = runner.invoke(app.typer, ["--dry-run", "runtime", "--user", "remote:testuser"])
     assert result.exit_code == 0
     assert app.context.features["runtime"].remoteUser == "testuser"
     assert app.context.features["runtime"].containerUser is None
 
 def test_runtime_command_with_container_user(app: App, runner: CliRunner):
-    result = runner.invoke(app.typer, ["runtime", "--user", "container:testuser"])
+    result = runner.invoke(app.typer, ["--dry-run", "runtime", "--user", "container:testuser"])
     assert result.exit_code == 0
     assert app.context.features["runtime"].containerUser == "testuser"
     assert app.context.features["runtime"].remoteUser is None
 
 def test_runtime_command_with_container_env(app: App, runner: CliRunner):
-    result = runner.invoke(app.typer, ["runtime", "--env", "container:TEST_KEY=test_value"])
+    result = runner.invoke(app.typer, ["--dry-run", "runtime", "--env", "container:TEST_KEY=test_value"])
     assert result.exit_code == 0
     assert len(app.context.features["runtime"].containerEnv) == 1
     assert app.context.features["runtime"].containerEnv[0].key == "TEST_KEY"
     assert app.context.features["runtime"].containerEnv[0].value == "test_value"
 
 def test_runtime_command_with_remote_env(app: App, runner: CliRunner):
-    result = runner.invoke(app.typer, ["runtime", "--env", "remote:TEST_KEY=test_value"])
+    result = runner.invoke(app.typer, ["--dry-run", "runtime", "--env", "remote:TEST_KEY=test_value"])
     assert result.exit_code == 0
     assert len(app.context.features["runtime"].remoteEnv) == 1
     assert app.context.features["runtime"].remoteEnv[0].key == "TEST_KEY"
     assert app.context.features["runtime"].remoteEnv[0].value == "test_value"
 
 def test_runtime_command_with_mount(app: App, runner: CliRunner):
-    result = runner.invoke(app.typer, ["runtime", "--mounts", "/host/path:/container/path:bind"])
+    result = runner.invoke(app.typer, ["--dry-run", "runtime", "--mounts", "/host/path:/container/path:bind"])
     assert result.exit_code == 0
     assert len(app.context.features["runtime"].mounts) == 1
     assert app.context.features["runtime"].mounts[0].source == "/host/path"
@@ -40,13 +40,13 @@ def test_runtime_command_with_mount(app: App, runner: CliRunner):
     assert app.context.features["runtime"].mounts[0].type == MountType.BIND
 
 def test_runtime_command_with_mount_options(app: App, runner: CliRunner):
-    result = runner.invoke(app.typer, ["runtime", "--mounts", "/host/path:/container/path:bind:ro"])
+    result = runner.invoke(app.typer, ["--dry-run", "runtime", "--mounts", "/host/path:/container/path:bind:ro"])
     assert result.exit_code == 0
     assert len(app.context.features["runtime"].mounts) == 1
     assert app.context.features["runtime"].mounts[0].options == "ro"
 
 def test_runtime_command_with_volume_mount(app: App, runner: CliRunner):
-    result = runner.invoke(app.typer, ["runtime", "--mounts", "volume_name:/container/path:volume"])
+    result = runner.invoke(app.typer, ["--dry-run", "runtime", "--mounts", "volume_name:/container/path:volume"])
     assert result.exit_code == 0
     assert len(app.context.features["runtime"].mounts) == 1
     assert app.context.features["runtime"].mounts[0].source == "volume_name"

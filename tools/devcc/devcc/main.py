@@ -7,6 +7,7 @@ from pydantic import BaseModel, field_validator
 from devcc.commands.expose import command as expose_command
 from devcc.commands.runtime import command as runtime_command
 from devcc.commands.workspace import command as workspace_command
+from devcc.composer import Composer
 from devcc.context import Context
 
 # Global options
@@ -55,7 +56,10 @@ class App:
         ctx.obj = self.__context
 
     def __finalize_context(self, *args, **kwargs):
-        print(f"finalized {self.__context}")
+        """Finalize the context by composing all features and saving the configuration."""
+        composer = Composer(self.__context)
+        composer.compose()
+        composer.save()
 
     @property
     def context(self) -> Context:

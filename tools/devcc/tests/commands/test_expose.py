@@ -6,7 +6,7 @@ from devcc.models import ConnectionURL, MountType
 
 
 def test_expose_command_with_socket(app: App, runner: CliRunner):
-    result = runner.invoke(app.typer, ["expose", "--socket", "/tmp/host.sock:/tmp/container.sock"])
+    result = runner.invoke(app.typer, ["--dry-run", "expose", "--socket", "/tmp/host.sock:/tmp/container.sock"])
     assert result.exit_code == 0
     assert app.context.features["expose"].socket.source == "/tmp/host.sock"
     assert app.context.features["expose"].socket.target == "/tmp/container.sock"
@@ -15,7 +15,7 @@ def test_expose_command_with_socket(app: App, runner: CliRunner):
     assert app.context.features["expose"].address is None
 
 def test_expose_command_with_address(app: App, runner: CliRunner):
-    result = runner.invoke(app.typer, ["expose", "--address", "unix:///tmp/container.sock"])
+    result = runner.invoke(app.typer, ["--dry-run", "expose", "--address", "unix:///tmp/container.sock"])
     assert result.exit_code == 0
     assert app.context.features["expose"].socket is None
     assert isinstance(app.context.features["expose"].address, ConnectionURL)

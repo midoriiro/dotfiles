@@ -60,7 +60,7 @@ def unix_connection_url():
 
 @pytest.fixture
 def app():
-    """Fixture providing a configured App instance."""
+    """Fixture providing a configured App instance with a temporary output file."""
     app = App()
     app.register()
     return app
