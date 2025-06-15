@@ -118,7 +118,7 @@ class ExposeFeature(Feature):
         if self.socket:
             composed['mounts'] = [str(self.socket)]
         if self.address:
-            composed['containerEnv'] = [str(self.address)]
+            composed['containerEnv'] = {'CONTAINER_HOST': str(self.address)}
         return composed
 
 

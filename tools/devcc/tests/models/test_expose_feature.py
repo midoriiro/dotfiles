@@ -24,7 +24,9 @@ def test_expose_feature_compose_address():
     )
     result = feature.compose()
     assert result == {
-        "containerEnv": ["tcp://localhost:2375"]
+        "containerEnv": {
+            "CONTAINER_HOST": "tcp://localhost:2375"
+        }
     }
 
 def test_expose_feature_compose_all_properties():
@@ -40,7 +42,9 @@ def test_expose_feature_compose_all_properties():
     result = feature.compose()
     assert result == {
         "mounts": ["source=/host/socket,target=/container/socket,type=bind"],
-        "containerEnv": ["tcp://localhost:2375"]
+        "containerEnv": {
+            "CONTAINER_HOST": "tcp://localhost:2375"
+        }
     }
 
 def test_expose_feature_compose_empty():
