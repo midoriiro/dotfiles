@@ -1,9 +1,11 @@
+import json
 from pathlib import Path
 
 from typer.testing import CliRunner
 
 from devcc.context import Context
 from devcc.main import App, app
+from devcc.models import MountType
 
 runner = CliRunner()
 
@@ -79,3 +81,51 @@ def test_main_module_execution():
     
     assert result.returncode == 0
     assert "Usage:" in result.stdout 
+
+
+def test_app_with_all_features_and_options(app: App, runner: CliRunner):
+    """Test the app with all features and options set."""
+    # Example of invoking the app with all options
+    result = runner.invoke(app.typer, [
+        "--output", "/tmp/test.json",
+        "--dry-run",
+        "runtime",
+        "--user", "remote:testuser",
+        "--env", "container:TEST_KEY=test_value",
+        "--mounts", "/host/path:/container/path:bind:ro",
+        "workspace",
+        "--name", "testworkspace",
+        "--volume-name", "testvolume",
+        "expose",
+        "--address", "unix:///tmp/container.sock"
+    ], catch_exceptions=False)
+    assert result.exit_code == 0
+    assert app.context.output == Path("/tmp/test.json")
+    assert app.context.dry_run is True
+    assert app.context.features["runtime"].remoteUser == "testuser"
+    assert app.context.features["runtime"].containerEnv[0].key == "TEST_KEY"
+    assert app.context.features["runtime"].containerEnv[0].value == "test_value"
+    assert app.context.features["runtime"].mounts[0].source == "/host/path"
+    assert app.context.features["runtime"].mounts[0].target == "/container/path"
+    assert app.context.features["runtime"].mounts[0].type == MountType.BIND
+    assert app.context.features["runtime"].mounts[0].options == "ro"
+    assert app.context.features["workspace"].name == "testworkspace"
+    assert app.context.features["workspace"].workspaceMount.source == "testvolume"
+    assert app.context.features["workspace"].workspaceMount.target == "/workspace"
+    assert app.context.features["workspace"].workspaceMount.type == MountType.VOLUME
+    assert app.context.features["workspace"].workspaceMount.options == "consistency=cached"
+    assert app.context.features["expose"].address.to_string() == "unix:///tmp/container.sock"
+    expected_output = {
+        "name": "testworkspace",
+        "workspaceMount": "source=testvolume,target=/workspace,type=volume,options=consistency=cached",
+        "remoteUser": "testuser",
+        "containerEnv": {
+            "TEST_KEY": "test_value",
+            "CONTAINER_HOST": "unix:///tmp/container.sock"
+        },
+        "mounts": [
+            "source=/host/path,target=/container/path,type=bind,options=ro"
+        ]
+    }
+    output_dict = json.loads(result.output)
+    assert output_dict == expected_output
