@@ -1,0 +1,77 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Commit Standards
+
+## 1. Atomic Commits (Primary Focus)
+Every commit must be atomic - a single, focused change that:
+- Represents one logical change
+- Is self-contained and independently reviewable
+- Can be reverted without affecting other changes
+- Makes the codebase better than before
+
+### How to Create Atomic Commits
+1. Break down large changes into smaller, focused commits
+2. Each commit should do one thing and do it well
+3. Group related changes together
+4. Separate unrelated changes into different commits
+
+### Examples of Atomic Commits
+✅ Good:
+```
+feat(auth): implement OAuth2 login
+feat(auth): add password reset functionality
+test(auth): add OAuth2 login tests
+```
+
+❌ Bad:
+```
+feat: implement authentication system with OAuth2 and password reset
+```
+
+## 2. Conventional Commits Format
+Every commit message must follow this format:
+```
+<type>(<scope>): <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+### Types
+- `feat`: A new feature
+- `fix`: A bug fix
+- `docs`: Documentation only changes
+- `style`: Changes that do not affect the meaning of the code
+- `refactor`: A code change that neither fixes a bug nor adds a feature
+- `perf`: A code change that improves performance
+- `test`: Adding missing tests or correcting existing tests
+- `chore`: Changes to the build process or auxiliary tools
+- `ci`: Changes to CI configuration files and scripts
+
+### Examples of Good Commit Messages
+✅ Good:
+```
+feat(auth): add OAuth2 authentication
+fix(api): resolve rate limiting issue
+docs(readme): update installation instructions
+```
+
+❌ Bad:
+```
+update auth system
+fixed some bugs
+changes to API
+```
+
+## Best Practices
+1. Review changes before committing
+2. Use `git add -p` to stage changes selectively
+3. Keep commit messages clear and descriptive
+4. Keep the first line under 72 characters
+5. Use the body for detailed explanations
+6. Consider the reviewer's perspective
+7. Make commits that tell a story

@@ -1,0 +1,28 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Bilingual Communication Guidelines
+
+## Communication Rules
+- Always respond to user queries in French
+- All generated content must be in English, including:
+  - Code
+  - Comments
+  - Variable names
+  - Documentation
+  - Configuration files
+  - Commit messages
+- Never mix languages in the same content
+- Keep technical terms in English even when discussing them in French
+- Maintain consistent English terminology throughout the codebase
+
+## Examples
+✅ Correct:
+- French: "Je vais créer une nouvelle fonction pour gérer l'authentification"
+- English: `function handleAuthentication() { ... }`
+
+❌ Incorrect:
+- Mixed: "Je vais créer une nouvelle function pour l'authentification"
+- Mixed: `// Fonction pour gérer l'authentification`

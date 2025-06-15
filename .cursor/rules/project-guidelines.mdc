@@ -1,0 +1,24 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Project Guidelines
+
+## Code Style
+- Use consistent indentation (4 spaces)
+- Follow conventional commits specification for all commits
+- Keep code DRY (Don't Repeat Yourself)
+- Write meaningful comments for complex logic
+
+## Best Practices
+- Write unit tests for new features
+- Document public APIs and functions
+- Keep functions small and focused
+- Use meaningful variable and function names
+
+## Git Workflow
+- Create feature branches for new development
+- Write descriptive commit messages following conventional commits
+- Keep commits atomic and focused
+- Review code before merging
