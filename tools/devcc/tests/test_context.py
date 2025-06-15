@@ -5,53 +5,35 @@ from devcc.models import (ExposeFeature, Feature, RuntimeFeature,
                           WorkspaceFeature)
 
 
-def test_context_initialization():
+def test_context_initialization(context):
     """Test that the Context class initializes correctly."""
-    context = Context()
     assert context.output is None
     assert context.dry_run is False
     assert context.features == {}
 
 
-def test_context_str():
+def test_context_str(context_with_features):
     """Test the string representation of the context."""
-    context = Context()
-    context.output = Path("/tmp/test.json")
-    context.dry_run = True
-    
-    # Add some features
-    context.features["runtime"] = RuntimeFeature()
-    context.features["workspace"] = WorkspaceFeature()
-    
-    expected = "Context(output=/tmp/test.json, dry_run=True, features=['runtime', 'workspace'])"
-    assert str(context) == expected
+    expected = "Context(output=/tmp/test.json, dry_run=True, features=['runtime', 'workspace', 'expose'])"
+    assert str(context_with_features) == expected
 
 
-def test_context_repr():
+def test_context_repr(context_with_features):
     """Test the detailed string representation of the context."""
-    context = Context()
-    context.output = Path("/tmp/test.json")
-    context.dry_run = True
-    
-    # Add some features
-    runtime = RuntimeFeature()
-    workspace = WorkspaceFeature()
-    context.features["runtime"] = runtime
-    context.features["workspace"] = workspace
-    
     expected = (
         "Context("
         f"output={repr(Path('/tmp/test.json'))}, "
         "dry_run=True, "
-        f"features={{'runtime': {repr(runtime)}, 'workspace': {repr(workspace)}}}"
+        f"features={{'runtime': {repr(context_with_features.features['runtime'])}, "
+        f"'workspace': {repr(context_with_features.features['workspace'])}, "
+        f"'expose': {repr(context_with_features.features['expose'])}}}"
         ")"
     )
-    assert repr(context) == expected
+    assert repr(context_with_features) == expected
 
 
-def test_context_with_empty_features():
+def test_context_with_empty_features(context):
     """Test context string representations with no features."""
-    context = Context()
     context.output = Path("/tmp/test.json")
     context.dry_run = True
     
@@ -62,11 +44,10 @@ def test_context_with_empty_features():
     assert repr(context) == expected_repr
 
 
-def test_context_with_none_output():
+def test_context_with_none_output(context, expose_feature):
     """Test context string representations with None output."""
-    context = Context()
     context.dry_run = True
-    context.features["expose"] = ExposeFeature()
+    context.features["expose"] = expose_feature
     
     expected_str = "Context(output=None, dry_run=True, features=['expose'])"
     assert str(context) == expected_str

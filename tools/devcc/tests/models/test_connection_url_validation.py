@@ -11,19 +11,16 @@ def test_connection_url_validation_scheme():
     assert "Input should be 'ssh://', 'tcp://' or 'unix://'" in str(exc_info.value)
 
 
-def test_connection_url_roundtrip_ssh():
+def test_connection_url_roundtrip_ssh(ssh_connection_url):
     original_url = "ssh://hostname:22"
-    conn = ConnectionURL.from_string(original_url)
-    assert conn.to_string() == original_url
+    assert ssh_connection_url.to_string() == original_url
 
 
-def test_connection_url_roundtrip_tcp():
+def test_connection_url_roundtrip_tcp(tcp_connection_url):
     original_url = "tcp://localhost:8080"
-    conn = ConnectionURL.from_string(original_url)
-    assert conn.to_string() == original_url
+    assert tcp_connection_url.to_string() == original_url
 
 
-def test_connection_url_roundtrip_unix():
+def test_connection_url_roundtrip_unix(unix_connection_url):
     original_url = "unix:///tmp/socket.sock"
-    conn = ConnectionURL.from_string(original_url)
-    assert conn.to_string() == original_url 
+    assert unix_connection_url.to_string() == original_url 

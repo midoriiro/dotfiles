@@ -5,31 +5,25 @@ import pytest
 from devcc.models import ConnectionURL
 
 
-def test_connection_url_from_string_ssh():
-    url = "ssh://hostname:22"
-    conn = ConnectionURL.from_string(url)
-    assert conn.scheme == "ssh://"
-    assert conn.host == "hostname"
-    assert conn.port == 22
-    assert conn.path is None
+def test_connection_url_from_string_ssh(ssh_connection_url):
+    assert ssh_connection_url.scheme == "ssh://"
+    assert ssh_connection_url.host == "hostname"
+    assert ssh_connection_url.port == 22
+    assert ssh_connection_url.path is None
 
 
-def test_connection_url_from_string_tcp():
-    url = "tcp://localhost:8080"
-    conn = ConnectionURL.from_string(url)
-    assert conn.scheme == "tcp://"
-    assert conn.host == "localhost"
-    assert conn.port == 8080
-    assert conn.path is None
+def test_connection_url_from_string_tcp(tcp_connection_url):
+    assert tcp_connection_url.scheme == "tcp://"
+    assert tcp_connection_url.host == "localhost"
+    assert tcp_connection_url.port == 8080
+    assert tcp_connection_url.path is None
 
 
-def test_connection_url_from_string_unix():
-    url = "unix:///tmp/socket.sock"
-    conn = ConnectionURL.from_string(url)
-    assert conn.scheme == "unix://"
-    assert conn.host is None
-    assert conn.port is None
-    assert conn.path == "/tmp/socket.sock"
+def test_connection_url_from_string_unix(unix_connection_url):
+    assert unix_connection_url.scheme == "unix://"
+    assert unix_connection_url.host is None
+    assert unix_connection_url.port is None
+    assert unix_connection_url.path == "/tmp/socket.sock"
 
 
 def test_connection_url_from_string_invalid_scheme():
