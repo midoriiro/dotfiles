@@ -8,6 +8,7 @@ run dnf update -y && \
     git \
     sudo \
     python3 \
+    pipx \
     && dnf clean all
 # Create vscode user
 run useradd -m -s /bin/bash vscode && \
@@ -17,4 +18,5 @@ run useradd -m -s /bin/bash vscode && \
 workdir /workspace
 # Set default user
 user vscode
+run pipx install poetry
 env PATH="/home/vscode/.local/bin:${PATH}" 
