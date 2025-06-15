@@ -161,3 +161,61 @@ class WorkspaceFeature(Feature):
         if self.workspaceMount:
             composed['workspaceMount'] = str(self.workspaceMount)
         return composed
+
+
+class ContainerImageFeature(Feature):
+    """Configuration for container image settings."""
+    name: str = Field(..., description="Name of the container image")
+
+    def compose(self) -> Dict:
+        """Compose the ContainerImageFeature into a dictionary according to the devcontainer spec."""
+        composed = {
+            'image': self.name
+        }
+        return composed
+
+    def has_valid_fields(self) -> bool:
+        """Check if at least one field is not None."""
+        return self.name is not None
+
+
+class ContainerBuildFeature(Feature):
+    """Configuration for container build settings."""
+    container_file: Optional[str] = Field(None, description="Path to the container file")
+    context: Optional[str] = Field(None, description="Path to the build context")
+    target: Optional[str] = Field(None, description="Target build stage")
+
+    def compose(self) -> Dict:
+        """Compose the ContainerBuildFeature into a dictionary according to the devcontainer spec."""
+        composed = {
+            "build": {}
+        }
+        if self.container_file:
+            composed['build']['dockerFile'] = self.container_file
+        if self.context:
+            composed['build']['context'] = self.context
+        if self.target:
+            composed['build']['target'] = self.target
+        return composed
+
+    def has_valid_fields(self) -> bool:
+        """Check if at least one field is not None."""
+        return any(field is not None for field in [self.container_file, self.context, self.target])
+
+
+class ContainerFeature(Feature):
+    """Configuration for container settings."""
+    image: Optional[ContainerImageFeature] = Field(None, description="Container image")
+    build: Optional[ContainerBuildFeature] = Field(None, description="Container build configuration")
+
+    def compose(self) -> Dict:
+        """Compose the ContainerFeature into a dictionary according to the devcontainer spec."""
+        if (self.image is None and self.build is None) or (self.image is not None and self.build is not None):
+            raise ValueError("Either 'image' or 'build' must be set, but not both or neither.")
+        
+        composed = {}
+        if self.image:
+            composed.update(self.image.compose())
+        if self.build:
+            composed.update(self.build.compose())
+        return composed
