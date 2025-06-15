@@ -1,0 +1,12 @@
+{
+    "folders": [
+        {
+            "path": "."
+        },
+        {
+            "path": "tools/devcc",
+            "name": "DevContainerComposer"
+        }
+    ],
+    "settings": {}
+}
