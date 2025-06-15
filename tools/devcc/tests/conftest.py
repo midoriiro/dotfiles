@@ -1,3 +1,5 @@
+import os
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -68,4 +70,11 @@ def app():
 @pytest.fixture
 def runner():
     """Fixture providing a CliRunner instance."""
-    return CliRunner() 
+    return CliRunner()
+
+@pytest.fixture
+def runner_args():
+    """Fixture providing arguments for the CliRunner invoke method."""
+    return {
+        "catch_exceptions": False
+    }
