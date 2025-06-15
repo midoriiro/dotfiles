@@ -25,8 +25,10 @@ def validate_volume_name(volume_name: Optional[str]):
         raise typer.BadParameter("Volume name cannot be empty")
     if len(volume_name) < 3:
         raise typer.BadParameter("Volume name must be at least 3 characters long")
-    if not volume_name.isalnum():
-        raise typer.BadParameter("Volume name must be alphanumeric")
+    if not volume_name[0].isalpha():
+        raise typer.BadParameter("Volume name must start with a letter")
+    if not all(c.isalnum() or c in ['_', '-'] for c in volume_name):
+        raise typer.BadParameter("Volume name can only contain letters, numbers, underscores and dashes")
     return volume_name
 
 

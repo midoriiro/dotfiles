@@ -62,10 +62,24 @@ def test_workspace_command_with_short_volume_name(app: App, runner: CliRunner):
     assert app.context.features.get("workspace") is None
 
 def test_workspace_command_with_non_alphanumeric_volume_name(app: App, runner: CliRunner):
-    result = runner.invoke(app.typer, ["workspace", "--volume-name", "test-volume"])
+    result = runner.invoke(app.typer, ["workspace", "--volume-name", "test@volume"])
     assert result.exit_code == 2
-    assert "Volume name must be alphanumeric" in result.output
+    assert "Volume name can only contain letters, numbers, underscores and dashes" in result.output
     assert app.context.features.get("workspace") is None
+
+def test_workspace_command_with_volume_name_starting_with_number(app: App, runner: CliRunner):
+    result = runner.invoke(app.typer, ["workspace", "--volume-name", "123volume"])
+    assert result.exit_code == 2
+    assert "Volume name must start with a letter" in result.output
+    assert app.context.features.get("workspace") is None
+
+def test_workspace_command_with_valid_volume_name(app: App, runner: CliRunner):
+    result = runner.invoke(app.typer, ["workspace", "--volume-name", "test-volume_123"])
+    assert result.exit_code == 0
+    assert app.context.features["workspace"].workspaceMount.source == "test-volume_123"
+    assert app.context.features["workspace"].workspaceMount.target == "/workspace"
+    assert app.context.features["workspace"].workspaceMount.type == MountType.VOLUME
+    assert app.context.features["workspace"].workspaceMount.options == "consistency=cached"
 
 def test_workspace_command_with_feature_creation_error(app: App, runner: CliRunner, monkeypatch):
     def mock_workspace_feature(*args, **kwargs):
