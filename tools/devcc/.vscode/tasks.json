@@ -2,7 +2,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Devc Install",
+            "label": "Devcc: Install",
             "type": "shell",
             "command": "poetry install",
             "problemMatcher": [],
@@ -12,7 +12,7 @@
             }
         },
         {
-            "label": "Devc Run Tests",
+            "label": "Devcc: Run Tests",
             "type": "shell",
             "command": "poetry run pytest",
             "problemMatcher": [
@@ -24,7 +24,7 @@
             }
         },
         {
-            "label": "Devc Run Tests with Coverage",
+            "label": "Devcc: Run Tests with Coverage",
             "type": "shell",
             "command": "poetry run pytest --cov=devcc",
             "problemMatcher": [
@@ -36,7 +36,7 @@
             }
         },
         {
-            "label": "Devc Run Lint",
+            "label": "Devcc: Run Lint",
             "type": "shell",
             "command": "poetry run flake8",
             "problemMatcher": [
@@ -44,7 +44,7 @@
             ]
         },
         {
-            "label": "Devc Run Type Check",
+            "label": "Devcc: Run Type Check",
             "type": "shell",
             "command": "poetry run mypy .",
             "problemMatcher": [
