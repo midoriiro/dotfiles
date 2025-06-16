@@ -81,7 +81,6 @@ def validate_mounts(mounts: Optional[str]):
 user_option = typer.Option(
     None,
     "--user",
-    "-u",
     help="Container user in format 'user:remote' or 'user:container'",
     callback=validate_user
 )
@@ -89,7 +88,6 @@ user_option = typer.Option(
 env_option = typer.Option(
     None,
     "--env",
-    "-e",
     help="Environment variables in 'container:key=value' or 'remote:key=value' format, separated by commas",
     callback=validate_env
 )
@@ -97,7 +95,6 @@ env_option = typer.Option(
 mounts_option = typer.Option(
     None,
     "--mounts",
-    "-m",
     help="Mount points in 'source:target:type[:options]' format, separated by commas",
     callback=validate_mounts
 )
