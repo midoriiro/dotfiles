@@ -75,3 +75,36 @@ changes to API
 5. Use the body for detailed explanations
 6. Consider the reviewer's perspective
 7. Make commits that tell a story
+
+## Commit Workflow
+
+1. **Repository Status Check**
+   - Run `git status` to identify modified, added, or deleted files.
+   - Use `git diff` to examine the changes made to each file in detail.
+
+2. **Analysis and Commit Planning**
+   - Analyze the nature of the changes (new features, bug fixes, refactoring, documentation, tests, etc.).
+   - Group changes by functional or technical logic to ensure each commit is atomic and coherent.
+   - Explain the commit plan: for each planned commit, briefly detail what it will contain and the associated Conventional Commit type (feat, fix, test, etc.).
+
+3. **Commit Preparation**
+   - Use `git add -p` or fine-grained selection to stage only the changes corresponding to each planned commit.
+   - Write the commit message strictly following the Conventional Commits specification (type, optional scope, concise description).
+
+4. **Change Review**
+   - Before proceeding with the commit, perform a final review of the staged changes (`git diff --staged`) to ensure they match the announced plan and no unwanted changes are included.
+   - Present the diff or a summary of the changes to the user for validation.
+
+5. **User Validation**
+   - Explicitly wait for user validation before executing the commits.
+   - If modifications or adjustments are requested, take them into account before proceeding.
+
+6. **Commit Execution**
+   - Once validated, perform the commits one by one, respecting the order and granularity defined in the plan.
+
+7. **Systematic Best Practices**
+   - Always keep commits atomic and independent.
+   - Use clear, concise, and informative commit messages.
+   - Never include unrelated changes in the same commit.
+   - Document complex changes in the commit message body if necessary.
+   - Ensure the code remains consistent, tested, and documented at each step.
