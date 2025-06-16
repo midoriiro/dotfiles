@@ -35,7 +35,6 @@ def validate_volume_name(volume_name: Optional[str]):
 name_option = typer.Option(
     None,
     "--name",
-    "-n",
     help="Workspace name",
     callback=validate_name
 )
@@ -43,7 +42,6 @@ name_option = typer.Option(
 volume_name_option = typer.Option(
     None,
     "--volume-name",
-    "-v",
     help="Workspace volume name",
     callback=validate_volume_name
 )
