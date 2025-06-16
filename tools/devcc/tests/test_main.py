@@ -100,10 +100,12 @@ def test_app_with_all_features_and_options(app: App, runner: CliRunner, runner_a
         "--volume-name", "testvolume",
         "expose",
         "--address", "unix:///tmp/container.sock",
-        "container", "build", 
+        "build", 
         "--container-file", str(container_file),
         "--context", str(context_file),
-        "--target", "development"
+        "--target", "development",
+        "network",
+        "--name", "testnetwork"
     ], **runner_args)
     assert result.exit_code == 0
     assert app.context.output == Path("/tmp/test.json")
@@ -121,9 +123,10 @@ def test_app_with_all_features_and_options(app: App, runner: CliRunner, runner_a
     assert app.context.features["workspace"].workspaceMount.type == MountType.VOLUME
     assert app.context.features["workspace"].workspaceMount.options == "consistency=cached"
     assert app.context.features["expose"].address.to_string() == "unix:///tmp/container.sock"
-    assert app.context.features["container"].build.container_file == str(container_file)
-    assert app.context.features["container"].build.context == str(context_file)
-    assert app.context.features["container"].build.target == "development"
+    assert app.context.features["build"].container_file == str(container_file)
+    assert app.context.features["build"].context == str(context_file)
+    assert app.context.features["build"].target == "development"
+    assert app.context.features["network"].name == "testnetwork"
     expected_output = {
         "name": "testworkspace",
         "workspaceMount": "source=testvolume,target=/workspace,type=volume,options=consistency=cached",
@@ -139,7 +142,10 @@ def test_app_with_all_features_and_options(app: App, runner: CliRunner, runner_a
             "dockerFile": str(container_file),
             "context": str(context_file),
             "target": "development"
-        }
+        },
+        "runArgs": [
+            "--network=testnetwork"
+        ]
     }
     output_dict = json.loads(result.output)
     assert output_dict == expected_output

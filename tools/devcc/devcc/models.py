@@ -165,7 +165,7 @@ class WorkspaceFeature(Feature):
 
 class ContainerImageFeature(Feature):
     """Configuration for container image settings."""
-    name: str = Field(..., description="Name of the container image")
+    name: Optional[str] = Field(None, description="Name of the container image")
 
     def compose(self) -> Dict:
         """Compose the ContainerImageFeature into a dictionary according to the devcontainer spec."""
@@ -202,20 +202,17 @@ class ContainerBuildFeature(Feature):
         """Check if at least one field is not None."""
         return any(field is not None for field in [self.container_file, self.context, self.target])
 
-
-class ContainerFeature(Feature):
-    """Configuration for container settings."""
-    image: Optional[ContainerImageFeature] = Field(None, description="Container image")
-    build: Optional[ContainerBuildFeature] = Field(None, description="Container build configuration")
-
+class ContainerNetworkFeature(Feature):
+    """Configuration for container network settings."""
+    name: Optional[str] = Field(None, description="Network name")
+    
+    def has_valid_fields(self) -> bool:
+        """Check if the network feature has valid fields."""
+        return self.name is not None and len(self.name.strip()) > 0
+    
     def compose(self) -> Dict:
-        """Compose the ContainerFeature into a dictionary according to the devcontainer spec."""
-        if (self.image is None and self.build is None) or (self.image is not None and self.build is not None):
-            raise ValueError("Either 'image' or 'build' must be set, but not both or neither.")
-        
+        """Compose the ContainerNetworkFeature into a dictionary according to the devcontainer spec."""
         composed = {}
-        if self.image:
-            composed.update(self.image.compose())
-        if self.build:
-            composed.update(self.build.compose())
+        if self.name:
+            composed['runArgs'] = [f'--network={self.name}']
         return composed

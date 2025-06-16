@@ -154,4 +154,17 @@ def test_composer_add_feature_simple_value():
     feature2 = RuntimeFeature(remoteUser="user2")
     composer._add_feature(feature2)
     
-    assert composer.config["remoteUser"] == "user2" 
+    assert composer.config["remoteUser"] == "user2"
+
+def test_composer_build_and_image_conflict():
+    """Test that the Composer raises an error when both 'build' and 'image' features are present."""
+    context = Context()
+    
+    # Add both build and image features
+    context.features["build"] = RuntimeFeature()
+    context.features["image"] = RuntimeFeature()
+    
+    composer = Composer(context)
+    
+    with pytest.raises(ValueError, match="Either 'build' or 'image' must be set in the context, but not both"):
+        composer.compose() 

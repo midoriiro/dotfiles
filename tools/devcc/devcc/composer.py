@@ -15,7 +15,11 @@ class Composer:
     
     def compose(self) -> Dict:
         """Compose all features into a final configuration."""
-        feature_order = ["workspace", "runtime", "expose", "container"]
+        
+        if "build" in self.context.features and "image" in self.context.features:
+            raise ValueError("Either 'build' or 'image' must be set in the context, but not both.")
+
+        feature_order = ["workspace", "runtime", "expose", "build", "image", "network"]
         for feature_name in feature_order:
             if feature_name in self.context.features:
                 feature = self.context.features[feature_name]

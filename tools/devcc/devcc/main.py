@@ -4,8 +4,10 @@ from typing import Annotated, Any, List, Optional
 import typer
 from pydantic import BaseModel, field_validator
 
-from devcc.commands.container import app as container_command
+from devcc.commands.build import command as build_command
 from devcc.commands.expose import command as expose_command
+from devcc.commands.image import command as image_command
+from devcc.commands.network import command as network_command
 from devcc.commands.runtime import command as runtime_command
 from devcc.commands.workspace import command as workspace_command
 from devcc.composer import Composer
@@ -30,7 +32,9 @@ class App:
         self.__typer.command(name="runtime")(runtime_command)
         self.__typer.command(name="workspace")(workspace_command)
         self.__typer.command(name="expose")(expose_command)
-        self.__typer.add_typer(container_command, name="container")
+        self.__typer.command(name="image")(image_command)
+        self.__typer.command(name="build")(build_command)
+        self.__typer.command(name="network")(network_command)
 
     def register(self):
         @self.__typer.callback(invoke_without_command=True)
