@@ -6,6 +6,10 @@
         {
             "path": "tools/devcc",
             "name": "DevContainerComposer"
+        },
+        {
+            "path": "tools/devm",
+            "name": "DevMerger"
         }
     ],
     "settings": {}
