@@ -6,10 +6,6 @@ __pycache__/
 .coverage
 htmlcov/
 
-# IDE settings
-.vscode/
-.idea/
-
 # Environment
 .env
 .venv/
