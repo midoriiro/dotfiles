@@ -1,0 +1,18 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Poetry
+poetry.lock
+
+# Virtual environments
+.env/
+.venv/
+
+# devm package (if built)
+dist/
+build/
+
+# Local devm folder
+/devm/

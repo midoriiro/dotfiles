@@ -1,0 +1,55 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Devm: Install",
+            "type": "shell",
+            "command": "poetry install",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Devm: Run Tests",
+            "type": "shell",
+            "command": "poetry run pytest",
+            "problemMatcher": [
+                "$python"
+            ],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Devm: Run Tests with Coverage",
+            "type": "shell",
+            "command": "poetry run pytest --cov=devm",
+            "problemMatcher": [
+                "$python"
+            ],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Devm: Run Lint",
+            "type": "shell",
+            "command": "poetry run flake8",
+            "problemMatcher": [
+                "$python"
+            ]
+        },
+        {
+            "label": "Devm: Run Type Check",
+            "type": "shell",
+            "command": "poetry run mypy .",
+            "problemMatcher": [
+                "$python"
+            ]
+        }
+    ]
+}
