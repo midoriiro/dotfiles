@@ -4,12 +4,16 @@
             "path": "."
         },
         {
-            "path": "tools/devcc",
-            "name": "DevContainerComposer"
+            "path": "tools/compose",
+            "name": "Compose"
         },
         {
-            "path": "tools/devm",
-            "name": "DevMerger"
+            "path": "tools/merge",
+            "name": "Merge"
+        },
+        {
+            "path": "tools/ignite",
+            "name": "Ignite"
         }
     ],
     "settings": {}
