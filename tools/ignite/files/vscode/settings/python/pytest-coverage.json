@@ -1,0 +1,6 @@
+{
+    "python.testing.pytestArgs": [
+        "--cov",
+        "--cov-report=term-missing"
+    ]
+}

@@ -1,0 +1,13 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "${projectName}: Run Lint (flake8)",
+            "type": "shell",
+            "command": "poetry run flake8",
+            "problemMatcher": [
+                "$python"
+            ]
+        }
+    ]
+}

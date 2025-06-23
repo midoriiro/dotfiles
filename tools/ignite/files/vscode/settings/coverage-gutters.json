@@ -1,0 +1,5 @@
+{
+    "coverage-gutters.coverageReportFileName": ".coverage",
+    "coverage-gutters.showLineCoverage": true,
+    "coverage-gutters.showRulerCoverage": true
+}

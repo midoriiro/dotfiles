@@ -1,0 +1,6 @@
+{
+    "isort.args": [
+        "--profile",
+        "black"
+    ]
+}
