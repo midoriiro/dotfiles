@@ -21,7 +21,7 @@ ImageTagIdentifier = Annotated[
     StringConstraints(
         min_length=3,
         max_length=256,
-        pattern=rf"^({IdentifierPattern}|\.|\d)+$"
+        pattern=rf"^({IdentifierPattern}|\.|\d|\-)+$"
     )
 ]
 
@@ -916,6 +916,8 @@ class Image(Feature):
             composed['image'] = f"{self.repository}/{self.name}"
         elif self.repository and self.tag:
             composed['image'] = f"{self.repository}/{self.name}:{self.tag}"
+        elif not self.repository and self.tag:
+            composed['image'] = f"{self.name}:{self.tag}"
         else:
             composed['image'] = self.name
         return composed

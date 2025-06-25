@@ -2,11 +2,10 @@ from enum import Enum
 from typing import Dict, Union
 from pydantic import BaseModel, Field, RootModel, model_validator
 
-ReservedPolicyKeys = {
-    "container": "container",
-    "folder": "folder",
-    "file": "file"
-}
+class ReservedPolicyKeys(str, Enum):
+    CONTAINER = "container"
+    FOLDER = "folder"
+    FILE = "file"
 
 class Policy(BaseModel):
     """
@@ -241,6 +240,12 @@ class Policies(RootModel[Dict[str, Union[ContainerPolicy, FolderPolicy, FilePoli
         if len(self.root.keys()) == 0:
             raise ValueError("At least one policy must be specified")
         for key in self.root.keys():
-            if key not in ReservedPolicyKeys.values():
+            if key not in ReservedPolicyKeys:
                 raise ValueError(f"Invalid policy key: {key}")
+        if ReservedPolicyKeys.CONTAINER not in self.root:
+            raise ValueError("Container policy must be specified")
+        if ReservedPolicyKeys.FOLDER not in self.root:
+            raise ValueError("Folder policy must be specified")
+        if ReservedPolicyKeys.FILE not in self.root:
+            raise ValueError("File policy must be specified")
         return self
