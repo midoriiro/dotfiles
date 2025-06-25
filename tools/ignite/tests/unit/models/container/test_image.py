@@ -61,7 +61,7 @@ class TestImageComposeMethod:
         image = Image(name="test-image", tag="latest")
         result = image.compose()
         
-        expected = {"image": "test-image"}
+        expected = {"image": "test-image:latest"}
         assert_that(result).is_equal_to(expected)
 
     def test_compose_with_repository_and_tag(self):

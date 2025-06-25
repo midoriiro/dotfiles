@@ -26,7 +26,7 @@ from ignite.models.container import (
     URL,
     URLScheme
 )
-from ignite.models.policies import FolderCreatePolicy, FileWritePolicy
+from ignite.models.policies import FilePolicy, FolderCreatePolicy, FileWritePolicy, FolderPolicy, Policies, ReservedPolicyKeys
 from ignite.logging import FilesystemMessage
 
 
@@ -221,16 +221,20 @@ class TestContainerComposerSave:
     def test_save_without_compose_raises_error(self, minimal_container_configuration, tmp_path):
         """Test that save raises error when compose hasn't been called."""
         composer = ContainerComposer(minimal_container_configuration)
-        
+        policies = Policies.model_construct(root={})
         with pytest.raises(ValueError, match="Configuration is not composed yet."):
-            composer.save(tmp_path)
+            composer.save(tmp_path, policies)
 
     def test_save_creates_devcontainer_directory(self, minimal_container_configuration, tmp_path):
         """Test that save creates the .devcontainer directory."""
         composer = ContainerComposer(minimal_container_configuration)
         composer.compose()
+        policies = Policies.model_construct(root={
+            ReservedPolicyKeys.FOLDER: FolderPolicy(create=FolderCreatePolicy.ALWAYS),
+            ReservedPolicyKeys.FILE: FilePolicy(write=FileWritePolicy.OVERWRITE),
+        })
         
-        composer.save(tmp_path)
+        composer.save(tmp_path, policies)
 
         json_path = Path(tmp_path, ".devcontainer", "devcontainer.json")
         assert_that(str(json_path)).exists()
@@ -241,8 +245,12 @@ class TestContainerComposerSave:
         """Test that save writes valid JSON content."""
         composer = ContainerComposer(minimal_container_configuration)
         composer.compose()
+        policies = Policies.model_construct(root={
+            ReservedPolicyKeys.FOLDER: FolderPolicy(create=FolderCreatePolicy.ALWAYS),
+            ReservedPolicyKeys.FILE: FilePolicy(write=FileWritePolicy.OVERWRITE),
+        })
         
-        composer.save(tmp_path)
+        composer.save(tmp_path, policies)
         
         json_path = Path(tmp_path, ".devcontainer", "devcontainer.json")
         content = json_path.read_text()
@@ -255,8 +263,12 @@ class TestContainerComposerSave:
         """Test that save writes the correct configuration content."""
         composer = ContainerComposer(minimal_container_configuration)
         composer.compose()
+        policies = Policies.model_construct(root={
+            ReservedPolicyKeys.FOLDER: FolderPolicy(create=FolderCreatePolicy.ALWAYS),
+            ReservedPolicyKeys.FILE: FilePolicy(write=FileWritePolicy.OVERWRITE),
+        })
         
-        composer.save(tmp_path)
+        composer.save(tmp_path, policies)
         
         json_path = Path(tmp_path, ".devcontainer", "devcontainer.json")
         content = json.loads(json_path.read_text())
@@ -273,8 +285,12 @@ class TestContainerComposerSave:
         """Test that save uses the correct folder and file policies."""
         composer = ContainerComposer(minimal_container_configuration)
         composer.compose()
+        policies = Policies.model_construct(root={
+            ReservedPolicyKeys.FOLDER: FolderPolicy(create=FolderCreatePolicy.ALWAYS),
+            ReservedPolicyKeys.FILE: FilePolicy(write=FileWritePolicy.OVERWRITE),
+        })
         
-        composer.save(tmp_path)
+        composer.save(tmp_path, policies)
         
         # Check that the correct policies are used (ALWAYS for folder, OVERWRITE for file)
         devcontainer_path = Path(tmp_path, ".devcontainer")

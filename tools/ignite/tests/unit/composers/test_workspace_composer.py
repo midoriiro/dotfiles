@@ -10,7 +10,7 @@ from assertpy import assert_that
 from ignite.composers import WorkspaceComposer
 from ignite.models.settings import VSCodeFolder
 from ignite.models.workspace import Workspace as WorkspaceModel, WorkspaceFileSpecification, WorkspaceFolderSpecification
-from ignite.models.policies import Policies, ContainerPolicy, ContainerBackendPolicy, FolderPolicy, FolderCreatePolicy, FilePolicy, FileWritePolicy
+from ignite.models.policies import Policies, ContainerPolicy, ContainerBackendPolicy, FolderPolicy, FolderCreatePolicy, FilePolicy, FileWritePolicy, ReservedPolicyKeys
 from ignite.models.projects import Projects, UserProject, RepositoryProject, ReservedProjectKey
 from ignite.models.fs import File, Folder, ResolvedFile, FileTemplateVariables, ResolvedFolder
 from ignite.resolvers import PathResolver
@@ -272,18 +272,25 @@ class TestWorkspaceComposerSave:
         """Test that save raises an error if compose hasn't been called."""
         path_resolver = Mock(spec=PathResolver)
         composer = WorkspaceComposer(minimal_workspace_configuration, path_resolver)
-        
+        policies = Policies.model_construct(root={
+            ReservedPolicyKeys.FOLDER: FolderPolicy(create=FolderCreatePolicy.ALWAYS),
+            ReservedPolicyKeys.FILE: FilePolicy(write=FileWritePolicy.OVERWRITE),
+        })
         with pytest.raises(ValueError, match="Files are not resolved yet."):
-            composer.save(tmp_path)
+            composer.save(tmp_path, policies)
 
     def test_save_creates_files(self, minimal_workspace_configuration, tmp_path):
         """Test that save creates the workspace file."""
         path_resolver = Mock(spec=PathResolver)
         path_resolver.resolve.return_value = []
+        policies = Policies.model_construct(root={
+            ReservedPolicyKeys.FOLDER: FolderPolicy(create=FolderCreatePolicy.ALWAYS),
+            ReservedPolicyKeys.FILE: FilePolicy(write=FileWritePolicy.OVERWRITE),
+        })
         
         composer = WorkspaceComposer(minimal_workspace_configuration, path_resolver)
         composer.compose()
-        composer.save(tmp_path)
+        composer.save(tmp_path, policies)
         
         workspace_file = tmp_path / "workspace.code-workspace"
         assert_that(workspace_file.exists()).is_true()
@@ -293,10 +300,14 @@ class TestWorkspaceComposerSave:
         """Test that save writes valid JSON content."""
         path_resolver = Mock(spec=PathResolver)
         path_resolver.resolve.return_value = []
-        
+        policies = Policies.model_construct(root={
+            ReservedPolicyKeys.FOLDER: FolderPolicy(create=FolderCreatePolicy.ALWAYS),
+            ReservedPolicyKeys.FILE: FilePolicy(write=FileWritePolicy.OVERWRITE),
+        })
+
         composer = WorkspaceComposer(minimal_workspace_configuration, path_resolver)
         composer.compose()
-        composer.save(tmp_path)
+        composer.save(tmp_path, policies)
         
         workspace_file = tmp_path / "workspace.code-workspace"
         content = workspace_file.read_text()
@@ -321,10 +332,13 @@ class TestWorkspaceComposerSave:
                 ),
             }),
         )
-        
+        policies = Policies.model_construct(root={
+            ReservedPolicyKeys.FOLDER: FolderPolicy(create=FolderCreatePolicy.ALWAYS),
+            ReservedPolicyKeys.FILE: FilePolicy(write=FileWritePolicy.OVERWRITE),
+        })
         composer = WorkspaceComposer(workspace, path_resolver)
         composer.compose()
-        composer.save(tmp_path)
+        composer.save(tmp_path, policies)
         
         # Check workspace file
         workspace_file = tmp_path / "workspace.code-workspace"
@@ -339,13 +353,16 @@ class TestWorkspaceComposerSave:
         """Test that save uses the workspace policies for file operations."""
         path_resolver = Mock(spec=PathResolver)
         path_resolver.resolve.return_value = []
-        
+        policies = Policies.model_construct(root={
+            ReservedPolicyKeys.FOLDER: FolderPolicy(create=FolderCreatePolicy.ALWAYS),
+            ReservedPolicyKeys.FILE: FilePolicy(write=FileWritePolicy.OVERWRITE),
+        })
         composer = WorkspaceComposer(minimal_workspace_configuration, path_resolver)
         composer.compose()
         
         # Mock the _save_file method to verify it's called with correct policies
         with patch.object(composer, '_save_file') as mock_save_file:
-            composer.save(tmp_path)
+            composer.save(tmp_path, policies)
             
             # Verify _save_file was called with workspace policies
             mock_save_file.assert_called_once()
@@ -357,13 +374,16 @@ class TestWorkspaceComposerSave:
         """Test that save creates directories when needed."""
         path_resolver = Mock(spec=PathResolver)
         path_resolver.resolve.return_value = []
-        
+        policies = Policies.model_construct(root={
+            ReservedPolicyKeys.FOLDER: FolderPolicy(create=FolderCreatePolicy.ALWAYS),
+            ReservedPolicyKeys.FILE: FilePolicy(write=FileWritePolicy.OVERWRITE),
+        })
         composer = WorkspaceComposer(minimal_workspace_configuration, path_resolver)
         composer.compose()
         
         # Create a nested path that doesn't exist
         nested_path = tmp_path / "nested" / "deep" / "path"
-        composer.save(nested_path)
+        composer.save(nested_path, policies)
         
         workspace_file = nested_path / "workspace.code-workspace"
         assert_that(workspace_file.exists()).is_true()

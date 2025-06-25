@@ -6,7 +6,7 @@ from typer.testing import CliRunner
 from assertpy import assert_that
 
 from ignite.composers import Composer
-from ignite.models.policies import FolderCreatePolicy, FileWritePolicy
+from ignite.models.policies import FolderCreatePolicy, FileWritePolicy, Policies
 from ignite.logging import FilesystemMessage
 
 
@@ -30,8 +30,9 @@ class TestComposerInit:
         """Test that save method raises NotImplementedError."""
         composer = Composer()
         output_path = Path("/tmp/test")
+        policies = Policies.model_construct(root={})
         
-        assert_that(composer.save).raises(NotImplementedError).when_called_with(output_path).is_equal_to("Subclass must implement this method.")
+        assert_that(composer.save).raises(NotImplementedError).when_called_with(output_path, policies).is_equal_to("Subclass must implement this method.")
 
 
 class TestComposerUserInteraction:
