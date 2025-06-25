@@ -131,7 +131,6 @@ def assert_logs(caplog: pytest.LogCaptureFixture) -> AssertLogs:
                 raise AssertionError(f"Record '{record.message}' does not have a 'type' attribute")
             type = record.type
             message = BaseMessage.from_record(record)
-            print(message)
             assert_that(expected_messages).contains(message)
         
     return _assert_logs
