@@ -18,12 +18,13 @@ class BaseMessage(BaseModel):
                 json_path=record.json_path,
                 error_message=record.error_message,
             )
-        elif record.type == PydanticValidationErrorMessage.__name__:
-            return PydanticValidationErrorMessage.model_construct(
-                location=record.location,
-                error_type=record.error_type,
-                error_message=record.error_message,
-                input=record.input,
+        elif record.type == PydanticValidationErrorMessageList.__name__:
+            return PydanticValidationErrorMessageList.model_construct(
+                errors=[PydanticValidationErrorMessage.model_construct(
+                    location=error["location"],
+                    error_type=error["error_type"],
+                    error_message=error["error_message"],
+                    input=error["input"]) for error in record.errors]
             )
         elif record.type == FilesystemMessage.__name__:
             return FilesystemMessage.model_construct(
@@ -32,8 +33,22 @@ class BaseMessage(BaseModel):
                 message=record.message,
                 path=record.path,
             )
+        elif record.type == ConfigurationFileErrorMessage.__name__:
+            return ConfigurationFileErrorMessage.model_construct(
+                line=record.line,
+                column=record.column,
+                problem=record.problem,
+            )
+        elif record.type == ComposerMessage.__name__:
+            return ComposerMessage.model_construct(
+                composer_type=record.composer_type,
+                error_type=record.error_type,
+                error_message=record.error_message,
+            )
         else:
             raise ValueError(f"Unknown message type: {record.type}")
+
+
 class JsonSchemaValidationErrorMessage(BaseMessage):
     json_path: str
     error_message: str
@@ -43,6 +58,14 @@ class PydanticValidationErrorMessage(BaseMessage):
     error_type: Optional[str] = None
     error_message: Optional[str] = None
     input: Optional[Any] = None
+
+class PydanticValidationErrorMessageList(BaseMessage):
+    errors: list[PydanticValidationErrorMessage]
+
+class ConfigurationFileErrorMessage(BaseMessage):
+    line: int
+    column: int
+    problem: str
 
 class ComposerMessage(BaseMessage):
     composer_type: str
