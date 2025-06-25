@@ -10,7 +10,7 @@ from ignite.logging import FilesystemMessage
 from ignite.models.container import Container, Expose, Runtime, Workspace as ContainerWorkspace
 from ignite.models.container import Build, Image, Network, Extensions
 from ignite.models.fs import FileTemplateVariables, ReservedFileName, ResolvedFile
-from ignite.models.policies import FileWritePolicy, FolderCreatePolicy, FolderPolicy
+from ignite.models.policies import FileWritePolicy, FolderCreatePolicy, FolderPolicy, Policies, ReservedPolicyKeys
 from ignite.models.projects import RepositoryProject, ReservedProjectKey, UserProject
 from ignite.models.settings import ResolvedFolder
 from ignite.models.workspace import Workspace as WorkspaceModel, WorkspaceFileSpecification
@@ -59,21 +59,25 @@ class Composer:
         """
         pass
 
-    def save(self, output_path: Path) -> None:
+    def save(self, output_path: Path, policies: Policies) -> None:
         """
         Save the composed configuration to a file.
         
         This method should be implemented by subclasses to handle the specific
-        file format and saving logic for their configuration type.
+        file format and saving logic for their configuration type. The method
+        uses the provided policies to determine how to handle folder creation
+        and file writing operations.
         
         Args:
-            output_path: Path where the configuration file should be saved
+            output_path: Path where the configuration file should be saved.
+            policies: The policies object containing folder and file policies
+                     that determine how to handle directory creation and file writing.
             
         Raises:
-            NotImplementedError: Always raised by the base class, subclasses must implement
+            NotImplementedError: Always raised by the base class, subclasses must implement.
         """
         raise NotImplementedError("Subclass must implement this method.")
-    
+
     def _ask_create_folder(self, output_path: Path) -> bool:
         """
         Ask the user if they want to create a folder.
@@ -283,7 +287,7 @@ class ContainerComposer(Composer):
             else:
                 features[key] = value
     
-    def save(self, output_path: Path) -> None:
+    def save(self, output_path: Path, policies: Policies) -> None:
         """
         Save the composed configuration to a devcontainer.json file.
         
@@ -291,20 +295,29 @@ class ContainerComposer(Composer):
         file in the specified output path. The file is created in a .devcontainer
         subdirectory to follow the standard devcontainer specification structure.
         
+        The method uses the provided policies to determine how to handle folder creation
+        and file writing operations. It respects the folder creation policy for creating
+        the .devcontainer directory and the file write policy for handling existing
+        devcontainer.json files.
+        
         Args:
             output_path: The base path where the devcontainer configuration
                         should be saved. The actual file will be created at
                         {output_path}/.devcontainer/devcontainer.json.
+            policies: The policies object containing folder and file policies
+                     that determine how to handle directory creation and file writing.
         
         Raises:
             ValueError: If the configuration has not been composed yet (compose()
                       method has not been called).
             ValueError: If the output path is invalid or cannot be created.
+            ValueError: If folder creation is needed but policy is NEVER.
+            ValueError: If file overwrite is needed but policy is NEVER.
         
         Note:
-            The method uses ALWAYS folder creation policy and OVERWRITE file
-            write policy to ensure the devcontainer configuration is always
-            created, even if it overwrites existing files.
+            The method uses the folder creation policy from policies.root[ReservedPolicyKeys.FOLDER].create
+            and the file write policy from policies.root[ReservedPolicyKeys.FILE].write to determine
+            the behavior for directory creation and file writing respectively.
         """
         if self.__config is None:
             raise ValueError("Configuration is not composed yet.")
@@ -312,10 +325,9 @@ class ContainerComposer(Composer):
         self._save_file(
             output_path=output_path,
             content=json.dumps(self.__config, indent=JSON_INDENT),
-            folder_policy=FolderCreatePolicy.ALWAYS,
-            file_policy=FileWritePolicy.OVERWRITE,
+            folder_policy=policies.root[ReservedPolicyKeys.FOLDER].create,
+            file_policy=policies.root[ReservedPolicyKeys.FILE].write,
         )
-
 class WorkspaceComposer(Composer):
     """
     A composer for creating VS Code workspace configurations.
@@ -420,33 +432,34 @@ class WorkspaceComposer(Composer):
             )
         )
 
-    def save(self, output_path: Path) -> None:
+    def save(self, output_path: Path, policies: Policies) -> None:
         """
         Save all resolved files to the specified output path.
         
         This method writes all the resolved files (workspace file and project files)
         to the filesystem at the specified output path. It handles path resolution,
-        directory creation, and file writing according to the workspace policies.
+        directory creation, and file writing according to the provided policies.
         
         The save process:
         1. Validates that files have been resolved (compose() has been called)
         2. Processes each resolved file, handling absolute path conversion
-        3. Creates necessary directories and writes files using workspace policies
-        4. Applies folder creation and file write policies from the workspace configuration
+        3. Creates necessary directories and writes files using the provided policies
+        4. Applies folder creation and file write policies from the policies configuration
         
         Args:
             output_path: The base path where all workspace files should be saved.
                          This path will be used as the root for all file operations.
+            policies: The policies configuration that defines how to handle folder
+                     creation and file writing operations.
         
         Raises:
             ValueError: If files have not been resolved yet (compose() not called).
             OSError: If file system operations fail (permissions, disk space, etc.).
             
         Note:
-            The method uses the workspace's folder and file policies to determine
-            how to handle directory creation and file overwriting. Absolute paths
-            in resolved files are converted to relative paths within the output
-            directory structure.
+            The method uses the provided policies to determine how to handle directory
+            creation and file overwriting. Absolute paths in resolved files are converted
+            to relative paths within the output directory structure.
         """
         if self.__resolved_files is None:
             raise ValueError("Files are not resolved yet.")
@@ -457,6 +470,6 @@ class WorkspaceComposer(Composer):
             self._save_file(
                 output_path=Path(output_path, path),
                 content=resolved_file.content,
-                folder_policy=self.__workspace.policies.root["folder"].create,
-                file_policy=self.__workspace.policies.root["file"].write,
+                folder_policy=policies.root[ReservedPolicyKeys.FOLDER].create,
+                file_policy=policies.root[ReservedPolicyKeys.FILE].write,
             )
