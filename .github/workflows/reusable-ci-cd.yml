@@ -40,9 +40,8 @@ jobs:
         id: cached-poetry-dependencies
         uses: actions/cache@v3
         with:
-          path: .venv
-          key: venv-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
-        working-directory: tools/ignite
+          path: tools/ignite/.venv
+          key: venv-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('tools/ignite/poetry.lock') }}
 
       - name: Install dependencies
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
@@ -52,9 +51,8 @@ jobs:
       - name: Cache Python environment
         uses: actions/cache@v3
         with:
-          path: .venv
-          key: setup-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
-        working-directory: tools/ignite
+          path: tools/ignite/.venv
+          key: setup-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('tools/ignite/poetry.lock') }}
 
   # Unit tests - fast execution
   unit-tests:
@@ -66,9 +64,8 @@ jobs:
       - name: Restore cached environment
         uses: actions/cache@v3
         with:
-          path: .venv
-          key: setup-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
-        working-directory: tools/ignite
+          path: tools/ignite/.venv
+          key: setup-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('tools/ignite/poetry.lock') }}
 
       - name: Run unit tests
         working-directory: tools/ignite
@@ -85,9 +82,8 @@ jobs:
       - name: Restore cached environment
         uses: actions/cache@v3
         with:
-          path: .venv
-          key: setup-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
-        working-directory: tools/ignite
+          path: tools/ignite/.venv
+          key: setup-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('tools/ignite/poetry.lock') }}
 
       - name: Run integration tests
         working-directory: tools/ignite
@@ -104,9 +100,8 @@ jobs:
       - name: Restore cached environment
         uses: actions/cache@v3
         with:
-          path: .venv
-          key: setup-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
-        working-directory: tools/ignite
+          path: tools/ignite/.venv
+          key: setup-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('tools/ignite/poetry.lock') }}
 
       - name: Run full test suite with coverage
         working-directory: tools/ignite
@@ -116,18 +111,16 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
-          file: ./coverage.xml
+          file: tools/ignite/coverage.xml
           name: codecov-ignite
           fail_ci_if_error: false
-        working-directory: tools/ignite
 
       - name: Upload coverage artifacts
         uses: actions/upload-artifact@v3
         with:
           name: coverage-report
           path: |
-            coverage.xml
-        working-directory: tools/ignite
+            tools/ignite/coverage.xml
 
   # Build package
   build:
@@ -140,9 +133,8 @@ jobs:
       - name: Restore cached environment
         uses: actions/cache@v3
         with:
-          path: .venv
-          key: setup-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
-        working-directory: tools/ignite
+          path: tools/ignite/.venv
+          key: setup-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('tools/ignite/poetry.lock') }}
 
       - name: Build packages
         working-directory: tools/ignite
@@ -154,9 +146,8 @@ jobs:
         with:
           name: build-artifacts-${{ inputs.os }}-${{ inputs.python-version }}
           path: |
-            dist/*.whl
-            dist/*.tar.gz
-        working-directory: tools/ignite
+            tools/ignite/dist/*.whl
+            tools/ignite/dist/*.tar.gz
 
   # Code quality checks
   code-quality:
@@ -168,16 +159,14 @@ jobs:
       - name: Restore cached environment
         uses: actions/cache@v3
         with:
-          path: .venv
-          key: setup-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
-        working-directory: tools/ignite
+          path: tools/ignite/.venv
+          key: setup-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('tools/ignite/poetry.lock') }}
 
       - name: Download coverage artifacts
         uses: actions/download-artifact@v3
         with:
           name: coverage-report
           path: .
-        working-directory: tools/ignite
 
       - name: Run linting
         working-directory: tools/ignite
