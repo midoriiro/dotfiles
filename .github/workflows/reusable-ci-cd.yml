@@ -38,7 +38,7 @@ jobs:
 
       - name: Load cached venv
         id: cached-poetry-dependencies
-        working-directory: tools/ignite
+        working-directory: ./tools/ignite
         uses: actions/cache@v3
         with:
           path: .venv
@@ -46,11 +46,11 @@ jobs:
 
       - name: Install dependencies
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        working-directory: tools/ignite
+        working-directory: ./tools/ignite
         run: poetry install --only=main,dev
 
       - name: Cache Python environment
-        working-directory: tools/ignite
+        working-directory: ./tools/ignite
         uses: actions/cache@v3
         with:
           path: .venv
@@ -64,14 +64,14 @@ jobs:
     
     steps:
       - name: Restore cached environment
-        working-directory: tools/ignite
+        working-directory: ./tools/ignite
         uses: actions/cache@v3
         with:
           path: .venv
           key: setup-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
 
       - name: Run unit tests
-        working-directory: tools/ignite
+        working-directory: ./tools/ignite
         run: |
           poetry run pytest tests/unit/ --verbose --tb=short --numprocesses=auto
 
@@ -84,13 +84,13 @@ jobs:
     steps:
       - name: Restore cached environment
         uses: actions/cache@v3
-        working-directory: tools/ignite
+        working-directory: ./tools/ignite
         with:
           path: .venv
           key: setup-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
 
       - name: Run integration tests
-        working-directory: tools/ignite
+        working-directory: ./tools/ignite
         run: |
           poetry run pytest tests/integration/ --verbose --tb=short --numprocesses=auto
 
@@ -102,19 +102,19 @@ jobs:
     
     steps:
       - name: Restore cached environment
-        working-directory: tools/ignite
+        working-directory: ./tools/ignite
         uses: actions/cache@v3
         with:
           path: .venv
           key: setup-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
 
       - name: Run full test suite with coverage
-        working-directory: tools/ignite
+        working-directory: ./tools/ignite
         run: |
           poetry run pytest tests/ --verbose --cov=ignite --cov-report=xml --cov-report=term-missing --numprocesses=auto
 
       - name: Upload coverage to Codecov
-        working-directory: tools/ignite
+        working-directory: ./tools/ignite
         uses: codecov/codecov-action@v3
         with:
           file: ./coverage.xml
@@ -122,7 +122,7 @@ jobs:
           fail_ci_if_error: false
 
       - name: Upload coverage artifacts
-        working-directory: tools/ignite
+        working-directory: ./tools/ignite
         uses: actions/upload-artifact@v3
         with:
           name: coverage-report
@@ -138,18 +138,19 @@ jobs:
     
     steps:
       - name: Restore cached environment
-        working-directory: tools/ignite
+        working-directory: ./tools/ignite
         uses: actions/cache@v3
         with:
           path: .venv
           key: setup-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
 
       - name: Build packages
-        working-directory: tools/ignite
+        working-directory: ./tools/ignite
         run: |
           poetry run build
 
       - name: Upload build artifacts
+        working-directory: ./tools/ignite
         uses: actions/upload-artifact@v3
         with:
           name: build-artifacts-${{ inputs.os }}-${{ inputs.python-version }}
@@ -165,36 +166,36 @@ jobs:
     
     steps:
       - name: Restore cached environment
-        working-directory: tools/ignite
+        working-directory: ./tools/ignite
         uses: actions/cache@v3
         with:
           path: .venv
           key: setup-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
 
       - name: Download coverage artifacts
-        working-directory: tools/ignite
+        working-directory: ./tools/ignite
         uses: actions/download-artifact@v3
         with:
           name: coverage-report
           path: .
 
       - name: Run linting
-        working-directory: tools/ignite
+        working-directory: ./tools/ignite
         run: |
           poetry run flake8 ignite/ tests/ --max-line-length=88 --extend-ignore=E203
 
       - name: Check code formatting
-        working-directory: tools/ignite
+        working-directory: ./tools/ignite
         run: |
           poetry run black --check ignite/ tests/
 
       - name: Check import sorting
-        working-directory: tools/ignite
+        working-directory: ./tools/ignite
         run: |
           poetry run isort --check-only --diff ignite/ tests/
 
       - name: Check coverage threshold
-        working-directory: tools/ignite
+        working-directory: ./tools/ignite
         run: |
           # Check if coverage.xml exists
           if [ ! -f coverage.xml ]; then
