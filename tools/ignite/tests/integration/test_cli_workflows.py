@@ -112,7 +112,7 @@ def test_cli_with_invalid_yaml_configuration(
     configuration_file.write_text("invalid: yaml: content: [")
     result = runner("--configuration", str(configuration_file), str(user_context))
     assert_that(result.exit_code).is_equal_to(1)
-    assert_that(result.stdout).contains("Configuration file is invalid")
+    assert_that(result.output).contains("Configuration file is invalid")
     assert_logs([
         ConfigurationFileErrorMessage.model_construct(
             line=0,
@@ -152,7 +152,7 @@ def test_cli_with_missing_required_fields(
     configuration_file.write_text(yaml.dump(invalid_config))
     result = runner("--configuration", str(configuration_file), str(user_context))
     assert_that(result.exit_code).is_equal_to(1)
-    assert_that(result.stdout).contains("Configuration file is invalid")
+    assert_that(result.output).contains("Configuration file is invalid")
     assert_logs([
         JsonSchemaValidationErrorMessage.model_construct(
             json_path="$.container.workspace",
@@ -204,7 +204,7 @@ def test_cli_with_validation_error(
     configuration_file.write_text(yaml.dump(invalid_config))
     result = runner("--configuration", str(configuration_file), str(user_context))
     assert_that(result.exit_code).is_equal_to(1)
-    assert_that(result.stdout).contains("Configuration file is invalid")
+    assert_that(result.output).contains("Configuration file is invalid")
     assert_logs([
         PydanticValidationErrorMessageList.model_construct(
             errors=[
@@ -268,7 +268,7 @@ def test_cli_with_composer_error(
     workspace_file.touch()
     result = runner("--configuration", str(configuration_file), str(user_context))
     assert_that(result.exit_code).is_equal_to(1)
-    assert_that(result.stdout).contains("Composer failed")
+    assert_that(result.output).contains("Composer failed")
     assert_logs([
         ComposerMessage.model_construct(
             composer_type="ContainerComposer",
@@ -300,7 +300,7 @@ def test_cli_with_missing_environment_variables(
         configuration_dumper(minimal_configuration, configuration_file)
         result = runner("--configuration", str(configuration_file), str(user_context))
         assert_that(result.exit_code).is_equal_to(1)
-        assert_that(result.stdout).contains(f"'{REPOSITORY_CONTEXT_ENV_VAR}' is not set")
+        assert_that(result.output).contains(f"'{REPOSITORY_CONTEXT_ENV_VAR}' is not set")
     finally:
         # Restore the environment variable
         if original_value is not None:
@@ -315,7 +315,7 @@ def test_cli_with_nonexistent_configuration_file(
     nonexistent_file = Path("/nonexistent/workspace.yml")
     result = runner("--configuration", str(nonexistent_file), str(user_context))
     assert_that(result.exit_code).is_equal_to(2)
-    assert_that(result.stdout).contains("Error: Invalid value for '--configuration': File '/nonexistent/workspace.yml' does not exist.")
+    assert_that(result.output).contains("Error: Invalid value for '--configuration' (env var: 'None'): File '/nonexistent/workspace.yml' does not exist.")
 
 
 def test_cli_with_nonexistent_context_directory(
@@ -329,22 +329,22 @@ def test_cli_with_nonexistent_context_directory(
     nonexistent_context = Path("/nonexistent/context")
     result = runner("--configuration", str(configuration_file), str(nonexistent_context))
     assert_that(result.exit_code).is_equal_to(2)
-    assert_that(result.stdout).contains("Error: Invalid value for '[CONTEXT]': Directory '/nonexistent/context' does not exist.")
+    assert_that(result.output).contains("Error: Invalid value for '[CONTEXT]': Directory '/nonexistent/context' does not exist.")
 
 
 def test_cli_help_output(runner: Runner):
     """Test CLI help output."""
     result = runner("--help")
     assert_that(result.exit_code).is_equal_to(0)
-    assert_that(result.stdout).contains("Development workspace environment management CLI tool")
-    assert_that(result.stdout).contains("--configuration")
-    assert_that(result.stdout).contains("Path to the configuration file")
+    assert_that(result.output).contains("Development workspace environment management CLI tool")
+    assert_that(result.output).contains("--configuration")
+    assert_that(result.output).contains("Path to the configuration file")
 
 
 def test_cli_no_args_help(runner: Runner):
     """Test CLI behavior when no arguments are provided."""
     result = runner()
-    assert_that(result.exit_code).is_equal_to(0)
-    assert_that(result.stdout).contains("Development workspace environment management CLI tool")
-    assert_that(result.stdout).contains("--configuration")
-    assert_that(result.stdout).contains("Path to the configuration file")
+    assert_that(result.exit_code).is_equal_to(2)
+    assert_that(result.output).contains("Development workspace environment management CLI tool")
+    assert_that(result.output).contains("--configuration")
+    assert_that(result.output).contains("Path to the configuration file")

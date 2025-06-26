@@ -7,6 +7,7 @@ from typing import Any, Callable, Dict, List
 
 from assertpy import assert_that
 import pytest
+import typer
 import yaml
 from typer.testing import CliRunner
 from click.testing import Result
@@ -48,6 +49,7 @@ def path_resolver(user_context) -> PathResolver:
 
 @pytest.fixture
 def app():
+    cli.rich_markup_mode = None
     return cli
 
 @pytest.fixture
