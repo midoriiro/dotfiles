@@ -36,6 +36,17 @@ jobs:
           virtualenvs-create: true
           virtualenvs-in-project: true
 
+      - name: Cache Poetry
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.local/bin/poetry
+            ~/.local/lib/python*/site-packages/poetry*
+            ~/.cache/pypoetry
+            ${{ env.LOCALAPPDATA }}/pypoetry
+            ${{ env.APPDATA }}/pypoetry
+          key: poetry-${{ runner.os }}-${{ inputs.python-version }}
+
       - name: Load cached venv
         id: cached-poetry-dependencies
         uses: actions/cache@v3
@@ -61,6 +72,17 @@ jobs:
     needs: setup
     
     steps:
+      - name: Restore Poetry
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.local/bin/poetry
+            ~/.local/lib/python*/site-packages/poetry*
+            ~/.cache/pypoetry
+            ${{ env.LOCALAPPDATA }}/pypoetry
+            ${{ env.APPDATA }}/pypoetry
+          key: poetry-${{ runner.os }}-${{ inputs.python-version }}
+
       - name: Restore cached environment
         uses: actions/cache@v3
         with:
@@ -79,6 +101,17 @@ jobs:
     needs: [setup, unit-tests]
     
     steps:
+      - name: Restore Poetry
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.local/bin/poetry
+            ~/.local/lib/python*/site-packages/poetry*
+            ~/.cache/pypoetry
+            ${{ env.LOCALAPPDATA }}/pypoetry
+            ${{ env.APPDATA }}/pypoetry
+          key: poetry-${{ runner.os }}-${{ inputs.python-version }}
+
       - name: Restore cached environment
         uses: actions/cache@v3
         with:
@@ -97,6 +130,17 @@ jobs:
     needs: [setup, unit-tests, integration-tests]
     
     steps:
+      - name: Restore Poetry
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.local/bin/poetry
+            ~/.local/lib/python*/site-packages/poetry*
+            ~/.cache/pypoetry
+            ${{ env.LOCALAPPDATA }}/pypoetry
+            ${{ env.APPDATA }}/pypoetry
+          key: poetry-${{ runner.os }}-${{ inputs.python-version }}
+
       - name: Restore cached environment
         uses: actions/cache@v3
         with:
@@ -130,6 +174,17 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     
     steps:
+      - name: Restore Poetry
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.local/bin/poetry
+            ~/.local/lib/python*/site-packages/poetry*
+            ~/.cache/pypoetry
+            ${{ env.LOCALAPPDATA }}/pypoetry
+            ${{ env.APPDATA }}/pypoetry
+          key: poetry-${{ runner.os }}-${{ inputs.python-version }}
+
       - name: Restore cached environment
         uses: actions/cache@v3
         with:
@@ -156,6 +211,17 @@ jobs:
     needs: [setup, full-tests]
     
     steps:
+      - name: Restore Poetry
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.local/bin/poetry
+            ~/.local/lib/python*/site-packages/poetry*
+            ~/.cache/pypoetry
+            ${{ env.LOCALAPPDATA }}/pypoetry
+            ${{ env.APPDATA }}/pypoetry
+          key: poetry-${{ runner.os }}-${{ inputs.python-version }}
+
       - name: Restore cached environment
         uses: actions/cache@v3
         with:
