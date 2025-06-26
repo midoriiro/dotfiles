@@ -5,6 +5,28 @@ on:
     branches: [ main, develop ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      python-version:
+        description: 'Python version to test'
+        required: true
+        default: '3.11'
+        type: choice
+        options:
+          - '3.9'
+          - '3.10'
+          - '3.11'
+          - '3.12'
+          - '3.13'
+      os:
+        description: 'Operating system to test'
+        required: true
+        default: 'ubuntu-latest'
+        type: choice
+        options:
+          - 'ubuntu-latest'
+          - 'windows-latest'
+          - 'macos-latest'
 
 jobs:
   ci-cd:
