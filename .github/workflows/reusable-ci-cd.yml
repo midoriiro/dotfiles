@@ -1,0 +1,203 @@
+name: Reusable CI Pipeline
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        description: 'Operating system to run on'
+        required: true
+        type: string
+        default: 'ubuntu-latest'
+      python-version:
+        description: 'Python version to use'
+        required: true
+        type: string
+        default: '3.13'
+
+jobs:
+  # Common setup job - handles Python, Poetry, and dependencies
+  setup:
+    name: Setup Environment
+    runs-on: ${{ inputs.os }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ inputs.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: latest
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --only=main,dev
+
+      - name: Cache Python environment
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: setup-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+
+  # Unit tests - fast execution
+  unit-tests:
+    name: Unit Tests
+    runs-on: ${{ inputs.os }}
+    needs: setup
+    
+    steps:
+      - name: Restore cached environment
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: setup-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Run unit tests
+        run: |
+          poetry run pytest tests/unit/ --verbose --tb=short --numprocesses=auto
+
+  # Integration tests - slower but comprehensive
+  integration-tests:
+    name: Integration Tests
+    runs-on: ${{ inputs.os }}
+    needs: [setup, unit-tests]
+    
+    steps:
+      - name: Restore cached environment
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: setup-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Run integration tests
+        run: |
+          poetry run pytest tests/integration/ --verbose --tb=short --numprocesses=auto
+
+  # Full test suite with coverage
+  full-tests:
+    name: Full Test Suite with Coverage
+    runs-on: ${{ inputs.os }}
+    needs: [setup, unit-tests, integration-tests]
+    
+    steps:
+      - name: Restore cached environment
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: setup-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Run full test suite with coverage
+        run: |
+          poetry run pytest tests/ --verbose --cov=ignite --cov-report=xml --cov-report=term-missing --numprocesses=auto
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          name: codecov-ignite
+          fail_ci_if_error: false
+
+      - name: Upload coverage artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: |
+            coverage.xml
+
+  # Build package
+  build:
+    name: Build Package
+    runs-on: ${{ inputs.os }}
+    needs: [setup, full-tests]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Restore cached environment
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: setup-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Build packages
+        run: |
+          poetry run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifacts-${{ inputs.os }}-${{ inputs.python-version }}
+          path: |
+            dist/*.whl
+            dist/*.tar.gz
+
+  # Code quality checks
+  code-quality:
+    name: Code Quality
+    runs-on: ${{ inputs.os }}
+    needs: [setup, full-tests]
+    
+    steps:
+      - name: Restore cached environment
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: setup-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Download coverage artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: coverage-report
+          path: .
+
+      - name: Run linting
+        run: |
+          poetry run flake8 ignite/ tests/ --max-line-length=88 --extend-ignore=E203
+
+      - name: Check code formatting
+        run: |
+          poetry run black --check ignite/ tests/
+
+      - name: Check import sorting
+        run: |
+          poetry run isort --check-only --diff ignite/ tests/
+
+      - name: Check coverage threshold
+        run: |
+          # Check if coverage.xml exists
+          if [ ! -f coverage.xml ]; then
+            echo "❌ Error: coverage.xml not found"
+            exit 1
+          fi
+          
+          # Extract total coverage percentage using Python
+          COVERAGE=$(python3 -c "
+          import xml.etree.ElementTree as ET
+          tree = ET.parse('coverage.xml')
+          root = tree.getroot()
+          total = float(root.get('line-rate', 0)) * 100
+          print(f'{total:.2f}')
+          ")
+          
+          echo "📊 Current coverage: ${COVERAGE}%"
+          
+          # Check if coverage meets threshold (95%)
+          if (( $(echo "$COVERAGE < 95" | bc -l) )); then
+            echo "❌ Coverage ${COVERAGE}% is below threshold of 95%"
+            exit 1
+          else
+            echo "✅ Coverage ${COVERAGE}% meets threshold of 95%"
+          fi 
