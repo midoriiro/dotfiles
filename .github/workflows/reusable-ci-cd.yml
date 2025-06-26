@@ -23,8 +23,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-           path: '.'
 
       - name: Set up Python ${{ inputs.python-version }}
         uses: actions/setup-python@v4
