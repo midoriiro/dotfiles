@@ -2,10 +2,9 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, ci-cd-pipeline ]
+    branches: [ main ]
   pull_request:
-  # pull_request:
-  #   branches: [ main ]
+    branches: [ main ]
   workflow_dispatch:
     inputs:
       python-version:
