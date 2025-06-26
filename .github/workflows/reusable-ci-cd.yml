@@ -22,7 +22,7 @@ jobs:
     
     steps:
       - name: Setup environment
-        uses: ./.github/workflows/setup.yml
+        uses: ./.github/actions/setup
         with:
           os: ${{ inputs.os }}
           python-version: ${{ inputs.python-version }}
@@ -40,7 +40,7 @@ jobs:
     
     steps:
       - name: Setup environment
-        uses: ./.github/workflows/setup.yml
+        uses: ./.github/actions/setup
         with:
           os: ${{ inputs.os }}
           python-version: ${{ inputs.python-version }}
@@ -58,7 +58,7 @@ jobs:
     
     steps:
       - name: Setup environment
-        uses: ./.github/workflows/setup.yml
+        uses: ./.github/actions/setup
         with:
           os: ${{ inputs.os }}
           python-version: ${{ inputs.python-version }}
@@ -91,7 +91,7 @@ jobs:
     
     steps:
       - name: Setup environment
-        uses: ./.github/workflows/setup.yml
+        uses: ./.github/actions/setup
         with:
           os: ${{ inputs.os }}
           python-version: ${{ inputs.python-version }}
@@ -117,7 +117,7 @@ jobs:
     
     steps:
       - name: Setup environment
-        uses: ./.github/workflows/setup.yml
+        uses: ./.github/actions/setup
         with:
           os: ${{ inputs.os }}
           python-version: ${{ inputs.python-version }}
