@@ -4,14 +4,6 @@
             "path": "."
         },
         {
-            "path": "tools/compose",
-            "name": "Compose"
-        },
-        {
-            "path": "tools/merge",
-            "name": "Merge"
-        },
-        {
             "path": "tools/ignite",
             "name": "Ignite"
         }
