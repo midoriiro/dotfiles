@@ -45,8 +45,8 @@ runs:
         echo "PIPX_BIN_DIR: $PIPX_BIN_DIR"
         echo "Github PATH: $GITHUB_PATH"
 
-    - name: Load cached Python and Poetry
-      id: cached-python-poetry
+    - name: Cached pipx
+      id: cached-pipx
       uses: actions/cache@v3
       with:
         path: |
@@ -55,14 +55,14 @@ runs:
         key: python-poetry-${{ runner.os }}-${{ inputs.python-version }}
 
     - name: Install pipx
-      if: steps.cached-python-poetry.outputs.cache-hit != 'true'
+      if: steps.cached-pipx.outputs.cache-hit != 'true'
       shell: bash
       run: |
         python -m pip install --user pipx
         python -m pipx ensurepath
 
     - name: Install Poetry
-      if: steps.cached-python-poetry.outputs.cache-hit != 'true'
+      if: steps.cached-pipx.outputs.cache-hit != 'true'
       env:
         PIPX_HOME: ${{ env.PIPX_HOME }}
         PIPX_BIN_DIR: ${{ env.PIPX_BIN_DIR }}
@@ -70,16 +70,7 @@ runs:
       run: |
         pipx install poetry
 
-    - name: Cache Python and Poetry
-      uses: actions/cache@v3
-      with:
-        path: |
-          ${{ env.PIPX_HOME }}
-          ${{ env.PIPX_BIN_DIR }}
-          ${{ env.PYTHON_LIB_DIR }}
-        key: python-poetry-${{ runner.os }}-${{ inputs.python-version }}
-
-    - name: Load cached venv
+    - name: Cache Poetry dependencies
       id: cached-poetry-dependencies
       uses: actions/cache@v3
       with:
@@ -87,13 +78,7 @@ runs:
         key: venv-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('tools/ignite/poetry.lock') }}
 
     - name: Install dependencies
-      if: steps.cached-poetry-dependencupies.outputs.cache-hit != 'true'
+      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
       shell: bash
       working-directory: tools/ignite
       run: poetry install --only=main,dev
-
-    - name: Cache Python environment
-      uses: actions/cache@v3
-      with:
-        path: tools/ignite/.venv
-        key: venv-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('tools/ignite/poetry.lock') }} 
