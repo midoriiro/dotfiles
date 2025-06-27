@@ -47,11 +47,11 @@ runs:
         echo "=== ~/.local Directory Contents (Recursive) ==="
         echo "HOME: $HOME"
         echo ""
-        if [ -d "$HOME/.local" ]; then
-          echo "📁 ~/.local exists, showing contents:"
-          find "$HOME/.local" -ls 2>/dev/null
+        if [ -d "$HOME" ]; then
+          echo "📁 ~ exists, showing contents:"
+          find "$HOME" -ls 2>/dev/null
         else
-          echo "❌ ~/.local directory not found"
+          echo "❌ ~ directory not found"
         fi
         echo ""
         echo "=== Current PATH ==="
