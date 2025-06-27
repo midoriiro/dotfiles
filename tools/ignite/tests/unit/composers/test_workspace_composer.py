@@ -166,12 +166,12 @@ class TestWorkspaceComposerResolveFileSpecification:
         
         # Check first project
         folder1 = content['folders'][0]
-        assert_that(folder1['path']).is_equal_to(str(pathlib.Path(os.path.sep, "workspace", "project1", "project1")))
+        assert_that(folder1['path']).is_equal_to(str(pathlib.Path(os.path.sep, "workspace", "project1")))
         assert_that(folder1['name']).is_equal_to("ProjectOne")
         
         # Check second project
         folder2 = content['folders'][1]
-        assert_that(folder2['path']).is_equal_to(str(pathlib.Path(os.path.sep, "workspace", "project2", "project2")))
+        assert_that(folder2['path']).is_equal_to(str(pathlib.Path(os.path.sep, "workspace", "project2")))
         assert_that(folder2['name']).is_equal_to("project2")
 
     def test_resolve_file_specification_with_repository_root(self):

@@ -207,13 +207,13 @@ class TestRepositoryProjectEdgeCases:
         assert_that(resolved_folders).is_length(2)
         
         # Check settings folder
-        settings_folder = next(f for f in resolved_folders if f.destination == ".vscode/settings.json")
+        settings_folder = next(f for f in resolved_folders if f.destination == str(pathlib.Path(".vscode", "settings.json")))
         assert_that(settings_folder.sources).contains(str(pathlib.Path("vscode", "settings", "python", "base")))
         assert_that(settings_folder.sources).contains(str(pathlib.Path("vscode", "settings", "python", "black")))
         assert_that(settings_folder.sources).contains(str(pathlib.Path("vscode", "settings", "editor", "format")))
         
         # Check tasks folder
-        tasks_folder = next(f for f in resolved_folders if f.destination == ".vscode/tasks.json")
+        tasks_folder = next(f for f in resolved_folders if f.destination == str(pathlib.Path(".vscode", "tasks.json")))
         assert_that(tasks_folder.sources).contains(str(pathlib.Path("vscode", "tasks", "poetry", "build")))
         assert_that(tasks_folder.sources).contains(str(pathlib.Path("vscode", "tasks", "poetry", "test")))
         assert_that(tasks_folder.sources).contains(str(pathlib.Path("vscode", "tasks", "docker", "compose")))
@@ -232,11 +232,11 @@ class TestRepositoryProjectEdgeCases:
         assert_that(resolved_folders).is_length(2)
         
         # Check settings folder
-        settings_folder = next(f for f in resolved_folders if f.destination == ".vscode/settings.json")
+        settings_folder = next(f for f in resolved_folders if f.destination == str(pathlib.Path(".vscode", "settings.json")))
         assert_that(settings_folder.sources).contains(str(pathlib.Path("vscode", "settings", "base")))
         
         # Check tasks folder
-        tasks_folder = next(f for f in resolved_folders if f.destination == ".vscode/tasks.json")
+        tasks_folder = next(f for f in resolved_folders if f.destination == str(pathlib.Path(".vscode", "tasks.json")))
         assert_that(tasks_folder.sources).contains(str(pathlib.Path("vscode", "tasks", "build")))
 
 
