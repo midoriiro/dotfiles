@@ -20,7 +20,6 @@ runs:
         python-version: ${{ inputs.python-version }}
 
     - name: Generate pipx environment variables
-      id: pipx-env
       shell: bash
       run: |
         # Get user home directory
@@ -63,7 +62,7 @@ runs:
         key: python-poetry-${{ runner.os }}-${{ inputs.python-version }}
 
     - name: Install Poetry
-      # if: steps.cached-python-poetry.outputs.cache-hit != 'true'
+      if: steps.cached-python-poetry.outputs.cache-hit != 'true'
       env:
         PIPX_HOME: ${{ env.PIPX_HOME }}
         PIPX_BIN_DIR: ${{ env.PIPX_BIN_DIR }}
