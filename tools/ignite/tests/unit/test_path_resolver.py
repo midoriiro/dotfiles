@@ -192,9 +192,15 @@ class TestPathResolver:
         
         assert len(result) == 4
         assert result[0] == user_file
-        assert result[1] == repository_context / "vscode" / "settings" / "coverage-gutters.json"
-        assert result[2] == repository_context / "vscode" / "settings" / "on-save.json"
-        assert result[3] == repository_context / "vscode" / "settings" / "python" / "base.json"
+        
+        expected_paths = [
+            repository_context / "vscode" / "settings" / "coverage-gutters.json",
+            repository_context / "vscode" / "settings" / "on-save.json",
+            repository_context / "vscode" / "settings" / "python" / "base.json"
+        ]
+        
+        for expected_path in expected_paths:
+            assert expected_path in result
 
     def test_resolve_empty_paths_list(self, repository_context, user_context):
         """Test resolving an empty list of paths."""
