@@ -1,5 +1,5 @@
-name: 'Setup Environment'
-description: 'Setup Python, Poetry and dependencies'
+name: 'Setup Python Environment'
+description: 'Setup Python, Pipx and Poetrydependencies'
 
 inputs:
   python-version:
@@ -10,6 +10,10 @@ inputs:
     description: 'Operating system'
     required: true
     default: 'ubuntu-latest'
+  project-path:
+    description: 'Path to the project'
+    required: true
+    default: '.'
 
 runs:
   using: composite
@@ -74,11 +78,11 @@ runs:
       id: cached-poetry-dependencies
       uses: actions/cache@v3
       with:
-        path: tools/ignite/.venv
-        key: venv-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('tools/ignite/poetry.lock') }}
+        path: ${{ inputs.project-path }}/.venv
+        key: venv-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('${{ inputs.project-path }}/poetry.lock') }}
 
     - name: Install dependencies
       if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
       shell: bash
-      working-directory: tools/ignite
+      working-directory: ${{ inputs.project-path }}
       run: poetry install --only=main,dev

@@ -1,4 +1,4 @@
-name: Reusable CI Pipeline
+name: Reusable Python/Poetry CI/CD Pipeline
 
 on:
   workflow_call:
@@ -13,6 +13,14 @@ on:
         required: true
         type: string
         default: '3.13'
+      project-path:
+        description: 'Path to the project'
+        required: true
+        type: string
+      package-name:
+        description: 'Name of the package'
+        required: true
+        type: string
 
 jobs:
   # Unit tests - fast execution
@@ -25,13 +33,14 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup environment
-        uses: ./.github/actions/setup
+        uses: ./.github/actions/setup-python
         with:
           os: ${{ inputs.os }}
           python-version: ${{ inputs.python-version }}
+          project-path: ${{ inputs.project-path }}
 
       - name: Run unit tests
-        working-directory: tools/ignite
+        working-directory: ${{ inputs.project-path }}
         run: |
           poetry run pytest tests/unit/ --verbose --tb=short --numprocesses=auto
 
@@ -46,13 +55,14 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup environment
-        uses: ./.github/actions/setup
+        uses: ./.github/actions/setup-python
         with:
           os: ${{ inputs.os }}
           python-version: ${{ inputs.python-version }}
+          project-path: ${{ inputs.project-path }}
 
       - name: Run integration tests
-        working-directory: tools/ignite
+        working-directory: ${{ inputs.project-path }}
         run: |
           poetry run pytest tests/integration/ --verbose --tb=short --numprocesses=auto
 
@@ -67,21 +77,22 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup environment
-        uses: ./.github/actions/setup
+        uses: ./.github/actions/setup-python
         with:
           os: ${{ inputs.os }}
           python-version: ${{ inputs.python-version }}
+          project-path: ${{ inputs.project-path }}
 
       - name: Run full test suite with coverage
-        working-directory: tools/ignite
+        working-directory: ${{ inputs.project-path }}
         run: |
-          poetry run pytest tests/ --verbose --cov=ignite --cov-report=xml --cov-report=term-missing --numprocesses=auto
+          poetry run pytest tests/ --verbose --cov=${{ inputs.package-name }} --cov-report=xml --cov-report=term-missing --numprocesses=auto
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
-          file: tools/ignite/coverage.xml
-          name: codecov-ignite
+          file: ${{ inputs.project-path }}/coverage.xml
+          name: codecov-${{ inputs.package-name }}
           fail_ci_if_error: false
 
       - name: Upload coverage artifacts
@@ -89,7 +100,7 @@ jobs:
         with:
           name: coverage-report
           path: |
-            tools/ignite/coverage.xml
+            ${{ inputs.project-path }}/coverage.xml
 
   # Build package
   build:
@@ -103,13 +114,14 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup environment
-        uses: ./.github/actions/setup
+        uses: ./.github/actions/setup-python
         with:
           os: ${{ inputs.os }}
           python-version: ${{ inputs.python-version }}
+          project-path: ${{ inputs.project-path }}
 
       - name: Build packages
-        working-directory: tools/ignite
+        working-directory: ${{ inputs.project-path }}
         run: |
           poetry run build
 
@@ -118,8 +130,8 @@ jobs:
         with:
           name: build-artifacts-${{ inputs.os }}-${{ inputs.python-version }}
           path: |
-            tools/ignite/dist/*.whl
-            tools/ignite/dist/*.tar.gz
+            ${{ inputs.project-path }}/dist/*.whl
+            ${{ inputs.project-path }}/dist/*.tar.gz
 
   # Code quality checks
   code-quality:
@@ -132,11 +144,12 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup environment
-        uses: ./.github/actions/setup
+        uses: ./.github/actions/setup-python
         with:
           os: ${{ inputs.os }}
           python-version: ${{ inputs.python-version }}
-
+          project-path: ${{ inputs.project-path }}
+          
       - name: Download coverage artifacts
         uses: actions/download-artifact@v4
         with:
@@ -144,22 +157,22 @@ jobs:
           path: .
 
       - name: Run linting
-        working-directory: tools/ignite
+        working-directory: ${{ inputs.project-path }}
         run: |
-          poetry run flake8 ignite/ tests/ --max-line-length=88 --extend-ignore=E203
+          poetry run flake8 ${{ inputs.project-path }}/${{ inputs.package-name }}/ tests/ --max-line-length=88 --extend-ignore=E203
 
       - name: Check code formatting
-        working-directory: tools/ignite
+        working-directory: ${{ inputs.project-path }}
         run: |
-          poetry run black --check ignite/ tests/
+          poetry run black --check ${{ inputs.project-path }}/${{ inputs.package-name }}/ tests/
 
       - name: Check import sorting
-        working-directory: tools/ignite
+        working-directory: ${{ inputs.project-path }}
         run: |
-          poetry run isort --check-only --diff ignite/ tests/
+          poetry run isort --check-only --diff ${{ inputs.project-path }}/${{ inputs.package-name }}/ tests/
 
       - name: Check coverage threshold
-        working-directory: tools/ignite
+        working-directory: ${{ inputs.project-path }}
         run: |
           # Check if coverage.xml exists
           if [ ! -f coverage.xml ]; then

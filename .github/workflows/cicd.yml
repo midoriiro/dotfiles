@@ -45,7 +45,9 @@ jobs:
           # '3.12', 
           '3.13'
         ]    
-    uses: ./.github/workflows/reusable-ci-cd.yml
+    uses: ./.github/workflows/reusable-python-cicd.yml
     with:
       os: ${{ matrix.os }}
       python-version: ${{ matrix.python-version }}
+      project-path: 'tools/ignite'
+      package-name: 'ignite'
