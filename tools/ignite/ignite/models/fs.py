@@ -23,7 +23,8 @@ RefFile = Literal[ReservedFileName.REF]
 AllFile = Literal[ReservedFileName.ALL]
 RepositoryFile = Identifier
 
-AbsolutePath = Annotated[
+
+UnixAbsolutePath = Annotated[
     str, 
     StringConstraints(
         pattern=r"^/([^/@#$%&*+=?!|~`'\"()\[\]{}<>;:,]+(/)?)*$",
@@ -31,6 +32,18 @@ AbsolutePath = Annotated[
         max_length=256,
     )
 ]
+
+WindowsAbsolutePath = Annotated[
+    str, 
+    StringConstraints(
+        pattern=r"^[A-Za-z]:(\\|/)([^/@#$%&*+=?!|~`'\"()\[\]{}<>;:,]+(\\|/)?)*$",
+        min_length=1,
+        max_length=256,
+    )
+]
+
+AbsolutePath = Union[UnixAbsolutePath, WindowsAbsolutePath]
+
 
 def validate_relative_path(value: str) -> str:
     """Validate that relative path is not whitespace-only."""
