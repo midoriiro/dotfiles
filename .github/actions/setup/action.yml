@@ -29,8 +29,28 @@ runs:
           ~/.cache/pypoetry
           ${{ env.LOCALAPPDATA }}/pypoetry
           ${{ env.APPDATA }}/pypoetry
-          ${{ env.RUNNER_TOOL_CACHE }}/Python
+          ${{ env.RUNNER_TOOL_CACHE }}
         key: python-poetry-${{ runner.os }}-${{ inputs.python-version }}
+
+    - name: Debug cache contents
+      shell: bash
+      run: |
+        echo "=== Cache Debug ==="
+        echo "HOME: $HOME"
+        echo "Current PATH: $PATH"
+        echo ""
+        echo "=== ~/.local contents ==="
+        if [ -d "$HOME/.local" ]; then
+          find "$HOME/.local" -type f -name "*poetry*" 2>/dev/null || echo "No poetry files found in ~/.local"
+          echo ""
+          echo "=== ~/.local/bin contents ==="
+          ls -la "$HOME/.local/bin/" 2>/dev/null || echo "~/.local/bin not found"
+        else
+          echo "~/.local directory not found"
+        fi
+        echo ""
+        echo "=== Poetry location ==="
+        which poetry 2>/dev/null || echo "Poetry not found in PATH"
 
     - name: Install Poetry
       if: steps.cache-python-poetry.outputs.cache-hit != 'true'
@@ -39,18 +59,6 @@ runs:
         version: latest
         virtualenvs-create: true
         virtualenvs-in-project: true
-
-    - name: Add Poetry to PATH
-      shell: bash
-      run: |
-        echo "$HOME/.local/bin" >> $GITHUB_PATH
-        echo "Poetry path added to GITHUB_PATH"
-
-    - name: Verify Poetry installation
-      shell: bash
-      run: |
-        poetry --version
-        echo "Poetry is available at: $(which poetry)"
 
     - name: Load cached venv
       id: cached-poetry-dependencies
