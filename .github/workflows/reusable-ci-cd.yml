@@ -30,6 +30,16 @@ jobs:
           os: ${{ inputs.os }}
           python-version: ${{ inputs.python-version }}
 
+      - name: Debug environment
+        working-directory: tools/ignite
+        run: |
+          echo "=== Environment Debug ==="
+          python --version
+          poetry --version
+          poetry show typer
+          poetry show click
+          echo "=== End Debug ==="
+
       - name: Run unit tests
         working-directory: tools/ignite
         run: |
