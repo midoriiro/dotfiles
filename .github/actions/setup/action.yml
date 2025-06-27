@@ -32,6 +32,7 @@ runs:
       with:
         path: |
           ~/.local/venv
+          ~/.local/lib/python${{ inputs.python-version }}
         key: python-poetry-${{ runner.os }}-${{ inputs.python-version }}
 
     - name: Install Poetry
@@ -47,7 +48,7 @@ runs:
         echo ""
         if [ -d "$HOME/.local" ]; then
           echo "📁 ~/.local exists, showing contents:"
-          find "$HOME/.local" -type f -ls 2>/dev/null | head -20
+          find "$HOME/.local" -ls 2>/dev/null
         else
           echo "❌ ~/.local directory not found"
         fi
@@ -59,8 +60,8 @@ runs:
       uses: actions/cache@v3
       with:
         path: |
-          ~/.local/venv/bin
-          ~/.local/venv/poetry/bin/poetry
+          ~/.local/venv
+          ~/.local/lib/python${{ inputs.python-version }}
         key: python-poetry-${{ runner.os }}-${{ inputs.python-version }}
 
     - name: Load cached venv
