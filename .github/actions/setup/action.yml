@@ -26,13 +26,10 @@ runs:
         path: |
           ~/.local/venv/bin
           ~/.local/venv/poetry/bin/poetry
-          ~/.cache/pypoetry
-          ${{ env.LOCALAPPDATA }}/pypoetry
-          ${{ env.APPDATA }}/pypoetry
         key: python-poetry-${{ runner.os }}-${{ inputs.python-version }}
 
     - name: Install Poetry
-      # if: steps.cache-python-poetry.outputs.cache-hit != 'true'
+      if: steps.cache-python-poetry.outputs.cache-hit != 'true'
       uses: snok/install-poetry@v1
       with:
         version: latest
@@ -47,40 +44,10 @@ runs:
         key: venv-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('tools/ignite/poetry.lock') }}
 
     - name: Install dependencies
-      # if: steps.cached-poetry-dependencupies.outputs.cache-hit != 'true'
+      if: steps.cached-poetry-dependencupies.outputs.cache-hit != 'true'
       shell: bash
       working-directory: tools/ignite
       run: poetry install --only=main,dev
-
-    - name: Debug cache contents
-      shell: bash
-      run: |
-        echo "=== Cache Debug ==="
-        echo "HOME: $HOME"
-        echo "Current PATH: $PATH"
-        echo "Current cache: ~/.cache"
-        echo ""
-        echo "=== ~/.local contents ==="
-        if [ -d "$HOME/.local" ]; then
-          find "$HOME/.local" -type f -name "*poetry*" 2>/dev/null || echo "No poetry files found in ~/.local"
-          echo ""
-          echo "=== ~/.local/bin contents ==="
-          ls -la "$HOME/.local/bin/" 2>/dev/null || echo "~/.local/bin not found"
-        else
-          echo "~/.local directory not found"
-        fi
-        if [ -d "$HOME/.cache" ]; then
-          find "$HOME/.cache" -type d -name "*pypoetry*" 2>/dev/null || echo "No pypoetry directories found in ~/.cache"
-          echo ""
-          echo "=== ~/.cache contents ==="
-          ls -la "$HOME/.cache/" 2>/dev/null || echo "~/.cache not found"
-        else
-          echo "~/.cache directory not found"
-        fi
-        echo ""
-        echo "=== Poetry location ==="
-        which poetry 2>/dev/null || echo "Poetry not found in PATH"
-        ls -la tools/ignite/.venv 2>/dev/null || echo "tools/ignite/.venv not found"
 
     - name: Cache Python environment
       uses: actions/cache@v3
