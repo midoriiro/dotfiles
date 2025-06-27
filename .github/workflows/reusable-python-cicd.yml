@@ -41,6 +41,7 @@ jobs:
 
       - name: Run unit tests
         working-directory: ${{ inputs.project-path }}
+        shell: bash
         run: |
           poetry run pytest tests/unit/ --verbose --tb=short --numprocesses=auto
 
@@ -63,6 +64,7 @@ jobs:
 
       - name: Run integration tests
         working-directory: ${{ inputs.project-path }}
+        shell: bash
         run: |
           poetry run pytest tests/integration/ --verbose --tb=short --numprocesses=auto
 
@@ -85,6 +87,7 @@ jobs:
 
       - name: Run full test suite with coverage
         working-directory: ${{ inputs.project-path }}
+        shell: bash
         run: |
           poetry run pytest tests/ --verbose --cov=${{ inputs.package-name }} --cov-report=xml --cov-report=term-missing --numprocesses=auto
 
@@ -122,6 +125,7 @@ jobs:
 
       - name: Build packages
         working-directory: ${{ inputs.project-path }}
+        shell: bash
         run: |
           poetry run build
 
@@ -158,21 +162,25 @@ jobs:
 
       - name: Run linting
         working-directory: ${{ inputs.project-path }}
+        shell: bash
         run: |
           poetry run flake8 ${{ inputs.project-path }}/${{ inputs.package-name }}/ tests/ --max-line-length=88 --extend-ignore=E203
 
       - name: Check code formatting
         working-directory: ${{ inputs.project-path }}
+        shell: bash
         run: |
           poetry run black --check ${{ inputs.project-path }}/${{ inputs.package-name }}/ tests/
 
       - name: Check import sorting
         working-directory: ${{ inputs.project-path }}
+        shell: bash
         run: |
           poetry run isort --check-only --diff ${{ inputs.project-path }}/${{ inputs.package-name }}/ tests/
 
       - name: Check coverage threshold
         working-directory: ${{ inputs.project-path }}
+        shell: bash
         run: |
           # Check if coverage.xml exists
           if [ ! -f coverage.xml ]; then
