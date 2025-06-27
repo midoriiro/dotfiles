@@ -19,8 +19,8 @@ project_key = Union[user_project_key, root_project_key, ref_project_key]
 def _resolve_vscode_folder(vscode_folder: VSCodeFolder) -> List[ResolvedFolder]:
     resolved_folders: List[ResolvedFolder] = vscode_folder.resolve()
     for resolved_folder in resolved_folders:
-        resolved_folder.destination = str(pathlib.Path(".vscode", resolved_folder.destination))
-        resolved_folder.sources = [str(pathlib.Path("vscode", source)) for source in resolved_folder.sources]
+        resolved_folder.destination = str(pathlib.Path(*[".vscode", *pathlib.Path(resolved_folder.destination).parts]))
+        resolved_folder.sources = [str(pathlib.Path(*["vscode", *pathlib.Path(source).parts])) for source in resolved_folder.sources]
     return resolved_folders
 
 

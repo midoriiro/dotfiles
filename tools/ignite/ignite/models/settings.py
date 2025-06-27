@@ -1,8 +1,8 @@
-from pathlib import Path
+import pathlib
 from typing import Dict, List, Optional, Union, override
 from pydantic import BaseModel, Field, model_validator
 
-from ignite.models.fs import File, Folder, ResolvedFolder
+from ignite.models.fs import File, Folder, Path, ResolvedFolder
 
 class BaseFolder(BaseModel):
     """
@@ -67,7 +67,7 @@ class BaseFolder(BaseModel):
         """
         raise NotImplementedError("Subclass must implement this method.")
     
-    def _resolve_folder(self, folder: List[Union[Folder, File]]) -> List[Path]:
+    def _resolve_folder(self, folder: List[Union[Folder, File]]) -> List[pathlib.Path]:
         """
         Resolve a list of folders and files to a list of file paths.
         
@@ -81,7 +81,7 @@ class BaseFolder(BaseModel):
                 these types, and folders can be nested at any depth.
                 
         Returns:
-            List[Path]: A flat list of file paths representing all files found
+            List[pathlib.Path]: A flat list of file paths representing all files found
                 in the folder structure. Each path represents a single file that
                 was either directly specified as a File object or found within
                 nested Folder objects.
@@ -91,7 +91,7 @@ class BaseFolder(BaseModel):
             >>> base = BaseFolder()
             >>> files = [File("config.json"), Folder({"src": [File("main.py")]})]
             >>> paths = base._resolve_folder(files)
-            >>> # Returns: [Path("config.json"), Path("src/main.py")]
+            >>> # Returns: [pathlib.Path("config.json"), pathlib.Path("src/main.py")]
             
             Usage with nested folders:
             >>> nested = [
@@ -99,7 +99,7 @@ class BaseFolder(BaseModel):
             ...     Folder({"tasks": [File("build.json")]})
             ... ]
             >>> paths = base._resolve_folder(nested)
-            >>> # Returns: [Path("settings/base.json"), Path("tasks/build.json")]
+            >>> # Returns: [pathlib.Path("settings/base.json"), pathlib.Path("tasks/build.json")]
             
         Note:
             - This method recursively processes nested folder structures
@@ -113,7 +113,7 @@ class BaseFolder(BaseModel):
             if isinstance(item, Folder):
                 paths.extend(item.resolve())
             elif isinstance(item, File):
-                paths.append(Path(item.root))
+                paths.append(pathlib.Path(item.root))
         return paths
 
 class VSCodeFolder(BaseFolder):
@@ -257,9 +257,9 @@ class VSCodeFolder(BaseFolder):
         # Process settings configuration
         if self.settings:
             sources = []
-            base_settings_path = Path("settings")
+            base_settings_path = pathlib.Path("settings")
             for source in self._resolve_folder(self.settings):
-                sources.append(str(Path(base_settings_path, source)))
+                sources.append(str(pathlib.Path(*[base_settings_path, *source.parts])))
             resolved_folders.append(ResolvedFolder.model_construct(
                 sources=sources,
                 destination="settings.json"
@@ -270,7 +270,7 @@ class VSCodeFolder(BaseFolder):
             sources = []
             base_tasks_path = Path("tasks")
             for source in self._resolve_folder(self.tasks):
-                sources.append(str(Path(base_tasks_path, source)))
+                sources.append(str(pathlib.Path(*[base_tasks_path, *source.parts])))
             resolved_folders.append(ResolvedFolder.model_construct(
                 sources=sources,
                 destination="tasks.json"

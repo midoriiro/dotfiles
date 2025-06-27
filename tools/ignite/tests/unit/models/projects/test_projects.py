@@ -22,7 +22,7 @@ class TestValidProjects:
         })
         assert_that(projects.root).contains_key("test-project")
         assert_that(projects.root["test-project"]).is_instance_of(UserProject)
-        assert_that(projects.root["test-project"].path).is_equal_to(str(pathlib.Path(os.path.sep, "workspace", "test-project")))
+        assert_that(projects.root["test-project"].path).is_equal_to("/workspace/test-project")
 
     def test_projects_with_repository_project(self):
         """Test that projects with repository project is accepted."""
