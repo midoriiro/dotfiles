@@ -319,7 +319,7 @@ class TestWorkspaceComposerSave:
         assert_that(json_content).contains_key('folders')
         assert_that(json_content).contains_key('settings')
 
-    def test_save_with_project_files(self, tmp_path, path_resolver):
+    def test_save_with_project_files(self, user_context, path_resolver):
         """Test that save creates both workspace and project files."""
         workspace = WorkspaceModel(
             policies=Policies({
@@ -340,14 +340,14 @@ class TestWorkspaceComposerSave:
         })
         composer = WorkspaceComposer(workspace, path_resolver)
         composer.compose()
-        composer.save(tmp_path, policies)
+        composer.save(user_context, policies)
         
         # Check workspace file
-        workspace_file = tmp_path / "workspace.code-workspace"
+        workspace_file = user_context / "workspace.code-workspace"
         assert_that(str(workspace_file)).exists()
         
         # Check project file
-        project_file = tmp_path / "workspace" / "test-project" / ".vscode" / "settings.json"
+        project_file = user_context / "workspace" / "test-project" / ".vscode" / "settings.json"
         assert_that(str(project_file)).exists()
         assert_that(project_file.read_text()).is_not_empty()
 
