@@ -1,4 +1,6 @@
+import os
 import pathlib
+import re
 from typing import Any, Dict, List, Optional, Union, Annotated, override
 from pydantic import BaseModel, Field, RootModel, StringConstraints, model_validator
 from enum import Enum
@@ -217,10 +219,10 @@ class Mount(BaseModel):
         Returns:
             self: The validated Mount instance.
         """
-        is_source_absolute_path = pathlib.Path(self.source).is_absolute()
-        if self.type == MountType.VOLUME and is_source_absolute_path:
+        is_source_identifier = re.match(rf"^{IdentifierPattern}$", self.source)
+        if self.type == MountType.VOLUME and not is_source_identifier:
             raise ValueError("Source must be a volume name.")
-        if self.type == MountType.BIND and not is_source_absolute_path:
+        if self.type == MountType.BIND and is_source_identifier:
             raise ValueError("Source must be an absolute path.")
         return self
 
