@@ -40,6 +40,18 @@ runs:
         virtualenvs-create: true
         virtualenvs-in-project: true
 
+    - name: Add Poetry to PATH
+      shell: bash
+      run: |
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+        echo "Poetry path added to GITHUB_PATH"
+
+    - name: Verify Poetry installation
+      shell: bash
+      run: |
+        poetry --version
+        echo "Poetry is available at: $(which poetry)"
+
     - name: Load cached venv
       id: cached-poetry-dependencies
       uses: actions/cache@v3
