@@ -1,3 +1,4 @@
+import pathlib
 import pytest
 from pydantic import ValidationError
 from assertpy import assert_that
@@ -94,8 +95,8 @@ class TestRepositoryProjectResolveFoldersMethod:
         
         resolved_folder = resolved_folders[0]
         assert_that(resolved_folder).is_instance_of(ResolvedFolder)
-        assert_that(resolved_folder.destination).is_equal_to(".vscode/settings.json")
-        assert_that(resolved_folder.sources).contains("vscode/settings/python/base")
+        assert_that(resolved_folder.destination).is_equal_to(str(pathlib.Path(".vscode", "settings.json")))
+        assert_that(resolved_folder.sources).contains(str(pathlib.Path("vscode", "settings", "python", "base")))
 
     def test_resolve_folders_with_vscode_tasks(self):
         """Test that resolve_folders works correctly with VSCode tasks."""
@@ -111,8 +112,8 @@ class TestRepositoryProjectResolveFoldersMethod:
         
         resolved_folder = resolved_folders[0]
         assert_that(resolved_folder).is_instance_of(ResolvedFolder)
-        assert_that(resolved_folder.destination).is_equal_to(".vscode/tasks.json")
-        assert_that(resolved_folder.sources).contains("vscode/tasks/poetry/build")
+        assert_that(resolved_folder.destination).is_equal_to(str(pathlib.Path(".vscode", "tasks.json")))
+        assert_that(resolved_folder.sources).contains(str(pathlib.Path("vscode", "tasks", "poetry", "build")))
 
     def test_resolve_folders_with_both_settings_and_tasks(self):
         """Test that resolve_folders works correctly with both settings and tasks."""
@@ -129,8 +130,8 @@ class TestRepositoryProjectResolveFoldersMethod:
         
         # Check that we have both settings and tasks
         destinations = [folder.destination for folder in resolved_folders]
-        assert_that(destinations).contains(".vscode/settings.json")
-        assert_that(destinations).contains(".vscode/tasks.json")
+        assert_that(destinations).contains(str(pathlib.Path(".vscode", "settings.json")))
+        assert_that(destinations).contains(str(pathlib.Path(".vscode", "tasks.json")))
 
     def test_resolve_folders_with_multiple_settings_sources(self):
         """Test that resolve_folders works correctly with multiple settings sources."""
@@ -149,9 +150,9 @@ class TestRepositoryProjectResolveFoldersMethod:
         
         resolved_folder = resolved_folders[0]
         assert_that(resolved_folder).is_instance_of(ResolvedFolder)
-        assert_that(resolved_folder.destination).is_equal_to(".vscode/settings.json")
-        assert_that(resolved_folder.sources).contains("vscode/settings/python/base")
-        assert_that(resolved_folder.sources).contains("vscode/settings/python/black")
+        assert_that(resolved_folder.destination).is_equal_to(str(pathlib.Path(".vscode", "settings.json")))
+        assert_that(resolved_folder.sources).contains(str(pathlib.Path("vscode", "settings", "python", "base")))
+        assert_that(resolved_folder.sources).contains(str(pathlib.Path("vscode", "settings", "python", "black")))
 
     def test_resolve_folders_with_multiple_tasks_sources(self):
         """Test that resolve_folders works correctly with multiple tasks sources."""
@@ -170,9 +171,9 @@ class TestRepositoryProjectResolveFoldersMethod:
         
         resolved_folder = resolved_folders[0]
         assert_that(resolved_folder).is_instance_of(ResolvedFolder)
-        assert_that(resolved_folder.destination).is_equal_to(".vscode/tasks.json")
-        assert_that(resolved_folder.sources).contains("vscode/tasks/poetry/build")
-        assert_that(resolved_folder.sources).contains("vscode/tasks/poetry/test")
+        assert_that(resolved_folder.destination).is_equal_to(str(pathlib.Path(".vscode", "tasks.json")))
+        assert_that(resolved_folder.sources).contains(str(pathlib.Path("vscode", "tasks", "poetry", "build")))
+        assert_that(resolved_folder.sources).contains(str(pathlib.Path("vscode", "tasks", "poetry", "test")))
 
 
 class TestRepositoryProjectEdgeCases:
@@ -207,15 +208,15 @@ class TestRepositoryProjectEdgeCases:
         
         # Check settings folder
         settings_folder = next(f for f in resolved_folders if f.destination == ".vscode/settings.json")
-        assert_that(settings_folder.sources).contains("vscode/settings/python/base")
-        assert_that(settings_folder.sources).contains("vscode/settings/python/black")
-        assert_that(settings_folder.sources).contains("vscode/settings/editor/format")
+        assert_that(settings_folder.sources).contains(str(pathlib.Path("vscode", "settings", "python", "base")))
+        assert_that(settings_folder.sources).contains(str(pathlib.Path("vscode", "settings", "python", "black")))
+        assert_that(settings_folder.sources).contains(str(pathlib.Path("vscode", "settings", "editor", "format")))
         
         # Check tasks folder
         tasks_folder = next(f for f in resolved_folders if f.destination == ".vscode/tasks.json")
-        assert_that(tasks_folder.sources).contains("vscode/tasks/poetry/build")
-        assert_that(tasks_folder.sources).contains("vscode/tasks/poetry/test")
-        assert_that(tasks_folder.sources).contains("vscode/tasks/docker/compose")
+        assert_that(tasks_folder.sources).contains(str(pathlib.Path("vscode", "tasks", "poetry", "build")))
+        assert_that(tasks_folder.sources).contains(str(pathlib.Path("vscode", "tasks", "poetry", "test")))
+        assert_that(tasks_folder.sources).contains(str(pathlib.Path("vscode", "tasks", "docker", "compose")))
 
     def test_repository_project_with_direct_files(self):
         """Test that repository project with direct files in VSCode configuration works correctly."""
@@ -232,11 +233,11 @@ class TestRepositoryProjectEdgeCases:
         
         # Check settings folder
         settings_folder = next(f for f in resolved_folders if f.destination == ".vscode/settings.json")
-        assert_that(settings_folder.sources).contains("vscode/settings/base")
+        assert_that(settings_folder.sources).contains(str(pathlib.Path("vscode", "settings", "base")))
         
         # Check tasks folder
         tasks_folder = next(f for f in resolved_folders if f.destination == ".vscode/tasks.json")
-        assert_that(tasks_folder.sources).contains("vscode/tasks/build")
+        assert_that(tasks_folder.sources).contains(str(pathlib.Path("vscode", "tasks", "build")))
 
 
 class TestRepositoryProjectInheritance:

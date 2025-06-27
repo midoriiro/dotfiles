@@ -1,6 +1,8 @@
 import json
 import logging
+import os
 from pathlib import Path
+import pathlib
 from typing import Dict, Any
 from unittest.mock import Mock, patch
 
@@ -69,8 +71,8 @@ class TestWorkspaceComposerCompose:
                 "file": FilePolicy(write=FileWritePolicy.OVERWRITE),
             }),
             projects=Projects({
-                "test-project-1": UserProject(path="/workspace/project1"),
-                "test-project-2": UserProject(path="/workspace/project2"),
+                "test-project-1": UserProject(path=str(pathlib.Path(os.path.sep, "workspace", "project1"))),
+                "test-project-2": UserProject(path=str(pathlib.Path(os.path.sep, "workspace", "project2"))),
             }),
         )
         
@@ -149,8 +151,8 @@ class TestWorkspaceComposerResolveFileSpecification:
                 "file": FilePolicy(write=FileWritePolicy.OVERWRITE),
             }),
             projects=Projects({
-                "project1": UserProject(path="/workspace/project1", alias="ProjectOne"),
-                "project2": UserProject(path="/workspace/project2"),
+                "project1": UserProject(path=str(pathlib.Path(os.path.sep, "workspace", "project1")), alias="ProjectOne"),
+                "project2": UserProject(path=str(pathlib.Path(os.path.sep, "workspace", "project2"))),
             }),
         )
         
@@ -164,12 +166,12 @@ class TestWorkspaceComposerResolveFileSpecification:
         
         # Check first project
         folder1 = content['folders'][0]
-        assert_that(folder1['path']).is_equal_to("/workspace/project1/project1")
+        assert_that(folder1['path']).is_equal_to(str(pathlib.Path(os.path.sep, "workspace", "project1", "project1")))
         assert_that(folder1['name']).is_equal_to("ProjectOne")
         
         # Check second project
         folder2 = content['folders'][1]
-        assert_that(folder2['path']).is_equal_to("/workspace/project2/project2")
+        assert_that(folder2['path']).is_equal_to(str(pathlib.Path(os.path.sep, "workspace", "project2", "project2")))
         assert_that(folder2['name']).is_equal_to("project2")
 
     def test_resolve_file_specification_with_repository_root(self):
@@ -231,7 +233,7 @@ class TestWorkspaceComposerResolveProjectFiles:
         resolved_files = composer._resolve_project_files()
         
         assert_that(resolved_files).is_length(1)
-        assert_that(resolved_files[0].path).is_equal_to("/workspace/test-project/.vscode/settings.json")
+        assert_that(resolved_files[0].path).is_equal_to(str(pathlib.Path(os.path.sep, "workspace", "test-project", ".vscode", "settings.json")))
         assert_that(resolved_files[0].content).is_not_empty()
  
 
@@ -259,9 +261,9 @@ class TestWorkspaceComposerResolveProjectFiles:
         resolved_files = composer._resolve_project_files()
             
         assert_that(resolved_files).is_length(2)
-        assert_that(resolved_files[0].path).is_equal_to("/workspace/project1/project1/.vscode/settings.json")
+        assert_that(resolved_files[0].path).is_equal_to(str(pathlib.Path(os.path.sep, "workspace", "project1", "project1", ".vscode", "settings.json")))
         assert_that(resolved_files[0].content).is_not_empty()
-        assert_that(resolved_files[1].path).is_equal_to("/workspace/project2/project2/.vscode/settings.json")
+        assert_that(resolved_files[1].path).is_equal_to(str(pathlib.Path(os.path.sep, "workspace", "project2", "project2", ".vscode", "settings.json")))
         assert_that(resolved_files[1].content).is_not_empty()
             
 

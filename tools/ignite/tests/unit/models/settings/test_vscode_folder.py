@@ -1,3 +1,4 @@
+import pathlib
 import pytest
 from pathlib import Path
 from typing import List
@@ -177,8 +178,8 @@ class TestVSCodeFolderResolve:
         assert_that(resolved).is_length(1)
         assert_that(resolved[0].destination).is_equal_to("settings.json")
         assert_that(resolved[0].sources).is_length(2)
-        assert_that(resolved[0].sources).contains("settings/python/base")
-        assert_that(resolved[0].sources).contains("settings/python/black")
+        assert_that(resolved[0].sources).contains(str(pathlib.Path("settings", "python", "base")))
+        assert_that(resolved[0].sources).contains(str(pathlib.Path("settings", "python", "black")))
 
     def test_resolve_vscode_folder_with_tasks_only(self):
         """Test resolving a VSCodeFolder with only tasks."""
@@ -191,8 +192,8 @@ class TestVSCodeFolderResolve:
         assert_that(resolved).is_length(1)
         assert_that(resolved[0].destination).is_equal_to("tasks.json")
         assert_that(resolved[0].sources).is_length(2)
-        assert_that(resolved[0].sources).contains("tasks/poetry/build")
-        assert_that(resolved[0].sources).contains("tasks/poetry/test")
+        assert_that(resolved[0].sources).contains(str(pathlib.Path("tasks", "poetry", "build")))
+        assert_that(resolved[0].sources).contains(str(pathlib.Path("tasks", "poetry", "test")))
 
     def test_resolve_vscode_folder_with_both_settings_and_tasks(self):
         """Test resolving a VSCodeFolder with both settings and tasks."""
@@ -213,14 +214,14 @@ class TestVSCodeFolderResolve:
         # Check settings
         settings_resolved = next(r for r in resolved if r.destination == "settings.json")
         assert_that(settings_resolved.sources).is_length(2)
-        assert_that(settings_resolved.sources).contains("settings/python/base")
-        assert_that(settings_resolved.sources).contains("settings/python/black")
+        assert_that(settings_resolved.sources).contains(str(pathlib.Path("settings", "python", "base")))
+        assert_that(settings_resolved.sources).contains(str(pathlib.Path("settings", "python", "black")))
         
         # Check tasks
         tasks_resolved = next(r for r in resolved if r.destination == "tasks.json")
         assert_that(tasks_resolved.sources).is_length(2)
-        assert_that(tasks_resolved.sources).contains("tasks/poetry/build")
-        assert_that(tasks_resolved.sources).contains("tasks/poetry/test")
+        assert_that(tasks_resolved.sources).contains(str(pathlib.Path("tasks", "poetry", "build")))
+        assert_that(tasks_resolved.sources).contains(str(pathlib.Path("tasks", "poetry", "test")))
 
     def test_resolve_vscode_folder_with_files(self):
         """Test resolving a VSCodeFolder with File objects."""
@@ -237,12 +238,12 @@ class TestVSCodeFolderResolve:
         # Check settings
         settings_resolved = next(r for r in resolved if r.destination == "settings.json")
         assert_that(settings_resolved.sources).is_length(1)
-        assert_that(settings_resolved.sources).contains("settings/base")
+        assert_that(settings_resolved.sources).contains(str(pathlib.Path("settings", "base")))
         
         # Check tasks
         tasks_resolved = next(r for r in resolved if r.destination == "tasks.json")
         assert_that(tasks_resolved.sources).is_length(1)
-        assert_that(tasks_resolved.sources).contains("tasks/build")
+        assert_that(tasks_resolved.sources).contains(str(pathlib.Path("tasks", "build")))
 
     def test_resolve_vscode_folder_with_mixed_content(self):
         """Test resolving a VSCodeFolder with mixed Folder and File objects."""
@@ -266,16 +267,16 @@ class TestVSCodeFolderResolve:
         # Check settings
         settings_resolved = next(r for r in resolved if r.destination == "settings.json")
         assert_that(settings_resolved.sources).is_length(3)
-        assert_that(settings_resolved.sources).contains("settings/python/base")
-        assert_that(settings_resolved.sources).contains("settings/python/black")
-        assert_that(settings_resolved.sources).contains("settings/flake8")
+        assert_that(settings_resolved.sources).contains(str(pathlib.Path("settings", "python", "base")))
+        assert_that(settings_resolved.sources).contains(str(pathlib.Path("settings", "python", "black")))
+        assert_that(settings_resolved.sources).contains(str(pathlib.Path("settings", "flake8")))
         
         # Check tasks
         tasks_resolved = next(r for r in resolved if r.destination == "tasks.json")
         assert_that(tasks_resolved.sources).is_length(3)
-        assert_that(tasks_resolved.sources).contains("tasks/poetry/build")
-        assert_that(tasks_resolved.sources).contains("tasks/poetry/test")
-        assert_that(tasks_resolved.sources).contains("tasks/install")
+        assert_that(tasks_resolved.sources).contains(str(pathlib.Path("tasks", "poetry", "build")))
+        assert_that(tasks_resolved.sources).contains(str(pathlib.Path("tasks", "poetry", "test")))
+        assert_that(tasks_resolved.sources).contains(str(pathlib.Path("tasks", "install")))
 
     def test_resolve_vscode_folder_with_nested_folders(self):
         """Test resolving a VSCodeFolder with nested folder structures."""
@@ -307,16 +308,16 @@ class TestVSCodeFolderResolve:
         # Check settings
         settings_resolved = next(r for r in resolved if r.destination == "settings.json")
         assert_that(settings_resolved.sources).is_length(3)
-        assert_that(settings_resolved.sources).contains("settings/python/base")
-        assert_that(settings_resolved.sources).contains("settings/python/linting/black")
-        assert_that(settings_resolved.sources).contains("settings/python/linting/flake8")
+        assert_that(settings_resolved.sources).contains(str(pathlib.Path("settings", "python", "base")))
+        assert_that(settings_resolved.sources).contains(str(pathlib.Path("settings", "python", "linting", "black")))
+        assert_that(settings_resolved.sources).contains(str(pathlib.Path("settings", "python", "linting", "flake8")))
         
         # Check tasks
         tasks_resolved = next(r for r in resolved if r.destination == "tasks.json")
         assert_that(tasks_resolved.sources).is_length(3)
-        assert_that(tasks_resolved.sources).contains("tasks/poetry/build")
-        assert_that(tasks_resolved.sources).contains("tasks/poetry/testing/test")
-        assert_that(tasks_resolved.sources).contains("tasks/poetry/testing/coverage")
+        assert_that(tasks_resolved.sources).contains(str(pathlib.Path("tasks", "poetry", "build")))
+        assert_that(tasks_resolved.sources).contains(str(pathlib.Path("tasks", "poetry", "testing", "test")))
+        assert_that(tasks_resolved.sources).contains(str(pathlib.Path("tasks", "poetry", "testing", "coverage")))
 
     def test_resolve_vscode_folder_with_reserved_keywords(self):
         """Test resolving a VSCodeFolder with reserved keywords ($ref, $all)."""
@@ -338,12 +339,12 @@ class TestVSCodeFolderResolve:
         # Check settings
         settings_resolved = next(r for r in resolved if r.destination == "settings.json")
         assert_that(settings_resolved.sources).is_length(1)
-        assert_that(settings_resolved.sources).contains("settings/python/$ref")
+        assert_that(settings_resolved.sources).contains(str(pathlib.Path("settings", "python", "$ref")))
         
         # Check tasks
         tasks_resolved = next(r for r in resolved if r.destination == "tasks.json")
         assert_that(tasks_resolved.sources).is_length(1)
-        assert_that(tasks_resolved.sources).contains("tasks/poetry/$all")
+        assert_that(tasks_resolved.sources).contains(str(pathlib.Path("tasks", "poetry", "$all")))
 
 
 class TestVSCodeFolderEdgeCases:
@@ -391,16 +392,16 @@ class TestVSCodeFolderEdgeCases:
         assert_that(settings_resolved.sources).is_length(10)
         
         expected_sources = [
-            "settings/python/base",
-            "settings/python/linting/black",
-            "settings/python/linting/config/black",
-            "settings/python/linting/config/pyproject",
-            "settings/python/formatting/isort",
-            "settings/python/formatting/autopep8",
-            "settings/python/testing/pytest",
-            "settings/python/testing/coverage",
-            "settings/python/testing/fixtures/conftest",
-            "settings/python/testing/fixtures/test_data"
+            str(pathlib.Path("settings", "python", "base")),
+            str(pathlib.Path("settings", "python", "linting", "black")),
+            str(pathlib.Path("settings", "python", "linting", "config", "black")),
+            str(pathlib.Path("settings", "python", "linting", "config", "pyproject")),
+            str(pathlib.Path("settings", "python", "formatting", "isort")),
+            str(pathlib.Path("settings", "python", "formatting", "autopep8")),
+            str(pathlib.Path("settings", "python", "testing", "pytest")),
+            str(pathlib.Path("settings", "python", "testing", "coverage")),
+            str(pathlib.Path("settings", "python", "testing", "fixtures", "conftest")),
+            str(pathlib.Path("settings", "python", "testing", "fixtures", "test_data"))
         ]
         
         for expected_source in expected_sources:
@@ -426,16 +427,16 @@ class TestVSCodeFolderEdgeCases:
         # Check settings
         settings_resolved = next(r for r in resolved if r.destination == "settings.json")
         assert_that(settings_resolved.sources).is_length(3)
-        assert_that(settings_resolved.sources).contains("settings/python/base")
-        assert_that(settings_resolved.sources).contains("settings/python/.env")
-        assert_that(settings_resolved.sources).contains("settings/python/config")
+        assert_that(settings_resolved.sources).contains(str(pathlib.Path("settings", "python", "base")))
+        assert_that(settings_resolved.sources).contains(str(pathlib.Path("settings", "python", ".env")))
+        assert_that(settings_resolved.sources).contains(str(pathlib.Path("settings", "python", "config")))
         
         # Check tasks
         tasks_resolved = next(r for r in resolved if r.destination == "tasks.json")
         assert_that(tasks_resolved.sources).is_length(3)
-        assert_that(tasks_resolved.sources).contains("tasks/poetry/build")
-        assert_that(tasks_resolved.sources).contains("tasks/poetry/.gitignore")
-        assert_that(tasks_resolved.sources).contains("tasks/poetry/pyproject")
+        assert_that(tasks_resolved.sources).contains(str(pathlib.Path("tasks", "poetry", "build")))
+        assert_that(tasks_resolved.sources).contains(str(pathlib.Path("tasks", "poetry", ".gitignore")))
+        assert_that(tasks_resolved.sources).contains(str(pathlib.Path("tasks", "poetry", "pyproject")))
 
 
 class TestVSCodeFolderModelBehavior:
@@ -506,11 +507,11 @@ class TestVSCodeFolderModelBehavior:
         resolved = vscode_folder.resolve()
         
         settings_resolved = resolved[0]
-        assert_that(settings_resolved.sources).contains("settings/python/base")
+        assert_that(settings_resolved.sources).contains(str(pathlib.Path("settings", "python", "base")))
         
         # Verify the path construction follows the expected pattern
         # base_settings_path = Path("settings") + source_path
-        assert_that(settings_resolved.sources[0]).is_equal_to("settings/python/base")
+        assert_that(settings_resolved.sources[0]).is_equal_to(str(pathlib.Path("settings", "python", "base")))
 
     def test_vscode_folder_uses_model_construct(self):
         """Test that VSCodeFolder uses model_construct for creating ResolvedFolder objects."""
@@ -561,9 +562,9 @@ class TestVSCodeFolderModelBehavior:
         assert_that(resolved).is_length(1)
         settings_resolved = resolved[0]
         assert_that(settings_resolved.sources).is_length(3)
-        assert_that(settings_resolved.sources).contains("settings/python/base")
-        assert_that(settings_resolved.sources).contains("settings/typescript/base")
-        assert_that(settings_resolved.sources).contains("settings/global")
+        assert_that(settings_resolved.sources).contains(str(pathlib.Path("settings", "python", "base")))
+        assert_that(settings_resolved.sources).contains(str(pathlib.Path("settings", "typescript", "base")))
+        assert_that(settings_resolved.sources).contains(str(pathlib.Path("settings", "global")))
 
     def test_vscode_folder_with_multiple_tasks_sources(self):
         """Test VSCodeFolder with multiple tasks sources."""
@@ -583,6 +584,6 @@ class TestVSCodeFolderModelBehavior:
         assert_that(resolved).is_length(1)
         tasks_resolved = resolved[0]
         assert_that(tasks_resolved.sources).is_length(3)
-        assert_that(tasks_resolved.sources).contains("tasks/poetry/build")
-        assert_that(tasks_resolved.sources).contains("tasks/npm/build")
-        assert_that(tasks_resolved.sources).contains("tasks/global")
+        assert_that(tasks_resolved.sources).contains(str(pathlib.Path("tasks", "poetry", "build")))
+        assert_that(tasks_resolved.sources).contains(str(pathlib.Path("tasks", "npm", "build")))
+        assert_that(tasks_resolved.sources).contains(str(pathlib.Path("tasks", "global")))

@@ -1,4 +1,5 @@
 import pathlib
+import os
 from unittest.mock import Mock, patch
 from typing import Dict, List
 
@@ -158,12 +159,12 @@ class TestWorkspaceResolveFileSpecification:
         
         # Check first project
         folder1 = result.folders[0]
-        assert_that(folder1.path).is_equal_to("/workspace/project1/project1")
+        assert_that(folder1.path).is_equal_to(str(pathlib.Path(os.path.sep, "workspace", "project1", "project1")))
         assert_that(folder1.name).is_equal_to("project1")
         
         # Check second project with alias
         folder2 = result.folders[1]
-        assert_that(folder2.path).is_equal_to("/workspace/project2/project2")
+        assert_that(folder2.path).is_equal_to(str(pathlib.Path(os.path.sep, "workspace", "project2", "project2")))
         assert_that(folder2.name).is_equal_to("custom-alias")
 
     def test_resolve_file_specification_with_root_repository_project(self):
@@ -212,7 +213,7 @@ class TestWorkspaceResolveFileSpecification:
         
         # Check user project
         user_folder = next(f for f in result.folders if f.path != ".")
-        assert_that(user_folder.path).is_equal_to("/workspace/user-project/user-project")
+        assert_that(user_folder.path).is_equal_to(str(pathlib.Path(os.path.sep, "workspace", "user-project", "user-project")))
         assert_that(user_folder.name).is_equal_to("user-project")
 
     def test_resolve_file_specification_with_ref_project_only(self):
@@ -245,14 +246,14 @@ class TestWorkspaceFolderSpecification:
             name="test-project"
         )
         
-        assert_that(folder_spec.path).is_equal_to("/workspace/project")
+        assert_that(folder_spec.path).is_equal_to(str(pathlib.Path(os.path.sep, "workspace", "project")))
         assert_that(folder_spec.name).is_equal_to("test-project")
 
     def test_workspace_folder_specification_without_name(self):
         """Test that WorkspaceFolderSpecification can be created without a name."""
         folder_spec = WorkspaceFolderSpecification(path="/workspace/project")
         
-        assert_that(folder_spec.path).is_equal_to("/workspace/project")
+        assert_that(folder_spec.path).is_equal_to(str(pathlib.Path(os.path.sep, "workspace", "project")))
         assert_that(folder_spec.name).is_none()
 
 
