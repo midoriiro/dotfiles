@@ -68,23 +68,7 @@ runs:
         PIPX_BIN_DIR: ${{ env.PIPX_BIN_DIR }}
       shell: bash
       run: |
-        pipx install --force poetry
-
-    - name: Debug ~/.local contents
-      shell: bash
-      run: |
-        echo "=== ~/.local Directory Contents (Recursive) ==="
-        echo "HOME: $HOME"
-        echo ""
-        if [ -d "$HOME/.local" ]; then
-          echo "📁 ~/.local exists, showing contents:"
-          find "$HOME/.local" -ls 2>/dev/null
-        else
-          echo "❌ ~/.local directory not found"
-        fi
-        echo ""
-        echo "=== Current PATH ==="
-        echo "$PATH" | tr ':' '\n'
+        pipx install poetry
 
     - name: Cache Python and Poetry
       uses: actions/cache@v3
