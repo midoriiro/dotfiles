@@ -1,6 +1,7 @@
 import pytest
 from pathlib import Path
 from unittest.mock import patch, MagicMock
+from assertpy import assert_that
 
 from ignite.models.fs import ReservedFileName
 from ignite.resolvers import PathResolver
@@ -16,8 +17,8 @@ class TestPathResolver:
         """Test PathResolver initialization."""
         resolver = PathResolver(repository_context, user_context)
         
-        assert resolver._PathResolver__repository_context == repository_context
-        assert resolver._PathResolver__user_context == user_context
+        assert_that(resolver._PathResolver__repository_context).is_equal_to(repository_context)
+        assert_that(resolver._PathResolver__user_context).is_equal_to(user_context)
 
     def test_resolve_simple_file_in_repository(self, repository_context, user_context, tmp_path):
         """Test resolving a simple file that exists in repository context."""
@@ -27,8 +28,8 @@ class TestPathResolver:
         paths = [path]
         result = resolver.resolve(paths)
         
-        assert len(result) == 1
-        assert result[0] == repository_context / "vscode" / "settings" / "python" / "base.json"
+        assert_that(result).is_length(1)
+        assert_that(result[0]).is_equal_to(repository_context / "vscode" / "settings" / "python" / "base.json")
 
     def test_resolve_simple_file_in_user_context(self, repository_context, user_context):
         """Test resolving a simple file that exists in user context."""
@@ -41,8 +42,8 @@ class TestPathResolver:
         paths = [Path(".test")]
         result = resolver.resolve(paths)
         
-        assert len(result) == 1
-        assert result[0] == user_file
+        assert_that(result).is_length(1)
+        assert_that(result[0]).is_equal_to(user_file)
 
     def test_resolve_file_not_found(self, repository_context, user_context):
         """Test resolving a file that doesn't exist in either context."""
@@ -62,7 +63,7 @@ class TestPathResolver:
         paths = [path]
         result = resolver.resolve(paths)
         
-        assert len(result) > 0
+        assert_that(result).is_not_empty()
 
     def test_resolve_with_ref_paths(self, repository_context, user_context):
         """Test resolving paths with reference paths."""
@@ -74,8 +75,8 @@ class TestPathResolver:
         
         result = resolver.resolve(paths, ref_paths)
         
-        assert len(result) == 1
-        assert result[0] == repository_context / "vscode" / "settings" / "python" / "base.json"
+        assert_that(result).is_length(1)
+        assert_that(result[0]).is_equal_to(repository_context / "vscode" / "settings" / "python" / "base.json")
 
     def test_resolve_with_ref_paths_no_match(self, repository_context, user_context):
         """Test resolving with ref paths that don't match."""
@@ -87,7 +88,7 @@ class TestPathResolver:
         
         result = resolver.resolve(paths, ref_paths)
         
-        assert len(result) == 0
+        assert_that(result).is_empty()
 
     def test_resolve_multiple_paths(self, repository_context, user_context):
         """Test resolving multiple paths simultaneously."""
@@ -100,9 +101,9 @@ class TestPathResolver:
         paths = [repo_file, Path(".user")]
         result = resolver.resolve(paths)
         
-        assert len(result) == 2
-        assert result[0] == repository_context / "vscode" / "settings" / "python" / "base.json"
-        assert result[1] == user_context / "user.txt"
+        assert_that(result).is_length(2)
+        assert_that(result[0]).is_equal_to(repository_context / "vscode" / "settings" / "python" / "base.json")
+        assert_that(result[1]).is_equal_to(user_context / "user.txt")
 
     def test_resolve_path_method_found(self, repository_context, user_context):
         """Test _resolve_path method when file is found."""
@@ -112,7 +113,7 @@ class TestPathResolver:
         
         result = resolver._resolve_path(test_dir, "base")
         
-        assert result == test_dir / "base.json"
+        assert_that(result).is_equal_to(test_dir / "base.json")
 
     def test_resolve_path_method_not_found(self, repository_context, user_context):
         """Test _resolve_path method when file is not found."""
@@ -122,7 +123,7 @@ class TestPathResolver:
         
         result = resolver._resolve_path(test_dir, "not_exist")
         
-        assert result is None
+        assert_that(result).is_none()
 
     def test_resolve_all_file_method(self, repository_context, user_context):
         """Test _resolve_all_file method."""
@@ -132,7 +133,7 @@ class TestPathResolver:
         
         result = resolver._resolve_all_file(test_dir)
         
-        assert len(result) > 0
+        assert_that(result).is_not_empty()
 
     def test_resolve_ref_method(self, repository_context, user_context):
         """Test _resolve_ref method."""
@@ -144,8 +145,8 @@ class TestPathResolver:
         resolver._resolve_ref(ref_paths, paths)
         
         # The $ref should be replaced with matching ref_paths
-        assert len(paths) == 1
-        assert paths[0] == Path("base")
+        assert_that(paths).is_length(1)
+        assert_that(paths[0]).is_equal_to(Path("base"))
 
     def test_resolve_ref_file_method(self, repository_context, user_context):
         """Test _resolve_ref_file method."""
@@ -156,8 +157,8 @@ class TestPathResolver:
         
         result = resolver._resolve_ref_file(ref_paths, ref_file)
         
-        assert len(result) == 1
-        assert result[0] == Path("base")
+        assert_that(result).is_length(1)
+        assert_that(result[0]).is_equal_to(Path("base"))
 
     def test_resolve_ref_file_method_no_matches(self, repository_context, user_context):
         """Test _resolve_ref_file method with no matching paths."""
@@ -168,7 +169,7 @@ class TestPathResolver:
         
         result = resolver._resolve_ref_file(ref_paths, ref_file)
         
-        assert len(result) == 0
+        assert_that(result).is_empty()
 
     def test_resolve_with_mixed_file_types(self, repository_context, user_context):
         """Test resolving mixed file types (repository, user, $all, $ref)."""
@@ -190,17 +191,11 @@ class TestPathResolver:
         
         result = resolver.resolve(paths, ref_paths)
         
-        assert len(result) == 4
-        assert result[0] == user_file
-        
-        expected_paths = [
-            repository_context / "vscode" / "settings" / "coverage-gutters.json",
-            repository_context / "vscode" / "settings" / "on-save.json",
-            repository_context / "vscode" / "settings" / "python" / "base.json"
-        ]
-        
-        for expected_path in expected_paths:
-            assert expected_path in result
+        assert_that(result).is_length(4)
+        assert_that(result).contains(user_file)
+        assert_that(result).contains(repository_context / "vscode" / "settings" / "coverage-gutters.json")
+        assert_that(result).contains(repository_context / "vscode" / "settings" / "on-save.json")
+        assert_that(result).contains(repository_context / "vscode" / "settings" / "python" / "base.json")
 
     def test_resolve_empty_paths_list(self, repository_context, user_context):
         """Test resolving an empty list of paths."""
@@ -208,7 +203,7 @@ class TestPathResolver:
         
         result = resolver.resolve([])
         
-        assert result == []
+        assert_that(result).is_empty()
 
     def test_resolve_none_ref_paths(self, repository_context, user_context):
         """Test resolving with None ref_paths."""

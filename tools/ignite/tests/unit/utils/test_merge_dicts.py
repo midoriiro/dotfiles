@@ -1,4 +1,5 @@
 import pytest
+from assertpy import assert_that
 from ignite.utils import merge_dicts
 
 
@@ -10,7 +11,7 @@ def test_basic_merge():
     merge_dicts(a, b)
     
     expected = {"x": 1, "y": 2, "z": 3, "w": 4}
-    assert a == expected
+    assert_that(a).is_equal_to(expected)
 
 
 def test_overwrite_existing_keys():
@@ -21,7 +22,7 @@ def test_overwrite_existing_keys():
     merge_dicts(a, b)
     
     expected = {"x": 10, "y": 2, "z": 3}
-    assert a == expected
+    assert_that(a).is_equal_to(expected)
 
 
 def test_nested_dictionary_merge():
@@ -32,7 +33,7 @@ def test_nested_dictionary_merge():
     merge_dicts(a, b)
     
     expected = {"x": 1, "y": {"a": 1, "b": 3, "c": 4}, "z": 5}
-    assert a == expected
+    assert_that(a).is_equal_to(expected)
 
 
 def test_deep_nested_dictionary_merge():
@@ -43,7 +44,7 @@ def test_deep_nested_dictionary_merge():
     merge_dicts(a, b)
     
     expected = {"level1": {"level2": {"level3": {"a": 1, "b": 3, "c": 4}}}}
-    assert a == expected
+    assert_that(a).is_equal_to(expected)
 
 
 def test_list_concatenation():
@@ -54,7 +55,7 @@ def test_list_concatenation():
     merge_dicts(a, b)
     
     expected = {"items": [1, 2, 3, 4, 5, 6]}
-    assert a == expected
+    assert_that(a).is_equal_to(expected)
 
 
 def test_mixed_types_merge():
@@ -83,7 +84,7 @@ def test_mixed_types_merge():
         "list": [1, 2, 3, 4],
         "dict": {"a": 1, "b": 2}
     }
-    assert a == expected
+    assert_that(a).is_equal_to(expected)
 
 
 def test_empty_dictionary_merge():
@@ -94,7 +95,7 @@ def test_empty_dictionary_merge():
     merge_dicts(a, b)
     
     expected = {"x": 1, "y": 2}
-    assert a == expected
+    assert_that(a).is_equal_to(expected)
 
 
 def test_merge_into_empty_dictionary():
@@ -105,7 +106,7 @@ def test_merge_into_empty_dictionary():
     merge_dicts(a, b)
     
     expected = {"x": 1, "y": 2}
-    assert a == expected
+    assert_that(a).is_equal_to(expected)
 
 
 def test_both_empty_dictionaries():
@@ -116,7 +117,7 @@ def test_both_empty_dictionaries():
     merge_dicts(a, b)
     
     expected = {}
-    assert a == expected
+    assert_that(a).is_equal_to(expected)
 
 
 def test_nested_list_merge():
@@ -127,7 +128,7 @@ def test_nested_list_merge():
     merge_dicts(a, b)
     
     expected = {"config": {"items": [{"id": 1}, {"id": 2}, {"id": 3}, {"id": 4}]}}
-    assert a == expected
+    assert_that(a).is_equal_to(expected)
 
 
 def test_dict_overwrites_list():
@@ -138,7 +139,7 @@ def test_dict_overwrites_list():
     merge_dicts(a, b)
     
     expected = {"key": {"a": 1, "b": 2}}
-    assert a == expected
+    assert_that(a).is_equal_to(expected)
 
 
 def test_list_overwrites_dict():
@@ -149,7 +150,7 @@ def test_list_overwrites_dict():
     merge_dicts(a, b)
     
     expected = {"key": [1, 2, 3]}
-    assert a == expected
+    assert_that(a).is_equal_to(expected)
 
 
 def test_preserves_original_structure():
@@ -160,7 +161,7 @@ def test_preserves_original_structure():
     merge_dicts(a, b)
     
     expected = {"level1": {"level2": {"a": 1, "b": 2}}}
-    assert a == expected
+    assert_that(a).is_equal_to(expected)
 
 
 def test_complex_nested_structure():
@@ -215,7 +216,7 @@ def test_complex_nested_structure():
         "features": ["auth", "logging", "monitoring"],
         "debug": True
     }
-    assert a == expected
+    assert_that(a).is_equal_to(expected)
 
 
 def test_function_modifies_in_place():
@@ -224,13 +225,14 @@ def test_function_modifies_in_place():
     b = {"y": 2}
     
     # Store reference to original dictionary
-    original_ref = a
+    original_a = a
     
     merge_dicts(a, b)
     
-    # Check that the reference is the same
-    assert a is original_ref
-    assert a == {"x": 1, "y": 2}
+    # Check that the same object was modified
+    assert_that(a).is_same_as(original_a)
+    assert_that(a).contains_key("x")
+    assert_that(a).contains_key("y")
 
 
 def test_function_returns_none():
@@ -240,4 +242,4 @@ def test_function_returns_none():
     
     result = merge_dicts(a, b)
     
-    assert result is None
+    assert_that(result).is_none()

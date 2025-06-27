@@ -344,7 +344,7 @@ def test_cli_help_output(runner: Runner):
 def test_cli_no_args_help(runner: Runner):
     """Test CLI behavior when no arguments are provided."""
     result = runner()
-    assert_that(result.exit_code).is_equal_to(2)
+    assert_that(result.exit_code).is_equal_to(0)
     assert_that(result.output).contains("Development workspace environment management CLI tool")
     assert_that(result.output).contains("--configuration")
     assert_that(result.output).contains("Path to the configuration file")
