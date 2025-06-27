@@ -1,3 +1,5 @@
+import os
+import pathlib
 import pytest
 from pydantic import ValidationError
 from assertpy import assert_that
@@ -20,7 +22,7 @@ class TestValidProjects:
         })
         assert_that(projects.root).contains_key("test-project")
         assert_that(projects.root["test-project"]).is_instance_of(UserProject)
-        assert_that(projects.root["test-project"].path).is_equal_to("/workspace/test-project")
+        assert_that(projects.root["test-project"].path).is_equal_to(str(pathlib.Path(os.path.sep, "workspace", "test-project")))
 
     def test_projects_with_repository_project(self):
         """Test that projects with repository project is accepted."""
@@ -149,7 +151,7 @@ class TestProjectsResolveProjectFolders:
         assert_that(result).contains_key("test-project")
         assert_that(result["test-project"]).is_length(1)
         resolved_folder = result["test-project"][0]
-        assert_that(resolved_folder.destination).is_equal_to("/workspace/test-project/test-project/.vscode/settings.json")
+        assert_that(resolved_folder.destination).is_equal_to(str(pathlib.Path(os.path.sep, "workspace", "test-project", "test-project", ".vscode", "settings.json")))
 
     def test_resolve_project_folders_with_user_project_with_alias(self):
         """Test that resolve_project_folders uses alias when available."""
@@ -168,7 +170,7 @@ class TestProjectsResolveProjectFolders:
         assert_that(result).contains_key("my-alias")
         assert_that(result["my-alias"]).is_length(1)
         resolved_folder = result["my-alias"][0]
-        assert_that(resolved_folder.destination).is_equal_to("/workspace/project/project-key/.vscode/settings.json")
+        assert_that(resolved_folder.destination).is_equal_to(str(pathlib.Path(os.path.sep, "workspace", "project", "project-key", ".vscode", "settings.json")))
 
     def test_resolve_project_folders_with_repository_project_no_vscode(self):
         """Test that resolve_project_folders works with repository project without VSCode."""
@@ -194,8 +196,8 @@ class TestProjectsResolveProjectFolders:
         assert_that(result).contains_key("root")
         assert_that(result["root"]).is_length(2)
         destinations = [folder.destination for folder in result["root"]]
-        assert_that(destinations).contains(".vscode/settings.json")
-        assert_that(destinations).contains(".vscode/tasks.json")
+        assert_that(destinations).contains(str(pathlib.Path(".vscode", "settings.json")))
+        assert_that(destinations).contains(str(pathlib.Path(".vscode", "tasks.json")))
 
     def test_resolve_project_folders_with_mixed_projects(self):
         """Test that resolve_project_folders works with mixed project types."""
@@ -300,12 +302,12 @@ class TestProjectsEdgeCases:
             all_sources.extend(folder.sources)
         
         expected_sources = [
-            "vscode/settings/python/base",
-            "vscode/settings/python/black",
-            "vscode/settings/typescript/base",
-            "vscode/tasks/poetry/build",
-            "vscode/tasks/poetry/test",
-            "vscode/tasks/npm/install"
+            str(pathlib.Path("vscode", "settings", "python", "base")),
+            str(pathlib.Path("vscode", "settings", "python", "black")),
+            str(pathlib.Path("vscode", "settings", "typescript", "base")),
+            str(pathlib.Path("vscode", "tasks", "poetry", "build")),
+            str(pathlib.Path("vscode", "tasks", "poetry", "test")),
+            str(pathlib.Path("vscode", "tasks", "npm", "install"))
         ]
         
         for expected_source in expected_sources:
