@@ -1,19 +1,35 @@
 {
-    "name": ".dotfiles",
-    "build": {
-        "dockerfile": "../ContainerFile",
-        "context": "..",
-        "target": "dev"
-    },
-    "containerUser": "vscode",
-    "remoteUser": "vscode",
-    "remoteEnv": {
-        "CONTAINER_HOST": "tcp://127.0.0.1:8888"
-    },
-    "workspaceMount": "source=devfiles-workspace,target=/workspace,type=volume",
-    "workspaceFolder": "/workspace",
-    "runArgs": [
-        "--network",
-        "host"
-    ]
+  "name": "dotfiles",
+  "workspaceFolder": "/workspace",
+  "workspaceMount": "source=dotfiles-workspace,target=/workspace,type=volume",
+  "remoteUser": "vscode",
+  "containerUser": "vscode",
+  "remoteEnv": {
+    "CONTAINER_HOST": "tcp://127.0.0.1:8888"
+  },
+  "build": {
+    "dockerFile": "../Containerfile",
+    "context": "..",
+    "target": "dev"
+  },
+  "runArgs": [
+    "--network=host"
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.debugpy",
+        "ms-python.vscode-pylance",
+        "ms-python.black-formatter",
+        "ms-python.pylint",
+        "ms-python.flake8",
+        "ms-python.isort",
+        "ryanluker.vscode-coverage-gutters",
+        "pamaron.pytest-runner",
+        "ameenahsanma.poetry-monorepo",
+        "github.vscode-github-actions"
+      ]
+    }
+  }
 }

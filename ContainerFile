@@ -10,6 +10,7 @@ run dnf update -y && \
     python3 \
     pipx \
     binutils \
+    zstd \
     && dnf clean all
 # Create vscode user
 run useradd -m -s /bin/bash vscode && \
