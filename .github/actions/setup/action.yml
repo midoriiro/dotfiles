@@ -19,7 +19,7 @@ runs:
       with:
         python-version: ${{ inputs.python-version }}
 
-    - name: Cache Python and Poetry
+    - name: Load cached Python and Poetry
       id: cache-python-poetry
       uses: actions/cache@v3
       with:
@@ -35,6 +35,14 @@ runs:
         version: latest
         virtualenvs-create: true
         virtualenvs-in-project: true
+
+    - name: Cache Python and Poetry
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.local/venv/bin
+          ~/.local/venv/poetry/bin/poetry
+        key: python-poetry-${{ runner.os }}-${{ inputs.python-version }}
 
     - name: Load cached venv
       id: cached-poetry-dependencies
