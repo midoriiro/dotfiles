@@ -30,8 +30,6 @@ runs:
         home = pathlib.Path.home()  
         pipx_home = home / ".local" / "pipx"
         pipx_bin_dir = pipx_home / "bin"
-
-        python_lib_dir = pathlib.Path(os.__file__).parent
         
         # Set output variables for GitHub Actions
         env_file = os.getenv('GITHUB_ENV')
@@ -39,7 +37,7 @@ runs:
         with open(env_file, "a") as f:
             f.write(f"PIPX_HOME={pipx_home}\n")
             f.write(f"PIPX_BIN_DIR={pipx_bin_dir}\n")
-            f.write(f"PYTHON_LIB_DIR={python_lib_dir}\n")
+            f.write(f"PATH<<{pipx_bin_dir}\n")
 
     - name: Install pipx
       if: steps.cache-python-poetry.outputs.cache-hit != 'true'
@@ -55,7 +53,6 @@ runs:
         path: |
           ${{ env.PIPX_HOME }}
           ${{ env.PIPX_BIN_DIR }}
-          ${{ env.PYTHON_LIB_DIR }}
         key: python-poetry-${{ runner.os }}-${{ inputs.python-version }}
 
     - name: Install Poetry
