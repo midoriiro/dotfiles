@@ -48,7 +48,7 @@ class TestComposerUserInteraction:
         mock_confirm.return_value = True
         result = composer._ask_create_folder(output_path)
         assert_that(result).is_true()
-        mock_confirm.assert_called_once_with("Folder '/tmp/test' does not exist. Do you want to create it?")
+        mock_confirm.assert_called_once_with(f"Folder '{output_path}' does not exist. Do you want to create it?")
         
         # Test when user declines
         mock_confirm.return_value = False
@@ -65,7 +65,7 @@ class TestComposerUserInteraction:
         mock_confirm.return_value = True
         result = composer._ask_overwrite_file(output_path)
         assert_that(result).is_true()
-        mock_confirm.assert_called_once_with("File '/tmp/test' already exists. Do you want to overwrite it?")
+        mock_confirm.assert_called_once_with(f"File '{output_path}' already exists. Do you want to overwrite it?")
         
         # Test when user declines
         mock_confirm.return_value = False

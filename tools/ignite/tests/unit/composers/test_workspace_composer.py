@@ -151,8 +151,8 @@ class TestWorkspaceComposerResolveFileSpecification:
                 "file": FilePolicy(write=FileWritePolicy.OVERWRITE),
             }),
             projects=Projects({
-                "project1": UserProject(path=str(pathlib.Path(os.path.sep, "workspace", "project1")), alias="ProjectOne"),
-                "project2": UserProject(path=str(pathlib.Path(os.path.sep, "workspace", "project2"))),
+                "project1": UserProject(path="/workspace", alias="ProjectOne"),
+                "project2": UserProject(path="/workspace"),
             }),
         )
         
