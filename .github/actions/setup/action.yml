@@ -19,13 +19,6 @@ runs:
       with:
         python-version: ${{ inputs.python-version }}
 
-    - name: Install pipx
-      if: steps.cache-python-poetry.outputs.cache-hit != 'true'
-      shell: bash
-      run: |
-        python -m pip install --user pipx
-        python -m pipx ensurepath
-
     - name: Generate pipx environment variables
       id: pipx-env
       shell: python
@@ -47,6 +40,13 @@ runs:
             f.write(f"PIPX_HOME={pipx_home}\n")
             f.write(f"PIPX_BIN_DIR={pipx_bin_dir}\n")
             f.write(f"PYTHON_LIB_DIR={python_lib_dir}\n")
+
+    - name: Install pipx
+      if: steps.cache-python-poetry.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        python -m pip install --user pipx
+        python -m pipx ensurepath
 
     - name: Load cached Python and Poetry
       id: cached-python-poetry
