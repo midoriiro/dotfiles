@@ -19,6 +19,12 @@ runs:
       with:
         python-version: ${{ inputs.python-version }}
 
+    - name: Install pipx
+      shell: bash
+      run: |
+        python -m pip install --user pipx
+        python -m pipx ensurepath
+
     - name: Load cached Python and Poetry
       id: cache-python-poetry
       uses: actions/cache@v3
@@ -29,12 +35,9 @@ runs:
         key: python-poetry-${{ runner.os }}-${{ inputs.python-version }}
 
     - name: Install Poetry
-      if: steps.cache-python-poetry.outputs.cache-hit != 'true'
-      uses: snok/install-poetry@v1
-      with:
-        version: latest
-        virtualenvs-create: true
-        virtualenvs-in-project: true
+      shell: bash
+      run: |
+        pipx install poetry
 
     - name: Cache Python and Poetry
       uses: actions/cache@v3
