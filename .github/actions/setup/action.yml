@@ -44,9 +44,9 @@ runs:
         env_file = os.getenv('GITHUB_ENV')
 
         with open(env_file, "a") as f:
-            f.write(f"PIPX_HOME={pipx_home}")
-            f.write(f"PIPX_BIN_DIR={pipx_bin_dir}")
-            f.write(f"PYTHON_LIB_DIR={python_lib_dir}")
+            f.write(f"PIPX_HOME={pipx_home}\n")
+            f.write(f"PIPX_BIN_DIR={pipx_bin_dir}\n")
+            f.write(f"PYTHON_LIB_DIR={python_lib_dir}\n")
 
     - name: Load cached Python and Poetry
       id: cached-python-poetry
