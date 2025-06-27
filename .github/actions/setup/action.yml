@@ -14,6 +14,11 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Set up Python ${{ inputs.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ inputs.python-version }}
+
     - name: Cache Python and Poetry
       id: cache-python-poetry
       uses: actions/cache@v3
@@ -26,12 +31,6 @@ runs:
           ${{ env.APPDATA }}/pypoetry
           ${{ env.RUNNER_TOOL_CACHE }}/Python
         key: python-poetry-${{ runner.os }}-${{ inputs.python-version }}
-
-    - name: Set up Python ${{ inputs.python-version }}
-      if: steps.cache-python-poetry.outputs.cache-hit != 'true'
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ inputs.python-version }}
 
     - name: Install Poetry
       if: steps.cache-python-poetry.outputs.cache-hit != 'true'
