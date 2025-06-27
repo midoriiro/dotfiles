@@ -57,4 +57,4 @@ runs:
       uses: actions/cache@v3
       with:
         path: tools/ignite/.venv
-        key: setup-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('tools/ignite/poetry.lock') }} 
+        key: venv-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('tools/ignite/poetry.lock') }} 
