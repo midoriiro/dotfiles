@@ -21,23 +21,30 @@ runs:
 
     - name: Generate pipx environment variables
       id: pipx-env
-      shell: python
+      shell: bash
       run: |
-        import os
-        import pathlib
-
-        # Use  proper paths for the current OS
-        home = pathlib.Path.home()  
-        pipx_home = home / ".local" / "pipx"
-        pipx_bin_dir = pipx_home / "bin"
+        # Get user home directory
+        HOME_DIR="$HOME"
         
-        # Set output variables for GitHub Actions
-        env_file = os.getenv('GITHUB_ENV')
-
-        with open(env_file, "a") as f:
-            f.write(f"PIPX_HOME={pipx_home}\n")
-            f.write(f"PIPX_BIN_DIR={pipx_bin_dir}\n")
-            f.write(f"PATH<<{pipx_bin_dir}\n")
+        # Set pipx paths
+        PIPX_HOME="$HOME_DIR/.local/pipx"
+        PIPX_BIN_DIR="$PIPX_HOME/bin"
+        
+        # Create directories if they don't exist
+        mkdir --parents "$PIPX_HOME"
+        mkdir --parents "$PIPX_BIN_DIR"
+        
+        # Set environment variables
+        echo "PIPX_HOME=$PIPX_HOME" >> $GITHUB_ENV
+        echo "PIPX_BIN_DIR=$PIPX_BIN_DIR" >> $GITHUB_ENV
+        
+        # Add pipx bin directory to PATH
+        echo "$PIPX_BIN_DIR" >> $GITHUB_PATH
+        
+        # Debug output
+        echo "PIPX_HOME: $PIPX_HOME"
+        echo "PIPX_BIN_DIR: $PIPX_BIN_DIR"
+        echo "Github PATH: $GITHUB_PATH"
 
     - name: Install pipx
       if: steps.cache-python-poetry.outputs.cache-hit != 'true'
