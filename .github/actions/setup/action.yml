@@ -38,6 +38,19 @@ runs:
         virtualenvs-create: true
         virtualenvs-in-project: true
 
+    - name: Load cached venv
+      id: cached-poetry-dependencies
+      uses: actions/cache@v3S
+      with:
+        path: tools/ignite/.venv
+        key: venv-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('tools/ignite/poetry.lock') }}
+
+    - name: Install dependencies
+      # if: steps.cached-poetry-dependencupies.outputs.cache-hit != 'true'
+      shell: bash
+      working-directory: tools/ignite
+      run: poetry install --only=main,dev
+
     - name: Debug cache contents
       shell: bash
       run: |
@@ -66,19 +79,6 @@ runs:
         echo ""
         echo "=== Poetry location ==="
         which poetry 2>/dev/null || echo "Poetry not found in PATH"
-
-    - name: Load cached venv
-      id: cached-poetry-dependencies
-      uses: actions/cache@v3
-      with:
-        path: tools/ignite/.venv
-        key: venv-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('tools/ignite/poetry.lock') }}
-
-    - name: Install dependencies
-      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-      shell: bash
-      working-directory: tools/ignite
-      run: poetry install --only=main,dev
 
     - name: Cache Python environment
       uses: actions/cache@v3
