@@ -71,8 +71,8 @@ class TestWorkspaceComposerCompose:
                 "file": FilePolicy(write=FileWritePolicy.OVERWRITE),
             }),
             projects=Projects({
-                "test-project-1": UserProject(path=str(pathlib.Path(os.path.sep, "workspace", "project1"))),
-                "test-project-2": UserProject(path=str(pathlib.Path(os.path.sep, "workspace", "project2"))),
+                "test-project-1": UserProject(path="/workspace"),
+                "test-project-2": UserProject(path="/workspace"),
             }),
         )
         

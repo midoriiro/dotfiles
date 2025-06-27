@@ -299,5 +299,5 @@ class TestContainerComposerSave:
         # Verify logging messages indicate the correct policies were used
         log_records = [record.message for record in caplog.records]
         assert_that(log_records[0]).is_equal_to(f"Folder '{devcontainer_path}' created.")
-        assert_that(log_records[1]).is_equal_to(f"File '{devcontainer_path}/devcontainer.json' saved.")
+        assert_that(log_records[1]).is_equal_to(f"File '{devcontainer_path / "devcontainer.json"}' saved.")
 
