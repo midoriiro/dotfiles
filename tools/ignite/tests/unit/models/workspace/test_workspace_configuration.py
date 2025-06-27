@@ -246,14 +246,14 @@ class TestWorkspaceFolderSpecification:
             name="test-project"
         )
         
-        assert_that(folder_spec.path).is_equal_to(str(pathlib.Path(os.path.sep, "workspace", "project")))
+        assert_that(folder_spec.path).is_equal_to("/workspace/project")
         assert_that(folder_spec.name).is_equal_to("test-project")
 
     def test_workspace_folder_specification_without_name(self):
         """Test that WorkspaceFolderSpecification can be created without a name."""
         folder_spec = WorkspaceFolderSpecification(path="/workspace/project")
         
-        assert_that(folder_spec.path).is_equal_to(str(pathlib.Path(os.path.sep, "workspace", "project")))
+        assert_that(folder_spec.path).is_equal_to("/workspace/project")
         assert_that(folder_spec.name).is_none()
 
 
