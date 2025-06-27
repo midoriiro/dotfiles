@@ -24,7 +24,8 @@ runs:
       uses: actions/cache@v3
       with:
         path: |
-          ~/.local/venv/poetry
+          ~/.local/venv/bin
+          ~/.local/venv/poetry/bin/poetry
           ~/.cache/pypoetry
           ${{ env.LOCALAPPDATA }}/pypoetry
           ${{ env.APPDATA }}/pypoetry
@@ -79,6 +80,7 @@ runs:
         echo ""
         echo "=== Poetry location ==="
         which poetry 2>/dev/null || echo "Poetry not found in PATH"
+        ls -la tools/ignite/.venv 2>/dev/null || echo "tools/ignite/.venv not found"
 
     - name: Cache Python environment
       uses: actions/cache@v3
