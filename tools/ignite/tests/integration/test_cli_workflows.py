@@ -315,7 +315,7 @@ def test_cli_with_nonexistent_configuration_file(
     nonexistent_file = Path("/nonexistent/workspace.yml")
     result = runner("--configuration", str(nonexistent_file), str(user_context))
     assert_that(result.exit_code).is_equal_to(2)
-    assert_that(result.output).contains("Error: Invalid value for '--configuration' (env var: 'None'): File '/nonexistent/workspace.yml' does not exist.")
+    assert_that(result.output).contains("Error: Invalid value for '--configuration': File '/nonexistent/workspace.yml' does not exist.")
 
 
 def test_cli_with_nonexistent_context_directory(
