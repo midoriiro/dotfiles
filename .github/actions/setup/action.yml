@@ -40,7 +40,7 @@ runs:
 
     - name: Load cached venv
       id: cached-poetry-dependencies
-      uses: actions/cache@v3S
+      uses: actions/cache@v3
       with:
         path: tools/ignite/.venv
         key: venv-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('tools/ignite/poetry.lock') }}
