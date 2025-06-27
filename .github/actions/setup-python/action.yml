@@ -47,7 +47,8 @@ runs:
         # Debug output
         echo "PIPX_HOME: $PIPX_HOME"
         echo "PIPX_BIN_DIR: $PIPX_BIN_DIR"
-        echo "Github PATH: $GITHUB_PATH"
+        echo "Github PATH:"
+        cat $GITHUB_PATH
 
     - name: Cached pipx
       id: cached-pipx
