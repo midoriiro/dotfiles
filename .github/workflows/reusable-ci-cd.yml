@@ -30,16 +30,6 @@ jobs:
           os: ${{ inputs.os }}
           python-version: ${{ inputs.python-version }}
 
-      - name: Debug environment
-        working-directory: tools/ignite
-        run: |
-          echo "=== Environment Debug ==="
-          python --version
-          poetry --version
-          poetry show typer
-          poetry show click
-          echo "=== End Debug ==="
-
       - name: Run unit tests
         working-directory: tools/ignite
         run: |
@@ -95,7 +85,7 @@ jobs:
           fail_ci_if_error: false
 
       - name: Upload coverage artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: |
