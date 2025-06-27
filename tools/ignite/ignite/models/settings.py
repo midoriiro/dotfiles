@@ -268,7 +268,7 @@ class VSCodeFolder(BaseFolder):
         # Process tasks configuration
         if self.tasks:
             sources = []
-            base_tasks_path = Path("tasks")
+            base_tasks_path = pathlib.Path("tasks")
             for source in self._resolve_folder(self.tasks):
                 sources.append(str(pathlib.Path(*[base_tasks_path, *source.parts])))
             resolved_folders.append(ResolvedFolder.model_construct(
