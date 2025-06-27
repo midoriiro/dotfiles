@@ -55,6 +55,14 @@ runs:
         else
           echo "~/.local directory not found"
         fi
+        if [ -d "$HOME/.cache" ]; then
+          find "$HOME/.cache" -type d -name "*pypoetry*" 2>/dev/null || echo "No pypoetry directories found in ~/.cache"
+          echo ""
+          echo "=== ~/.cache contents ==="
+          ls -la "$HOME/.cache/" 2>/dev/null || echo "~/.cache not found"
+        else
+          echo "~/.cache directory not found"
+        fi
         echo ""
         echo "=== Poetry location ==="
         which poetry 2>/dev/null || echo "Poetry not found in PATH"
