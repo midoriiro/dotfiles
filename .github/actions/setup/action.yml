@@ -27,7 +27,7 @@ runs:
         python -m pipx ensurepath
 
     - name: Load cached Python and Poetry
-      id: cache-python-poetry
+      id: cached-python-poetry
       uses: actions/cache@v3
       with:
         path: |
@@ -36,6 +36,7 @@ runs:
         key: python-poetry-${{ runner.os }}-${{ inputs.python-version }}
 
     - name: Install Poetry
+      if: steps.cached-python-poetry.outputs.cache-hit != 'true'
       shell: bash
       run: |
         pipx install poetry
