@@ -29,7 +29,7 @@ runs:
         key: python-poetry-${{ runner.os }}-${{ inputs.python-version }}
 
     - name: Install Poetry
-      # if: steps.cache-python-poetry.outputs.cache-hit != 'true'
+      if: steps.cache-python-poetry.outputs.cache-hit != 'true'
       uses: snok/install-poetry@v1
       with:
         version: latest
