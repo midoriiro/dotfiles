@@ -32,22 +32,15 @@ runs:
     - name: Set home directory (Windows only)
       id: home-directory-windows
       shell: pwsh
-      run: |
-        # Debug environment variables
-        write-output  "USERPROFILE: $env:USERPROFILE"
-        write-output  "HOME: $env:HOME"
-        write-output  "USERNAME: $env:USERNAME"
-        write-output ${env:PATH}
-        
+      run: |       
         # Use USERPROFILE for Windows
         $homePath = $env:USERPROFILE
         if (-not $homePath) {
-            Write-Error "USERPROFILE environment variable not found"
+            write-error "USERPROFILE environment variable not found"
             exit 1
         }
         
         echo "home=$homePath" >> $env:GITHUB_OUTPUT
-        Write-Host "Set home to: $homePath"
 
     - name: Consolidate home directory
       id: home-directory
@@ -93,14 +86,14 @@ runs:
         key: python-pipx-${{ runner.os }}-${{ inputs.python-version }}
 
     - name: Install pipx
-      if: ${{ steps.cached-pipx.outputs.cache-hit != 'true' }}
+      # if: ${{ steps.cached-pipx.outputs.cache-hit != 'true' }}
       shell: bash
       run: |
         python -m pip install --user pipx
         python -m pipx ensurepath
 
     - name: Install Poetry
-      if: ${{ steps.cached-pipx.outputs.cache-hit != 'true' }}
+      # if: ${{ steps.cached-pipx.outputs.cache-hit != 'true' }}
       env:
         PIPX_HOME: ${{ env.PIPX_HOME }}
         PIPX_BIN_DIR: ${{ env.PIPX_BIN_DIR }}
@@ -109,7 +102,7 @@ runs:
         pipx install poetry
 
     - name: Save Pipx cache
-      if: ${{ steps.cached-pipx.outputs.cache-hit != 'true' }}
+      # if: ${{ steps.cached-pipx.outputs.cache-hit != 'true' }}
       uses: actions/cache/save@v4
       with:
         path: ${{ env.PIPX_HOME }}
@@ -125,13 +118,13 @@ runs:
         key: python-poetry-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles( env.PYPROJECT_PATH ) }}
 
     - name: Install dependencies
-      if: ${{ steps.cached-poetry-dependencies.outputs.cache-hit != 'true' }}
+      # if: ${{ steps.cached-poetry-dependencies.outputs.cache-hit != 'true' }}
       shell: bash
       working-directory: ${{ inputs.project-path }}
       run: poetry install --only=main,dev
 
     - name: Save Poetry dependencies cache
-      if: ${{ steps.cached-poetry-dependencies.outputs.cache-hit != 'true' }}
+      # if: ${{ steps.cached-poetry-dependencies.outputs.cache-hit != 'true' }}
       uses: actions/cache/save@v4
       with:
         path: ${{ inputs.project-path }}/.venv
