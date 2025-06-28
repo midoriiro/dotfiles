@@ -23,12 +23,19 @@ runs:
       with:
         python-version: ${{ inputs.python-version }}
 
-    - name: Set home directory
+    - name: Set home directory (Unix only)
+      if: ${{ runner.os == 'Linux' || runner.os == 'macOS' }}
       id: home-directory
+      shell: bash
       run: |
-        # using default shell, 
-        # when using pwsh it will set proper home directory not in POSIX format
         echo "home=$HOME" >> $GITHUB_OUTPUT
+
+    - name: Set home directory (Windows only)
+      if: ${{ runner.os == 'Windows' }}
+      id: home-directory
+      shell: pwsh
+      run: |
+        echo "home=$USERPROFILE" >> $GITHUB_OUTPUT
 
     - name: Generate pipx environment variables
       shell: bash
