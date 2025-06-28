@@ -20,14 +20,13 @@ on:
         required: true
         type: string
 
-defaults:
-  run:
-    working-directory: ${{ inputs.poetry-project-path }}
-
 jobs:
   unit-tests:
     name: Unit Tests
     runs-on: ${{ inputs.os }}
+    defaults:
+      run:
+        working-directory: ${{ inputs.poetry-project-path }}
     
     steps:
       - name: Checkout code
@@ -44,7 +43,10 @@ jobs:
   integration-tests:
     name: Integration Tests
     runs-on: ${{ inputs.os }}
-    
+    defaults:
+      run:
+        working-directory: ${{ inputs.poetry-project-path }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -60,7 +62,10 @@ jobs:
   code-coverage:
     name: Code Coverage
     runs-on: ${{ inputs.os }}
-    
+    defaults:
+      run:
+        working-directory: ${{ inputs.poetry-project-path }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -90,7 +95,10 @@ jobs:
     name: Code Quality
     runs-on: ${{ inputs.os }}
     needs: code-coverage
-    
+    defaults:
+      run:
+        working-directory: ${{ inputs.poetry-project-path }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -152,7 +160,10 @@ jobs:
     runs-on: ${{ inputs.os }}
     needs: code-coverage
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    
+    defaults:
+      run:
+        working-directory: ${{ inputs.poetry-project-path }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
