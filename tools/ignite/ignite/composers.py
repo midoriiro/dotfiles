@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 from pathlib import Path
 import pprint
 from typing import Callable, Dict, List, Optional
@@ -465,10 +466,8 @@ class WorkspaceComposer(Composer):
             raise ValueError("Files are not resolved yet.")
         for resolved_file in self.__resolved_files:
             path = Path(resolved_file.path)
-            print(path)
-            if path.is_absolute():
+            if path.parts[0] == os.path.sep:
                 path = Path(*path.parts[1:])
-            print(path)
             self._save_file(
                 output_path=Path(output_path, path),
                 content=resolved_file.content,
