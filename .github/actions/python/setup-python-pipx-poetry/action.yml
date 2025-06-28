@@ -37,4 +37,4 @@ runs:
       with:
         python-version: ${{ steps.setup-python.outputs.python-version }}
         project-path: ${{ inputs.poetry-project-path }}
-        dependency_groups: ${{ inputs.poetry-dependency-groups }}
+        dependency-groups: ${{ inputs.poetry-dependency-groups }}
