@@ -28,23 +28,23 @@ runs:
       id: home-directory-unix
       shell: bash
       run: |
-        echo "home=$HOME\n" >> $GITHUB_OUTPUT
+        echo "home=$HOME" >> $GITHUB_OUTPUT
 
     - name: Set home directory (Windows only)
       if: ${{ runner.os == 'Windows' }}
       id: home-directory-windows
       shell: pwsh
       run: |
-        echo "home=$USERPROFILE\n" >> $GITHUB_OUTPUT
+        echo "home=${{ env.USERPROFILE }}" >> $GITHUB_OUTPUT
 
     - name: Consolidate home directory
       id: home-directory
       shell: bash
       run: |
         if [[ "${{ runner.os }}" == "Windows" ]]; then
-          echo "home=${{ steps.home-directory-windows.outputs.home }}\n" >> $GITHUB_OUTPUT
+          echo "home=${{ steps.home-directory-windows.outputs.home }}" >> $GITHUB_OUTPUT
         else
-          echo "home=${{ steps.home-directory-unix.outputs.home }}\n" >> $GITHUB_OUTPUT
+          echo "home=${{ steps.home-directory-unix.outputs.home }}" >> $GITHUB_OUTPUT
         fi
 
     - name: Generate pipx environment variables
