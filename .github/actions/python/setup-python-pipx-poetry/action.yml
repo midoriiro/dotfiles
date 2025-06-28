@@ -27,7 +27,7 @@ runs:
         python-version: ${{ inputs.python-version }}
 
     - name: Set up Pipx
-      uses: ./.github/actions/python/setup-python-pipx
+      uses: ./.github/actions/python/setup-pipx
       with:
         python-version: ${{ steps.setup-python.outputs.python-version }}
         tools: ${{ inputs.pipx-tools }}
