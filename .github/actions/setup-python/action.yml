@@ -50,14 +50,15 @@ runs:
         echo "Github PATH:"
         cat $GITHUB_PATH
 
-    - name: Cached pipx
+    - name: Restore Pipx cache
       id: cached-pipx
-      uses: actions/cache@v3
+      uses: actions/cache/restore@v4
+      id: cache
       with:
         path: |
           ${{ env.PIPX_HOME }}
           ${{ env.PIPX_BIN_DIR }}
-        key: python-poetry-${{ runner.os }}-${{ inputs.python-version }}
+        key: python-pipx-${{ runner.os }}-${{ inputs.python-version }}
 
     - name: Install pipx
       if: steps.cached-pipx.outputs.cache-hit != 'true'
@@ -75,15 +76,29 @@ runs:
       run: |
         pipx install poetry
 
-    - name: Cache Poetry dependencies
+    - name: Save Pipx cache
+      uses: actions/cache/save@v4
+      with:
+        path: |
+          ${{ env.PIPX_HOME }}
+          ${{ env.PIPX_BIN_DIR }}
+        key: steps.cached-pipx.outputs.cache-primary-key
+
+    - name: Restore Poetry dependencies cache
       id: cached-poetry-dependencies
-      uses: actions/cache@v3
+      uses: actions/cache/restore@v4
       with:
         path: ${{ inputs.project-path }}/.venv
-        key: venv-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('${{ inputs.project-path }}/poetry.lock') }}
+        key: poetry-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('${{ inputs.project-path }}/poetry.lock') }}
 
     - name: Install dependencies
       if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
       shell: bash
       working-directory: ${{ inputs.project-path }}
       run: poetry install --only=main,dev
+
+    - name: Save Poetry dependencies cache
+      uses: actions/cache/save@v4
+      with:
+        path: ${{ inputs.project-path }}/.venv
+        key: steps.cached-poetry-dependencies.outputs.cache-primary-key
