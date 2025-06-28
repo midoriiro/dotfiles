@@ -23,12 +23,18 @@ runs:
       with:
         python-version: ${{ inputs.python-version }}
 
+    - name: Set home directory
+      id: home-directory
+      run: 
+        # using default shell, 
+        # when using pwsh it will set proper home directory not in POSIX format
+        echo "home=$HOME" >> $GITHUB_OUTPUT
+
     - name: Generate pipx environment variables
       shell: bash
-      run: |
-        # Get user home directory
-        HOME_DIR="$HOME"
-        
+      env:
+        HOME_DIR: ${{ steps.home-directory.outputs.home }}
+      run: |        
         # Set pipx paths
         PIPX_HOME="$HOME_DIR/.local/pipx"
         PIPX_BIN_DIR="$PIPX_HOME/bin"
@@ -100,4 +106,4 @@ runs:
       uses: actions/cache/save@v4
       with:
         path: ${{ inputs.project-path }}/.venv
-        key: steps.cached-poetry-dependencies.outputs.cache-primary-key
+        key: ${{ steps.cached-poetry-dependencies.outputs.cache-primary-key }}
