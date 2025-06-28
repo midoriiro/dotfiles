@@ -34,9 +34,10 @@ runs:
       shell: pwsh
       run: |
         # Debug environment variables
-        Write-Host "USERPROFILE: $env:USERPROFILE"
-        Write-Host "HOME: $env:HOME"
-        Write-Host "USERNAME: $env:USERNAME"
+        write-output  "USERPROFILE: $env:USERPROFILE"
+        write-output  "HOME: $env:HOME"
+        write-output  "USERNAME: $env:USERNAME"
+        write-output ${env:PATH}
         
         # Use USERPROFILE for Windows
         $homePath = $env:USERPROFILE
