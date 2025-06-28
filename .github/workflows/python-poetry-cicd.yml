@@ -21,8 +21,8 @@ on:
         type: string
 
 jobs:
-  create-poetry-project-if-not-exists:
-    name: Create Poetry Project if Not Exists
+  create-poetry-project-path-if-not-exists:
+    name: Create Poetry Project Path if Not Exists
     runs-on: ${{ inputs.os }}
     steps:
       - name: Create path if not exists
@@ -33,6 +33,7 @@ jobs:
   setup-environment:
     name: Setup Environment
     runs-on: ${{ inputs.os }}
+    needs: create-poetry-project-path-if-not-exists
     defaults:
       run:
         working-directory: ${{ inputs.poetry-project-path }}
