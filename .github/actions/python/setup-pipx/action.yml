@@ -17,7 +17,7 @@ runs:
   steps:
     - name: Check tools is not empty list
       env:
-        TOOLS: ${{ fromJSON(inputs.tools) }}
+        TOOLS: ${{ inputs.tools }}
       shell: bash
       run: |
         if [ -z "$TOOLS" ]; then
