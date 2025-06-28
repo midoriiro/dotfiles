@@ -80,7 +80,7 @@ runs:
       with:
         path: |
           ${{ env.PIPX_HOME }}
-        key: ${{ steps.cached-pipx.outputs.cache-primary-key }}
+        key: python-pipx-${{ runner.os }}-${{ inputs.python-version }}
 
     - name: Restore Poetry dependencies cache
       id: cached-poetry-dependencies
