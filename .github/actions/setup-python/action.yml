@@ -24,14 +24,12 @@ runs:
         python-version: ${{ inputs.python-version }}
 
     - name: Set home directory (Unix only)
-      if: ${{ runner.os == 'Linux' || runner.os == 'macOS' }}
       id: home-directory-unix
       shell: bash
       run: |
         echo "home=$HOME" >> $GITHUB_OUTPUT
 
     - name: Set home directory (Windows only)
-      if: ${{ runner.os == 'Windows' }}
       id: home-directory-windows
       shell: pwsh
       run: |
