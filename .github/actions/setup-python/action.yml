@@ -73,36 +73,17 @@ runs:
       run: |
         pipx install poetry
 
-  - name: Debug PIPX_HOME contents
-    shell: bash
-    run: |
-      echo "=== PIPX_HOME Debug Information ==="
-      echo "PIPX_HOME: ${{ env.PIPX_HOME }}"
-      echo "PIPX_BIN_DIR: ${{ env.PIPX_BIN_DIR }}"
-      echo ""
-      
-      echo "=== Checking if PIPX_HOME exists ==="
-      if [ -d "${{ env.PIPX_HOME }}" ]; then
-        echo "✅ PIPX_HOME directory exists"
-      else
-        echo "❌ PIPX_HOME directory does not exist"
-        exit 1
-      fi
-      
-      echo ""
-      echo "=== Recursive listing of PIPX_HOME ==="
-      ls -laR "${{ env.PIPX_HOME }}" || echo "Failed to list PIPX_HOME"
-      
-      echo ""
-      echo "=== Directory sizes ==="
-      du -sh "${{ env.PIPX_HOME }}" || echo "Failed to get directory size"
-      
-      if [ -d "${{ env.PIPX_HOME }}/venvs" ]; then
-        echo "✅ venvs directory exists"
-        ls -la "${{ env.PIPX_HOME }}/venvs" || echo "Failed to list venvs directory"
-      else
-        echo "❌ venvs directory does not exist"
-      fi
+    - name: Debug PIPX_HOME contents
+      shell: bash
+      run: |
+        echo "=== PIPX_HOME Debug Information ==="
+        echo "PIPX_HOME: ${{ env.PIPX_HOME }}"
+        echo "PIPX_BIN_DIR: ${{ env.PIPX_BIN_DIR }}"
+        echo ""
+        
+        echo ""
+        echo "=== Recursive listing of PIPX_HOME using find ==="
+        find "${{ env.PIPX_HOME }}" -exec ls -la {} \; 2>/dev/null || echo "Failed to list files with find"
 
     - name: Save Pipx cache
       uses: actions/cache/save@v4
