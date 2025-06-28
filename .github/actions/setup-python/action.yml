@@ -52,21 +52,20 @@ runs:
 
     - name: Restore Pipx cache
       id: cached-pipx
-      uses: actions/cache@v4
+      uses: actions/cache/restore@v4
       with:
-        path: |
-          ${{ env.PIPX_HOME }}
+        path: ${{ env.PIPX_HOME }}
         key: python-pipx-${{ runner.os }}-${{ inputs.python-version }}
 
     - name: Install pipx
-      # if: steps.cached-pipx.outputs.cache-hit != 'true'
+      if: ${{ steps.cached-pipx.outputs.cache-hit != 'true' }}
       shell: bash
       run: |
         python -m pip install --user pipx
         python -m pipx ensurepath
 
     - name: Install Poetry
-      # if: steps.cached-pipx.outputs.cache-hit != 'true'
+      if: ${{ steps.cached-pipx.outputs.cache-hit != 'true' }}
       env:
         PIPX_HOME: ${{ env.PIPX_HOME }}
         PIPX_BIN_DIR: ${{ env.PIPX_BIN_DIR }}
@@ -75,12 +74,11 @@ runs:
         pipx install poetry
 
     - name: Save Pipx cache
-      # if: steps.cached-pipx.outputs.cache-hit != 'true'
-      uses: actions/cache@v4
+      if: ${{ steps.cached-pipx.outputs.cache-hit != 'true' }}
+      uses: actions/cache/save@v4
       with:
-        path: |
-          ${{ env.PIPX_HOME }}
-        key: python-pipx-${{ runner.os }}-${{ inputs.python-version }}
+        path: ${{ env.PIPX_HOME }}
+        key: ${{ steps.cached-pipx.outputs.cache-primary-key }}
 
     - name: Restore Poetry dependencies cache
       id: cached-poetry-dependencies
@@ -92,13 +90,13 @@ runs:
         key: python-poetry-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles( env.PYPROJECT_PATH ) }}
 
     - name: Install dependencies
-      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+      if: ${{ steps.cached-poetry-dependencies.outputs.cache-hit != 'true' }}
       shell: bash
       working-directory: ${{ inputs.project-path }}
       run: poetry install --only=main,dev
 
     - name: Save Poetry dependencies cache
-      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+      if: ${{ steps.cached-poetry-dependencies.outputs.cache-hit != 'true' }}
       uses: actions/cache/save@v4
       with:
         path: ${{ inputs.project-path }}/.venv
