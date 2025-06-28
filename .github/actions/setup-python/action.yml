@@ -52,7 +52,7 @@ runs:
           echo "home=${{ steps.home-directory-unix.outputs.home }}" >> $GITHUB_OUTPUT
         fi
 
-    - name: Generate pipx environment variables
+    - name: Generate pipx/poetry environment variables
       shell: bash
       env:
         HOME_DIR: ${{ steps.home-directory.outputs.home }}
@@ -65,9 +65,16 @@ runs:
         mkdir --parents "$PIPX_HOME"
         mkdir --parents "$PIPX_BIN_DIR"
         
-        # Set environment variables
+        # Set pipx environment variables
         echo "PIPX_HOME=$PIPX_HOME" >> $GITHUB_ENV
         echo "PIPX_BIN_DIR=$PIPX_BIN_DIR" >> $GITHUB_ENV
+
+        # Set poetry cache directory
+        POETRY_HOME="$HOME_DIR/.local/poetry"
+        POETRY_CACHE_DIR="$POETRY_HOME/.cache"
+        mkdir --parents "$POETRY_HOME"
+        mkdir --parents "$POETRY_CACHE_DIR"
+        echo "POETRY_CACHE_DIR=$POETRY_CACHE_DIR" >> $GITHUB_ENV
         
         # Add pipx bin directory to PATH
         echo "$PIPX_BIN_DIR" >> $GITHUB_PATH
@@ -75,6 +82,7 @@ runs:
         # Debug output
         echo "PIPX_HOME: $PIPX_HOME"
         echo "PIPX_BIN_DIR: $PIPX_BIN_DIR"
+        echo "POETRY_CACHE_DIR: $POETRY_CACHE_DIR"
         echo "Github PATH:"
         cat $GITHUB_PATH
 
@@ -108,13 +116,18 @@ runs:
         path: ${{ env.PIPX_HOME }}
         key: ${{ steps.cached-pipx.outputs.cache-primary-key }}
 
+    - name: Get Poetry cache directory
+      shell: bash
+      run: |
+        poetry config cache-dir
+
     - name: Restore Poetry dependencies cache
       id: cached-poetry-dependencies
       env:
         PYPROJECT_PATH: ${{ inputs.project-path }}/pyproject.toml
       uses: actions/cache/restore@v4
       with:
-        path: ${{ inputs.project-path }}/.venv
+        path: ${{ env.POETRY_CACHE_DIR }}
         key: python-poetry-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles( env.PYPROJECT_PATH ) }}
 
     - name: Install dependencies
@@ -123,15 +136,9 @@ runs:
       working-directory: ${{ inputs.project-path }}
       run: poetry install --only=main,dev
 
-    - name: Debug venv folder
-      shell: bash
-      working-directory: ${{ inputs.project-path }}
-      run: |
-        find $PIPX_HOME -type f -exec ls -la {} \; 2>/dev/null || echo "Failed to list venv files with find"
-
     - name: Save Poetry dependencies cache
       if: ${{ steps.cached-poetry-dependencies.outputs.cache-hit != 'true' }}
       uses: actions/cache/save@v4
       with:
-        path: ${{ inputs.project-path }}/.venv
+        path: ${{ env.POETRY_CACHE_DIR }}
         key: ${{ steps.cached-poetry-dependencies.outputs.cache-primary-key }}
