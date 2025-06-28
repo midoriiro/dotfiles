@@ -52,7 +52,7 @@ runs:
 
     - name: Restore Pipx cache
       id: cached-pipx
-      uses: actions/cache@v4
+      uses: actions/cache/restore@v4
       with:
         path: ${{ env.PIPX_HOME }}
         key: python-pipx-${{ runner.os }}-${{ inputs.python-version }}
@@ -75,16 +75,16 @@ runs:
 
     - name: Save Pipx cache
       if: steps.cached-pipx.outputs.cache-hit != 'true'
-      uses: actions/cache@v4
+      uses: actions/cache/save@v4
       with:
         path: ${{ env.PIPX_HOME }}
-        key: python-pipx-${{ runner.os }}-${{ inputs.python-version }}
+        key: steps.cached-pipx.outputs.cache-primary-key
 
     - name: Restore Poetry dependencies cache
       id: cached-poetry-dependencies
       env:
         PYPROJECT_PATH: ${{ inputs.project-path }}/pyproject.toml
-      uses: actions/cache@v4
+      uses: actions/cache/restore@v4
       with:
         path: ${{ inputs.project-path }}/.venv
         key: python-poetry-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles( env.PYPROJECT_PATH ) }}
@@ -97,7 +97,7 @@ runs:
 
     - name: Save Poetry dependencies cache
       if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-      uses: actions/cache@v4
+      uses: actions/cache/save@v4
       with:
         path: ${{ inputs.project-path }}/.venv
-        key: python-poetry-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles( env.PYPROJECT_PATH ) }}
+        key: steps.cached-poetry-dependencies.outputs.cache-primary-key
