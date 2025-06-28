@@ -21,9 +21,29 @@ on:
         type: string
 
 jobs:
+
+  setup-environment:
+    name: Setup Environment
+    runs-on: ${{ inputs.os }}
+    defaults:
+      run:
+        working-directory: ${{ inputs.poetry-project-path }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup environment
+        uses: ./.github/actions/python/setup-python-pipx-poetry
+        with:
+          python-version: ${{ inputs.python-version }}
+          pipx-tools: '["poetry"]'
+          poetry-dependency-groups: '["main", "dev"]'
+        
   unit-tests:
     name: Unit Tests
     runs-on: ${{ inputs.os }}
+    needs: setup-environment
     defaults:
       run:
         working-directory: ${{ inputs.poetry-project-path }}
@@ -43,6 +63,7 @@ jobs:
   integration-tests:
     name: Integration Tests
     runs-on: ${{ inputs.os }}
+    needs: setup-environment
     defaults:
       run:
         working-directory: ${{ inputs.poetry-project-path }}
@@ -62,6 +83,7 @@ jobs:
   code-coverage:
     name: Code Coverage
     runs-on: ${{ inputs.os }}
+    needs: setup-environment
     defaults:
       run:
         working-directory: ${{ inputs.poetry-project-path }}
@@ -94,7 +116,7 @@ jobs:
   code-quality:
     name: Code Quality
     runs-on: ${{ inputs.os }}
-    needs: code-coverage
+    needs: [setup-environment, code-coverage]
     defaults:
       run:
         working-directory: ${{ inputs.poetry-project-path }}
@@ -158,7 +180,7 @@ jobs:
   build:
     name: Build Package
     runs-on: ${{ inputs.os }}
-    needs: code-coverage
+    needs: [setup-environment, code-quality]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     defaults:
       run:
