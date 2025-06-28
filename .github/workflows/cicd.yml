@@ -30,7 +30,7 @@ on:
 
 jobs:
   ci-cd:
-    name: CI (${{ matrix.os }} - Python ${{ matrix.python-version }})
+    name: CICD (${{ matrix.os }} - Python ${{ matrix.python-version }})
     strategy:
       matrix:
         os: [
@@ -45,9 +45,9 @@ jobs:
           # '3.12', 
           '3.13'
         ]    
-    uses: ./.github/workflows/reusable-python-cicd.yml
+    uses: ./.github/workflows/python-poetry-cicd.yml
     with:
       os: ${{ matrix.os }}
       python-version: ${{ matrix.python-version }}
-      project-path: 'tools/ignite'
-      package-name: 'ignite'
+      poetry-project-path: 'tools/ignite'
+      poetry-package-name: 'ignite'

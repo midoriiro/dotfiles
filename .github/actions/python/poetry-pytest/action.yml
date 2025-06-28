@@ -1,0 +1,71 @@
+name: 'Pytest'
+description: 'Pytest'
+
+inputs:
+  python-version:
+    description: 'Python version to use'
+    required: true
+    type: string
+  test-path:
+    description: 'Path to the test files'
+    required: true
+    type: string
+  run-in-parallel:
+    description: 'Run tests in parallel'
+    required: false
+    default: 'true'
+    type: boolean
+  additional-pytest-options:
+    description: 'Additional pytest options'
+    required: false
+    default: ''
+    type: string
+
+runs:
+  using: composite
+  steps:
+    - name: Setup environment
+      uses: ./.github/actions/python/setup-python-pipx-poetry
+      with:
+        python-version: ${{ inputs.python-version }}
+        pipx-tools: '["poetry"]'
+        poetry-dependency-groups: '["main", "dev"]'
+
+    - name: Check if we are in a Poetry project
+      shell: bash
+      run: |
+        if [ ! -f "pyproject.toml" ]; then
+          echo "❌ Error: Not in a Poetry project"
+          exit 1
+        fi
+
+    - name: Check if poetry is installed
+      shell: bash
+      run: |
+        if ! command -v poetry &> /dev/null; then
+          echo "❌ Error: Poetry is not installed"
+          exit 1
+        fi
+
+    - name: Check if pytest is installed
+      shell: bash
+      run: |
+        poetry run pytest --version
+        last_exit_code=$?
+        if [ $last_exit_code -ne 0 ]; then
+          echo "❌ Error: Pytest is not installed"
+          exit 1
+        fi
+
+    - name: Run Test Suite 
+      env:
+        TEST_PATH: ${{ inputs.test-path }}
+        RUN_IN_PARALLEL: ${{ inputs.run-in-parallel }}
+        ADDITIONAL_PYTEST_OPTIONS: ${{ inputs.additional-pytest-options }}
+      shell: bash
+      run: |
+        PYTEST_CMD="poetry run pytest"
+        if [ "$RUN_IN_PARALLEL" = "true" ]; then  
+          PYTEST_CMD="$PYTEST_CMD --numprocesses=auto"
+        fi
+        $PYTEST_CMD $TEST_PATH --verbose $ADDITIONAL_PYTEST_OPTIONS

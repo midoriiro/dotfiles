@@ -1,0 +1,77 @@
+name: 'Pytest - Code Coverage'
+description: 'Pytest code coverage'
+
+inputs:
+  python-version:
+    description: 'Python version to use'
+    required: true
+    type: string
+  run-in-parallel:
+    description: 'Run tests in parallel'
+    required: false
+    default: 'true'
+    type: boolean
+  test-path:
+    description: 'Path to the test files'
+    required: true
+    type: string
+  upload-to-codecov:
+    description: 'Upload coverage to Codecov'
+    required: false
+    default: 'true'
+    type: boolean
+  coverage-artifact-name:
+    description: 'Name of the coverage artifact'
+    required: false
+    default: 'coverage-report'
+    type: string
+  coverage-artifact-path:
+    description: 'Path to the coverage artifact'
+    required: false
+    default: 'coverage.xml'
+    type: string
+  coverage-report-format:
+    description: 'Format of the coverage report'
+    required: false
+    default: 'xml'
+    type: choice
+    options:
+      - 'xml'
+      - 'html'
+      - 'json'
+      - 'lcov'
+      - 'annotate'
+
+outputs:
+  coverage-artifact-name:
+    description: 'Name of the coverage artifact'
+    value: ${{ inputs.coverage-artifact-name }}
+  coverage-artifact-path:
+    description: 'Path to the coverage artifact'
+    value: ${{ inputs.coverage-artifact-path }}
+
+runs:
+  using: composite
+  steps:
+    - name: Run Test Suite
+      uses: ./.github/actions/python/poetry-pytest
+      with:
+        python-version: ${{ inputs.python-version }}
+        test-path: ${{ inputs.test-path }}
+        run-in-parallel: ${{ inputs.run-in-parallel }}
+        additional-pytest-options: --cov --cov-report=$COVERAGE_REPORT_FORMAT:$COVERAGE_ARTIFACT_PATH --cov-report=term-missing
+
+    - name: Upload coverage report to Codecov
+      if: ${{ inputs.upload-to-codecov }}
+      uses: codecov/codecov-action@v3
+      with:
+        file: ${{ inputs.coverage-artifact-path }}
+        name: codecov-${{ inputs.coverage-artifact-name }}
+        fail_ci_if_error: true
+
+    - name: Upload coverage report artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.coverage-artifact-name }}
+        path: |
+          ${{ inputs.coverage-artifact-path }}

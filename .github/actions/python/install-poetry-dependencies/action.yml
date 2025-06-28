@@ -5,9 +5,6 @@ inputs:
   python-version:
     description: 'Python version to use'
     required: true
-  project-path:
-    description: 'Path to the project'
-    required: true
   dependency-groups:
     description: 'Dependency groups to install'
     required: true
@@ -17,6 +14,22 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Check if we are in a Poetry project
+      shell: bash
+      run: |
+        if [ ! -f "pyproject.toml" ]; then
+          echo "❌ Error: Not in a Poetry project"
+          exit 1
+        fi
+
+    - name: Check if poetry is installed
+      shell: bash
+      run: |
+        if ! command -v poetry &> /dev/null; then
+          echo "❌ Error: Poetry is not installed"
+          exit 1
+        fi
+
     - name: Check dependency groups is not empty list
       env:
         DEPENDENCY_GROUPS: ${{ inputs.dependency-groups }}
@@ -63,17 +76,14 @@ runs:
 
     - name: Restore Poetry dependencies cache
       id: cached-poetry-dependencies
-      env:
-        PYPROJECT_PATH: ${{ inputs.project-path }}/pyproject.toml
       uses: actions/cache/restore@v4
       with:
         path: ${{ env.POETRY_CACHE_DIR }}
-        key: python-poetry-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles( env.PYPROJECT_PATH ) }}-${{ steps.dependency-groups-hash.outputs.hash }}
+        key: python-poetry-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('pyproject.toml') }}-${{ steps.dependency-groups-hash.outputs.hash }}
 
     - name: Install dependencies
       if: ${{ steps.cached-poetry-dependencies.outputs.cache-hit != 'true' }}
       shell: bash
-      working-directory: ${{ inputs.project-path }}
       env:
         POETRY_CACHE_DIR: ${{ env.POETRY_CACHE_DIR }}
         DEPENDENCY_GROUPS: ${{ join( fromJSON(inputs.dependency-groups), ',' ) }}

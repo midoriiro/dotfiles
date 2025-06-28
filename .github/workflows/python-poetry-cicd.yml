@@ -1,0 +1,178 @@
+name: Python Poetry CI/CD Pipeline
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        description: 'Operating system to run on'
+        required: true
+        type: string
+      python-version:
+        description: 'Python version to use'
+        required: true
+        type: string
+      poetry-project-path:
+        description: 'Path to the Poetry project'
+        required: true
+        type: string
+      poetry-package-name:
+        description: 'Name of the Poetry package'
+        required: true
+        type: string
+
+defaults:
+  run:
+    working-directory: ${{ inputs.poetry-project-path }}
+
+jobs:
+  unit-tests:
+    name: Unit Tests
+    runs-on: ${{ inputs.os }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run unit tests
+        uses: ./.github/actions/python/poetry-pytest
+        with:
+          python-version: ${{ inputs.python-version }}
+          test-path: tests/unit/
+          run-in-parallel: true
+          additional-pytest-options: --tb=short
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ${{ inputs.os }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run integration tests
+        uses: ./.github/actions/python/poetry-pytest
+        with:
+          python-version: ${{ inputs.python-version }}
+          test-path: tests/integration/
+          run-in-parallel: true
+          additional-pytest-options: --tb=short
+
+  code-coverage:
+    name: Code Coverage
+    runs-on: ${{ inputs.os }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run code coverage
+        id: code-coverage
+        uses: ./.github/actions/python/poetry-pytest-code-coverage
+        with:
+          python-version: ${{ inputs.python-version }}
+          test-path: tests/
+          coverage-report-format: xml
+          coverage-artifact-name: coverage-report-${{ inputs.poetry-package-name }}
+          coverage-artifact-path: coverage.xml
+          upload-to-codecov: false
+          run-in-parallel: true
+
+      - name: Code Coverage Guard
+        uses: ./.github/actions/python/code-quality/coverage-guard
+        with:
+          python-version: ${{ inputs.python-version }}
+          threshold: 95
+          artifact-path: ${{ steps.code-coverage.outputs.coverage-artifact-path }}
+          artifact-name: ${{ steps.code-coverage.outputs.coverage-artifact-name }}
+
+
+  code-quality:
+    name: Code Quality
+    runs-on: ${{ inputs.os }}
+    needs: code-coverage
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup environment
+        uses: ./.github/actions/python/setup-python-pipx-poetry
+        with:
+          python-version: ${{ inputs.python-version }}
+          pipx-tools: '["poetry"]'
+          poetry-dependency-groups: '["main", "dev"]'
+
+      - name: Check linting
+        id: linting
+        continue-on-error: true
+        uses: ./.github/actions/python/code-quality/flake8
+        with:
+          paths: ${{ inputs.poetry-project-path }}/${{ inputs.poetry-package-name }}/ tests/
+
+      - name: Check code formatting
+        id: formatting
+        continue-on-error: true
+        uses: ./.github/actions/python/code-quality/black
+        with:
+          paths: ${{ inputs.poetry-project-path }}/${{ inputs.poetry-package-name }}/ tests/
+
+      - name: Check import sorting
+        id: sorting
+        continue-on-error: true
+        uses: ./.github/actions/python/code-quality/isort
+        with:
+          paths: ${{ inputs.poetry-project-path }}/${{ inputs.poetry-package-name }}/ tests/
+
+      - name: Check all code quality steps
+        if: always()
+        env:
+          CODE_COVERAGE_OUTCOME: ${{ needs.code-coverage.result == 'success' }}
+          LINTING_OUTCOME: ${{ steps.linting.outcome == 'success' }}
+          FORMATTING_OUTCOME: ${{ steps.formatting.outcome == 'success' }}
+          SORTING_OUTCOME: ${{ steps.sorting.outcome == 'success' }}
+        shell: bash
+        run: |
+          # Check if any of the code quality steps failed
+          if [[ "$CODE_COVERAGE_OUTCOME" == "false" ]] || \
+             [[ "$LINTING_OUTCOME" == "false" ]] || \
+             [[ "$FORMATTING_OUTCOME" == "false" ]] || \
+             [[ "$SORTING_OUTCOME" == "false" ]]; then
+            echo "❌ One or more checks failed:"
+            echo "  - Code coverage: $CODE_COVERAGE_OUTCOME"
+            echo "  - Linting: $LINTING_OUTCOME"
+            echo "  - Formatting: $FORMATTING_OUTCOME"
+            echo "  - Import sorting: $SORTING_OUTCOME"
+            exit 1
+          else
+            echo "✅ All checks passed!"
+          fi
+
+  build:
+    name: Build Package
+    runs-on: ${{ inputs.os }}
+    needs: code-coverage
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup environment
+        uses: ./.github/actions/python/setup-python-pipx-poetry
+        with:
+          python-version: ${{ inputs.python-version }}
+          pipx-tools: '["poetry"]'
+          poetry-dependency-groups: '["main", "dev"]'
+
+      - name: Build packages
+        shell: bash
+        run: |
+          poetry run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifacts-${{ inputs.os }}-${{ inputs.python-version }}
+          path: |
+            dist/*.whl
+            dist/*.tar.gz

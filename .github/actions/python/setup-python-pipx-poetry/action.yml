@@ -9,9 +9,6 @@ inputs:
     description: 'Pipx tools to install'
     required: true
     type: string
-  poetry-project-path:
-    description: 'Path to the Poetry project'
-    required: true
   poetry-dependency-groups:
     description: 'Poetry dependency groups to install'
     required: true
@@ -36,5 +33,4 @@ runs:
       uses: ./.github/actions/python/install-poetry-dependencies
       with:
         python-version: ${{ steps.setup-python.outputs.python-version }}
-        project-path: ${{ inputs.poetry-project-path }}
         dependency-groups: ${{ inputs.poetry-dependency-groups }}
