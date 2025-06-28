@@ -465,8 +465,10 @@ class WorkspaceComposer(Composer):
             raise ValueError("Files are not resolved yet.")
         for resolved_file in self.__resolved_files:
             path = Path(resolved_file.path)
+            print(path)
             if path.is_absolute():
                 path = Path(*path.parts[1:])
+            print(path)
             self._save_file(
                 output_path=Path(output_path, path),
                 content=resolved_file.content,
