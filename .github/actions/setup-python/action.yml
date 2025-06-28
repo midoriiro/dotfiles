@@ -25,17 +25,27 @@ runs:
 
     - name: Set home directory (Unix only)
       if: ${{ runner.os == 'Linux' || runner.os == 'macOS' }}
-      id: home-directory
+      id: home-directory-unix
       shell: bash
       run: |
         echo "home=$HOME" >> $GITHUB_OUTPUT
 
     - name: Set home directory (Windows only)
       if: ${{ runner.os == 'Windows' }}
-      id: home-directory
+      id: home-directory-windows
       shell: pwsh
       run: |
         echo "home=$USERPROFILE" >> $GITHUB_OUTPUT
+
+    - name: Consolidate home directory
+      id: home-directory
+      shell: bash
+      run: |
+        if [[ "${{ runner.os }}" == "Windows" ]]; then
+          echo "home=${{ steps.home-directory-windows.outputs.home }}" >> $GITHUB_OUTPUT
+        else
+          echo "home=${{ steps.home-directory-unix.outputs.home }}" >> $GITHUB_OUTPUT
+        fi
 
     - name: Generate pipx environment variables
       shell: bash
