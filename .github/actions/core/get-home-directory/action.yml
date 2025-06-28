@@ -1,0 +1,39 @@
+name: 'Get Home Directory'
+description: 'Get home directory path'
+
+outputs:
+  path:
+    description: 'The home directory path for the current user'
+    value: ${{ steps.home-directory.outputs.path }}
+
+runs:
+  using: composite
+  steps:
+    - name: Set home directory (Unix only)
+      id: home-directory-unix
+      shell: bash
+      run: |
+        echo "path=$HOME" >> $GITHUB_OUTPUT
+
+    - name: Set home directory (Windows only)
+      id: home-directory-windows
+      shell: pwsh
+      run: |       
+        # Use USERPROFILE for Windows
+        $homePath = $env:USERPROFILE
+        if (-not $homePath) {
+            write-error "USERPROFILE environment variable not found"
+            exit 1
+        }
+        
+        echo "path=$homePath" >> $env:GITHUB_OUTPUT
+
+    - name: Consolidate home directory
+      id: home-directory
+      shell: bash
+      run: |
+        if [[ "${{ runner.os }}" == "Windows" ]]; then
+          echo "path=${{ steps.home-directory-windows.outputs.path }}" >> $GITHUB_OUTPUT
+        else
+          echo "path=${{ steps.home-directory-unix.outputs.path }}" >> $GITHUB_OUTPUT
+        fi

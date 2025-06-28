@@ -1,0 +1,40 @@
+name: 'Setup Python Environment'
+description: 'Setup Python, Pipx and Poetry dependencies'
+
+inputs:
+  python-version:
+    description: 'Python version to use'
+    required: true
+  pipx-tools:
+    description: 'Pipx tools to install'
+    required: true
+    type: string
+  poetry-project-path:
+    description: 'Path to the Poetry project'
+    required: true
+  poetry-dependency-groups:
+    description: 'Poetry dependency groups to install'
+    required: true
+    type: string
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Python ${{ inputs.python-version }}
+      id: setup-python
+      uses: ./.github/actions/python/setup-python
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Set up Pipx
+      uses: ./.github/actions/python/setup-python-pipx
+      with:
+        python-version: ${{ steps.setup-python.outputs.python-version }}
+        tools: ${{ inputs.pipx-tools }}
+
+    - name: Install Poetry dependencies
+      uses: ./.github/actions/python/install-poetry-dependencies
+      with:
+        python-version: ${{ steps.setup-python.outputs.python-version }}
+        project-path: ${{ inputs.poetry-project-path }}
+        dependency_groups: ${{ inputs.poetry-dependency-groups }}

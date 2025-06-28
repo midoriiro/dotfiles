@@ -1,0 +1,87 @@
+name: 'Install Poetry Dependencies'
+description: 'Install Poetry dependencies'
+
+inputs:
+  python-version:
+    description: 'Python version to use'
+    required: true
+  project-path:
+    description: 'Path to the project'
+    required: true
+  dependency-groups:
+    description: 'Dependency groups to install'
+    required: true
+    type: string
+    default: '[]'
+
+runs:
+  using: composite
+  steps:
+    - name: Check dependency groups is not empty list
+      env:
+        DEPENDENCY_GROUPS: ${{ fromJSON(inputs.dependency-groups) }}
+      shell: bash
+      run: |
+        if [ -z "$DEPENDENCY_GROUPS" ]; then
+          echo "Dependency groups list is empty"
+          exit 1
+        fi
+
+    - name: Get home directory path
+      uses: ./.github/actions/home-directory
+      id: home-directory
+
+    - name: Generate poetry environment variables
+      shell: bash
+      env:
+        HOME_DIR: ${{ steps.home-directory.outputs.path }}
+      run: |  
+         # Set pipx paths
+        POETRY_HOME="$HOME_DIR/.local/poetry"
+        POETRY_CACHE_DIR="$POETRY_HOME/cache"
+        
+        # Create directories if they don't exist
+        mkdir --parents "$POETRY_HOME"
+        mkdir --parents "$POETRY_CACHE_DIR"
+        
+        # Set pipx environment variables
+        echo "POETRY_HOME=$POETRY_HOME" >> $GITHUB_ENV
+        echo "POETRY_CACHE_DIR=$POETRY_CACHE_DIR" >> $GITHUB_ENV
+
+        # Debug output
+        echo "POETRY_HOME: $POETRY_HOME"
+        echo "POETRY_CACHE_DIR: $POETRY_CACHE_DIR"
+
+    - name: Get dependency groups hash
+      id: dependency-groups-hash
+      env:
+        DEPENDENCY_GROUPS: ${{ join( fromJSON(inputs.dependency-groups), ',' ) }}
+      shell: bash
+      run: |
+        DEPENDENCY_GROUPS_HASH=$(echo $DEPENDENCY_GROUPS | sha256sum | awk '{print $1}')
+        echo "hash=$DEPENDENCY_GROUPS_HASH" >> $GITHUB_OUTPUT
+
+    - name: Restore Poetry dependencies cache
+      id: cached-poetry-dependencies
+      env:
+        PYPROJECT_PATH: ${{ inputs.project-path }}/pyproject.toml
+      uses: actions/cache/restore@v4
+      with:
+        path: ${{ env.POETRY_CACHE_DIR }}
+        key: python-poetry-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles( env.PYPROJECT_PATH ) }}-${{ steps.dependency-groups-hash.outputs.hash }}
+
+    - name: Install dependencies
+      if: ${{ steps.cached-poetry-dependencies.outputs.cache-hit != 'true' }}
+      shell: bash
+      working-directory: ${{ inputs.project-path }}
+      env:
+        POETRY_CACHE_DIR: ${{ env.POETRY_CACHE_DIR }}
+        DEPENDENCY_GROUPS: ${{ join( fromJSON(inputs.dependency-groups), ',' ) }}
+      run: poetry install --only=$DEPENDENCY_GROUPS
+
+    - name: Save Poetry dependencies cache
+      if: ${{ steps.cached-poetry-dependencies.outputs.cache-hit != 'true' }}
+      uses: actions/cache/save@v4
+      with:
+        path: ${{ env.POETRY_CACHE_DIR }}
+        key: ${{ steps.cached-poetry-dependencies.outputs.cache-primary-key }}
