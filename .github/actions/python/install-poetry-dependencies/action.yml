@@ -44,7 +44,7 @@ runs:
         mkdir --parents "$POETRY_HOME"
         mkdir --parents "$POETRY_CACHE_DIR"
         
-        # Set pipx environment variables
+        # Set poetry environment variables
         echo "POETRY_HOME=$POETRY_HOME" >> $GITHUB_ENV
         echo "POETRY_CACHE_DIR=$POETRY_CACHE_DIR" >> $GITHUB_ENV
 
