@@ -25,7 +25,7 @@ runs:
 
     - name: Set home directory
       id: home-directory
-      run: 
+      run: |
         # using default shell, 
         # when using pwsh it will set proper home directory not in POSIX format
         echo "home=$HOME" >> $GITHUB_OUTPUT
