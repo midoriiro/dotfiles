@@ -123,6 +123,12 @@ runs:
       working-directory: ${{ inputs.project-path }}
       run: poetry install --only=main,dev
 
+    - name: Debug venv folder
+      shell: bash
+      working-directory: ${{ inputs.project-path }}
+      run: |
+        find $PIPX_HOME -type f -exec ls -la {} \; 2>/dev/null || echo "Failed to list venv files with find"
+
     - name: Save Poetry dependencies cache
       if: ${{ steps.cached-poetry-dependencies.outputs.cache-hit != 'true' }}
       uses: actions/cache/save@v4
