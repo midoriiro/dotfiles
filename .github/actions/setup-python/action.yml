@@ -73,19 +73,8 @@ runs:
       run: |
         pipx install poetry
 
-    - name: Debug PIPX_HOME contents
-      shell: bash
-      run: |
-        echo "=== PIPX_HOME Debug Information ==="
-        echo "PIPX_HOME: ${{ env.PIPX_HOME }}"
-        echo "PIPX_BIN_DIR: ${{ env.PIPX_BIN_DIR }}"
-        echo ""
-        
-        echo ""
-        echo "=== Recursive listing of PIPX_HOME using find ==="
-        find "${{ env.PIPX_HOME }}" -exec ls -la {} \; 2>/dev/null || echo "Failed to list files with find"
-
     - name: Save Pipx cache
+      if: steps.cached-pipx.outputs.cache-hit != 'true'
       uses: actions/cache/save@v4
       with:
         path: ${{ env.PIPX_HOME }}
@@ -107,6 +96,7 @@ runs:
       run: poetry install --only=main,dev
 
     - name: Save Poetry dependencies cache
+      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
       uses: actions/cache/save@v4
       with:
         path: ${{ inputs.project-path }}/.venv
