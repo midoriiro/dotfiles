@@ -36,7 +36,7 @@ runs:
       env:
         HOME_DIR: ${{ steps.home-directory.outputs.path }}
       run: |  
-         # Set pipx paths
+        # Set poetry paths
         POETRY_HOME="$HOME_DIR/.local/poetry"
         POETRY_CACHE_DIR="$POETRY_HOME/cache"
         
