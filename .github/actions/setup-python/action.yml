@@ -33,8 +33,7 @@ runs:
       id: home-directory-windows
       shell: pwsh
       run: |
-        echo $env
-        echo "home=${env:USERPROFILE}" >> $GITHUB_OUTPUT
+        echo "home=$Env:USERPROFILE" >> $GITHUB_OUTPUT
 
     - name: Consolidate home directory
       id: home-directory
