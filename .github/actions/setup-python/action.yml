@@ -54,7 +54,8 @@ runs:
       id: cached-pipx
       uses: actions/cache/restore@v4
       with:
-        path: ${{ env.PIPX_HOME }}
+        path: |
+          ${{ env.PIPX_HOME }}
         key: python-pipx-${{ runner.os }}-${{ inputs.python-version }}
 
     - name: Install pipx
@@ -77,7 +78,8 @@ runs:
       # if: steps.cached-pipx.outputs.cache-hit != 'true'
       uses: actions/cache/save@v4
       with:
-        path: ${{ env.PIPX_HOME }}
+        path: |
+          ${{ env.PIPX_HOME }}
         key: ${{ steps.cached-pipx.outputs.cache-primary-key }}
 
     - name: Restore Poetry dependencies cache
