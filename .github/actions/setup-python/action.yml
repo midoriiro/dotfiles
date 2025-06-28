@@ -33,7 +33,20 @@ runs:
       id: home-directory-windows
       shell: pwsh
       run: |
-        echo "home=$Env:USERPROFILE" >> $GITHUB_OUTPUT
+        # Debug environment variables
+        Write-Host "USERPROFILE: $env:USERPROFILE"
+        Write-Host "HOME: $env:HOME"
+        Write-Host "USERNAME: $env:USERNAME"
+        
+        # Use USERPROFILE for Windows
+        $homePath = $env:USERPROFILE
+        if (-not $homePath) {
+            Write-Error "USERPROFILE environment variable not found"
+            exit 1
+        }
+        
+        echo "home=$homePath" >> $env:GITHUB_OUTPUT
+        Write-Host "Set home to: $homePath"
 
     - name: Consolidate home directory
       id: home-directory
