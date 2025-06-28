@@ -58,14 +58,14 @@ runs:
         key: python-pipx-${{ runner.os }}-${{ inputs.python-version }}
 
     - name: Install pipx
-      if: steps.cached-pipx.outputs.cache-hit != 'true'
+      # if: steps.cached-pipx.outputs.cache-hit != 'true'
       shell: bash
       run: |
         python -m pip install --user pipx
         python -m pipx ensurepath
 
     - name: Install Poetry
-      if: steps.cached-pipx.outputs.cache-hit != 'true'
+      # if: steps.cached-pipx.outputs.cache-hit != 'true'
       env:
         PIPX_HOME: ${{ env.PIPX_HOME }}
         PIPX_BIN_DIR: ${{ env.PIPX_BIN_DIR }}
@@ -74,11 +74,11 @@ runs:
         pipx install poetry
 
     - name: Save Pipx cache
-      if: steps.cached-pipx.outputs.cache-hit != 'true'
+      # if: steps.cached-pipx.outputs.cache-hit != 'true'
       uses: actions/cache/save@v4
       with:
         path: ${{ env.PIPX_HOME }}
-        key: python-pipx-${{ runner.os }}-${{ inputs.python-version }}
+        key: ${{ steps.cached-pipx.outputs.cache-primary-key }}
 
     - name: Restore Poetry dependencies cache
       id: cached-poetry-dependencies
