@@ -52,7 +52,7 @@ runs:
 
     - name: Restore Pipx cache
       id: cached-pipx
-      uses: actions/cache/restore@v4
+      uses: actions/cache@v4
       with:
         path: |
           ${{ env.PIPX_HOME }}
@@ -76,7 +76,7 @@ runs:
 
     - name: Save Pipx cache
       # if: steps.cached-pipx.outputs.cache-hit != 'true'
-      uses: actions/cache/save@v4
+      uses: actions/cache@v4
       with:
         path: |
           ${{ env.PIPX_HOME }}
