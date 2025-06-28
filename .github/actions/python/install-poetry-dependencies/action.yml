@@ -19,7 +19,7 @@ runs:
   steps:
     - name: Check dependency groups is not empty list
       env:
-        DEPENDENCY_GROUPS: ${{ fromJSON(inputs.dependency-groups) }}
+        DEPENDENCY_GROUPS: ${{ inputs.dependency-groups }}
       shell: bash
       run: |
         if [ -z "$DEPENDENCY_GROUPS" ]; then
@@ -28,7 +28,7 @@ runs:
         fi
 
     - name: Get home directory path
-      uses: ./.github/actions/home-directory
+      uses: ./.github/actions/core/get-home-directory
       id: home-directory
 
     - name: Generate poetry environment variables
