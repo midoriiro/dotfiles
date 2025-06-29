@@ -33,6 +33,7 @@ runs:
         fi
 
     - name: Check if flake8 is installed
+      working-directory: ${{ env.POETRY_PROJECT_PATH }}
       shell: bash
       run: |
         poetry run flake8 --version

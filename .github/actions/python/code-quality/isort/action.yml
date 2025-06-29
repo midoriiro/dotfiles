@@ -40,6 +40,7 @@ runs:
         fi
 
     - name: Check if isort is installed
+      working-directory: ${{ env.POETRY_PROJECT_PATH }}
       shell: bash
       run: |
         poetry run isort --version
