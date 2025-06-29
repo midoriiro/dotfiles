@@ -1,0 +1,118 @@
+container:
+  workspace:
+    name: dotfiles
+    folder: /workspace
+    volume-name: dotfiles-workspace
+  runtime:
+    user: vscode
+  expose:
+    address:
+      scheme: tcp
+      host: 127.0.0.1
+      port: 8888
+  build:
+    container-file: ../Containerfile
+    context: ..
+    target: dev
+  network: 
+    name: host
+  extensions:
+    vscode: 
+      - ms-python.python
+      - ms-python.debugpy
+      - ms-python.vscode-pylance
+      - ms-python.black-formatter
+      - ms-python.pylint
+      - ms-python.flake8
+      - ms-python.isort
+      - ryanluker.vscode-coverage-gutters
+      - pamaron.pytest-runner
+      - ameenahsanma.poetry-monorepo
+      - github.vscode-github-actions
+
+workspace:
+  policies:
+    container:
+      backend: podman
+    folder:
+      create: ask
+    file:
+      write: ask
+  projects:
+    ref:
+      vscode:
+        settings:
+          - on-save
+          - coverage-gutters
+          - python:
+            - base
+            - exclude-files
+            - pylance
+            - black
+            - flake8
+            - isort
+            - isort-black
+            - poetry
+            - pytest
+            - pytest-coverage
+            - pytest-parallel
+            - testing
+    root: 
+      vscode:
+        settings:
+          - $ref
+    poexy:
+      alias: Poexy
+      path: tools/
+      vscode:
+        settings:
+          - $ref
+          - python:
+            - $ref
+        tasks:
+          - poetry:
+            - $all
+    poexy-core:
+      alias: Poexy-Core
+      path: tools/
+      vscode:
+        settings:
+          - $ref
+          - python:
+            - $ref
+        tasks:
+          - poetry:
+            - $all
+    ignite:
+      alias: Ignite
+      path: tools/
+      vscode:
+        settings:
+          - $ref
+          - python:
+            - $ref
+        tasks:
+          - poetry:
+            - $all
+    mutex:
+      alias: Mutex
+      path: tools/
+      vscode:
+        settings:
+          - $ref
+          - python:
+            - $ref
+        tasks:
+          - poetry:
+            - $all
+    mutex-cli:
+      alias: Mutex-CLI
+      path: tools/
+      vscode:
+        settings:
+          - $ref
+          - python:
+            - $ref
+        tasks:
+          - poetry:
+            - $all
