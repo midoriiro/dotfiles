@@ -15,6 +15,7 @@ runs:
   using: composite
   steps:
     - name: Check if we are in a Poetry project
+      working-directory: ${{ env.POETRY_PROJECT_PATH }}
       shell: bash
       run: |
         if [ ! -f "pyproject.toml" ]; then

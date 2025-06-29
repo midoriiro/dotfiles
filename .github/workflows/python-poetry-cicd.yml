@@ -20,24 +20,16 @@ on:
         required: true
         type: string
 
-jobs:
-  create-poetry-project-path-if-not-exists:
-    name: Create Poetry Project Path if Not Exists
-    runs-on: ${{ inputs.os }}
-    steps:
-      - name: Create path if not exists
-        shell: bash
-        run: |
-          mkdir --parents ${{ inputs.poetry-project-path }}
+env:
+  # Some composite actions related to Poetry are sensitive to working-directory,
+  # but to simplify access to them, Poetry project path need to be set via an
+  # environment variable defined globally.
+  POETRY_PROJECT_PATH: ${{ inputs.poetry-project-path }}
 
+jobs:
   setup-environment:
     name: Setup Environment
     runs-on: ${{ inputs.os }}
-    needs: create-poetry-project-path-if-not-exists
-    defaults:
-      run:
-        working-directory: ${{ inputs.poetry-project-path }}
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
