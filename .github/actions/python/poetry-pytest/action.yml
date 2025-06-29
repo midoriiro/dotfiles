@@ -32,6 +32,7 @@ runs:
         poetry-dependency-groups: '["main", "dev"]'
 
     - name: Check if we are in a Poetry project
+      working-directory: ${{ env.POETRY_PROJECT_PATH }}
       shell: bash
       run: |
         if [ ! -f "pyproject.toml" ]; then
@@ -57,7 +58,8 @@ runs:
           exit 1
         fi
 
-    - name: Run Test Suite 
+    - name: Run Test Suite
+      working-directory: ${{ env.POETRY_PROJECT_PATH }}
       env:
         TEST_PATH: ${{ inputs.test-path }}
         RUN_IN_PARALLEL: ${{ inputs.run-in-parallel }}

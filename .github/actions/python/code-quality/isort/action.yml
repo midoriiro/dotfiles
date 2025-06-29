@@ -62,6 +62,7 @@ runs:
         fi
 
     - name: Run isort import sorting
+      working-directory: ${{ env.POETRY_PROJECT_PATH }}
       env:
         CONFIG_FILE: ${{ inputs.config-file }}
         PATHS: ${{ inputs.paths }}

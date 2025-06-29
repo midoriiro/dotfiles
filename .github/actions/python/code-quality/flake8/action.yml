@@ -55,6 +55,7 @@ runs:
         fi
 
     - name: Run linting
+      working-directory: ${{ env.POETRY_PROJECT_PATH }}
       env:
         CONFIG_FILE: ${{ inputs.config-file }}
         PATHS: ${{ inputs.paths }}

@@ -57,6 +57,7 @@ runs:
         fi
 
     - name: Run Black formatting
+      working-directory: ${{ env.POETRY_PROJECT_PATH }}
       env:
         CONFIG_FILE: ${{ inputs.config-file }}
         PATHS: ${{ inputs.paths }}
