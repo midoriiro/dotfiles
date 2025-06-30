@@ -1,24 +1,19 @@
 name: 'Setup Python Environment'
 description: 'Setup Python, Pipx and Poetry dependencies'
 
-inputs:
-  python-version:
-    description: 'Python version to use'
-    required: true
-
-outputs:
-  python-version:
-    description: 'The Python version'
-    value: ${{ steps.python-version.outputs.version }}
-
 runs:
   using: composite
   steps:
+    - name: Check Python Version
+      env:
+        PYTHON_VERSION: ${{ inputs.python-version }}
+      run: |
+        if [ -z "$PYTHON_VERSION" ]; then
+          echo "PYTHON_VERSION is not set"
+          exit 1
+        fi
+
     - name: Set up Python ${{ inputs.python-version }}
       uses: actions/setup-python@v4
       with:
-        python-version: ${{ inputs.python-version }}
-
-    - name: Get Python version
-      id: python-version
-      uses: ./.github/actions/core/get-python-version
+        python-version: ${{ env.PYTHON_VERSION }}

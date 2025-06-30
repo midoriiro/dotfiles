@@ -2,10 +2,6 @@ name: 'Poetry Build'
 description: 'Build Python packages with Poetry'
 
 inputs:
-  python-version:
-    description: 'Python version to use'
-    required: true
-    type: string
   build-script:
     description: 'Poetry build script to use'
     required: false
@@ -24,6 +20,14 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Check Python Version
+      env:
+        PYTHON_VERSION: ${{ env.PYTHON_VERSION }}
+      run: |
+        if [ -z "$PYTHON_VERSION" ]; then
+          echo "PYTHON_VERSION is not set"
+          exit 1
+
     - name: Check if we are in a Poetry project
       working-directory: ${{ env.POETRY_PROJECT_PATH }}
       shell: bash
@@ -53,7 +57,7 @@ runs:
       shell: bash
       run: |
         ARTIFACT=${PROJECT_NAME}-${PROJECT_VERSION}
-        ARTIFACT_NAME=poetry-build-${{ runner.os }}-${{ inputs.python-version }}-${ARTIFACT}
+        ARTIFACT_NAME=poetry-build-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${ARTIFACT}
         echo "wheel-artifact-name=${ARTIFACT_NAME}-wheel" >> $GITHUB_OUTPUT
         echo "source-artifact-name=${ARTIFACT_NAME}-source" >> $GITHUB_OUTPUT
         echo "additional-artifacts-name=${ARTIFACT_NAME}-additional" >> $GITHUB_OUTPUT
@@ -113,7 +117,7 @@ runs:
     - name: Prepare Artifacts output
       id: prepare-artifacts
       env:
-        PYTHON_VERSION: ${{ inputs.python-version }}
+        PYTHON_VERSION: ${{ env.PYTHON_VERSION }}
         ADDITIONAL_ARTIFACTS_PROVIDED: ${{ steps.check-additional-artifacts.outputs.provided }}
       shell: python
       run: |

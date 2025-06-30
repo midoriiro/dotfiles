@@ -2,10 +2,6 @@ name: 'Setup Python Pipx Environment'
 description: 'Setup Python, Pipx and tools'
 
 inputs:
-  python-version:
-    description: 'Python version to use'
-    required: true
-    type: string
   tools:
     description: 'Tools to install'
     required: true
@@ -15,6 +11,14 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Check Python Version
+      env:
+        PYTHON_VERSION: ${{ env.PYTHON_VERSION }}
+      run: |
+        if [ -z "$PYTHON_VERSION" ]; then
+          echo "PYTHON_VERSION is not set"
+          exit 1
+
     - name: Check tools is not empty list
       env:
         TOOLS: ${{ inputs.tools }}
@@ -60,7 +64,7 @@ runs:
       uses: actions/cache/restore@v4
       with:
         path: ${{ env.PIPX_HOME }}
-        key: python-pipx-${{ runner.os }}-${{ inputs.python-version }}-with-${{ join( fromJSON(inputs.tools), '-' ) }}
+        key: python-pipx-${{ runner.os }}-${{ env.PYTHON_VERSION }}-with-${{ join( fromJSON(inputs.tools), '-' ) }}
 
     - name: Install pipx
       if: ${{ steps.cached-pipx.outputs.cache-hit != 'true' }}

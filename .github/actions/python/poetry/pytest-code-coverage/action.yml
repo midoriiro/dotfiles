@@ -52,12 +52,14 @@ runs:
     - name: Artifact Info
       id: artifact-info
       env:
+        RUNNER_OS: ${{ runner.os }}
+        PYTHON_VERSION: ${{ env.PYTHON_VERSION }}
         POETRY_PROJECT_PATH: ${{ env.POETRY_PROJECT_PATH }}
         COVERAGE_ARTIFACT_NAME: ${{ inputs.coverage-artifact-name }}
         COVERAGE_ARTIFACT_PATH: ${{ inputs.coverage-artifact-path }}
       shell: bash
       run: |
-        ARTIFACT_NAME=${COVERAGE_ARTIFACT_NAME}
+        ARTIFACT_NAME=${RUNNER_OS}-${PYTHON_VERSION}-${COVERAGE_ARTIFACT_NAME}
         ARTIFACT_PATH=${POETRY_PROJECT_PATH}/${COVERAGE_ARTIFACT_PATH}
         echo "artifact-name=${ARTIFACT_NAME}" >> $GITHUB_OUTPUT
         echo "artifact-path=${ARTIFACT_PATH}" >> $GITHUB_OUTPUT
