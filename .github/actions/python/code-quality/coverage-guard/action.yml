@@ -49,6 +49,7 @@ runs:
         ARTIFACT_PATH: ${{ inputs.artifact-path }}
       shell: bash
       run: |
+        echo $PWD
         # Check if file exists
         if [ ! -f $ARTIFACT_PATH ]; then
           echo "❌ Error: $ARTIFACT_PATH not found"
