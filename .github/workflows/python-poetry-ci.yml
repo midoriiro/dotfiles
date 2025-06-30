@@ -155,7 +155,8 @@ jobs:
     needs: [setup-environment]
 
     permissions:
-      actions: write 
+      contents: read
+      actions: write # required for delete cache with gh cli extension
 
     steps:
       - name: Checkout Code
