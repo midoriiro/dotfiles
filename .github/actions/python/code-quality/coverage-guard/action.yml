@@ -6,10 +6,6 @@ inputs:
     description: 'Artifact name to download (report coverage file in XML format)'
     required: true
     type: string
-  artifact-path:
-    description: 'Path where to download the artifact'
-    required: true
-    type: string
   threshold:
     description: 'Coverage threshold in percentage (0-100)'
     required: true
@@ -39,18 +35,18 @@ runs:
         fi
 
     - name: Download coverage artifacts
+      id: download-artifact
       uses: actions/download-artifact@v4
       with:
         name: ${{ inputs.artifact-name }}
-        path: ${{ inputs.artifact-path }}
 
     - name: Check coverage threshold
       env:
-        ARTIFACT_PATH: ${{ inputs.artifact-path }}
+        ARTIFACT_PATH: ${{ steps.download-artifact.outputs.download-path }}
       shell: bash
       run: |
         echo $PWD
-        ls -la $PWD/tools/ignite/coverage.xml
+        ls -la $PWD
         # Check if file exists
         if [ ! -f "$ARTIFACT_PATH" ]; then
           echo "❌ Error: $ARTIFACT_PATH not found"
