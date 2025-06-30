@@ -9,8 +9,10 @@ on:
     branches: [ main, ci-cd-pipeline ]
 
 permissions:
+  # required for delete cache with gh cli extension
+  # required for package job in python-poetry-ci.yml
   contents: read
-  actions: write # required for delete cache with gh cli extension
+  actions: write
 
 jobs:
   init-package-registry:
@@ -48,7 +50,7 @@ jobs:
               # '3.9', 
               # '3.10', 
               # '3.11', 
-              # '3.12', 
+              '3.12', 
               '3.13'
             ]
           }
@@ -93,5 +95,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Show Delivery Artifacts
-        run: cat ${{ env.PACKAGE_ARTIFACTS_REGISTRY }}
+        run: echo meowww !
       
