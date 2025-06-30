@@ -72,3 +72,11 @@ jobs:
           package_artifacts_data = json.dumps(package_artifacts)
           with open(os.environ['GITHUB_ENV'], 'a') as f:
             f.write(f"PACKAGE_ARTIFACTS={package_artifacts_data}\n")
+
+  show-package-artifacts:
+    name: Show Package Artifacts
+    needs: [prepare-package-artifacts]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Show Package Artifacts
+        run: echo "PACKAGE_ARTIFACTS=${{ env.PACKAGE_ARTIFACTS }}"
