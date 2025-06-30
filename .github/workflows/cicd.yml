@@ -58,7 +58,7 @@ jobs:
     needs: [ci]
     runs-on: ubuntu-latest
     steps:
-      - name: Add Package Artifacts
+      - name: Prepare Package Artifacts Before Delivery
         env:
           PACKAGE_ARTIFACTS: ${{ env.PACKAGE_ARTIFACTS }}
           ARTIFACTS_TO_ADD: ${{ needs.ci.outputs.package-artifacts }}
@@ -70,7 +70,9 @@ jobs:
           artifacts_to_add = json.loads(os.environ['ARTIFACTS_TO_ADD'])
           package_artifacts.append(artifacts_to_add)
           package_artifacts_data = json.dumps(package_artifacts)
-          os.environ['PACKAGE_ARTIFACTS'] = package_artifacts_data
+          # Update the global environment variable
+          with open(os.environ['GITHUB_ENV'], 'a') as f:
+              f.write(f"PACKAGE_ARTIFACTS={package_artifacts_data}\n")
 
   show-package-artifacts:
     name: Show Package Artifacts
