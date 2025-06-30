@@ -89,4 +89,6 @@ runs:
     - name: Delete coverage report artifacts
       shell: bash
       run: |
+        echo $PWD
+        ls -la $PWD/tools/ignite/coverage.xml
         rm --force ${{ steps.artifact-info.outputs.artifact-path }}
