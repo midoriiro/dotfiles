@@ -8,16 +8,13 @@ on:
   pull_request:
     branches: [ main, ci-cd-pipeline ]
 
-env:
-  PACKAGE_ARTIFACTS_REGISTRY: 'package-artifacts.json'
-
 jobs:
-  prepare-package-artifacts-registry:
-    name: Prepare Package Artifacts Registry
+  init-package-registry:
+    name: Init Package Registry
     runs-on: ubuntu-latest
     steps:
-      - name: Prepare Package Artifacts File
-        run: echo "[]" > ${{ env.PACKAGE_ARTIFACTS_REGISTRY }}
+      - name: Init Package Registry
+        uses: ./.github/actions/package-registry/init
 
   matrix:
     name: Matrix Definition
@@ -50,22 +47,28 @@ jobs:
             f.write(f"result={matrix_data}\n")
   ci:
     name: CI (${{ matrix.os }} - Python ${{ matrix.python-version }})
-    needs: [matrix, prepare-package-artifacts-registry]
-    runs-on: ${{ matrix.os }}
+    needs: [matrix, init-package-registry]
     strategy:
       matrix: ${{ fromJSON(needs.matrix.outputs.result) }}
+    uses: ./.github/workflows/python-poetry-ci.yml
+    with:
+        os: ${{ matrix.os }}
+        python-version: ${{ matrix.python-version }}
+        poetry-project-path: 'tools/ignite'
+        poetry-package-name: 'ignite'
+  
+  restore-package-registry:
+    name: Restore Package Registry
+    needs: ci
+    runs-on: ubuntu-latest
     steps:
-      - name: CI
-        id: ci
-        uses: ./.github/workflows/python-poetry-ci.yml
-        with:
-          os: ${{ matrix.os }}
-          python-version: ${{ matrix.python-version }}
-          poetry-project-path: 'tools/ignite'
-      
-      - name: Prepare Delivery
-        run: echo "PACKAGE_ARTIFACTS=${{ steps.ci.outputs.package-artifacts }}"
-      
+      - name: Restore Package Registry
+        id: restore-package-registry
+        uses: ./.github/actions/package-registry/restore
+
+      - name: Show Package Registry
+        run: cat ${{ steps.restore-package-registry.outputs.registry-file }}
+
   cd:
     name: CD
     needs: [ci]

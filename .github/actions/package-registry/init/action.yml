@@ -1,0 +1,22 @@
+name: 'Init Package Registry'
+description: 'Initialize package registry'
+
+runs:
+  using: composite
+  steps:
+    - name: Set environment variables
+      uses: ./.github/actions/package-registry/set-env
+
+    - name: Create package registry file
+      env:
+        REGISTRY_FILE: ${{ env.REGISTRY_FILE }}
+      shell: bash
+      run: |
+        echo "[]" > $REGISTRY_FILE
+
+    - name: Save cache
+      id: cached-registry
+      uses: actions/cache/save@v4
+      with:
+        path: ${{ env.REGISTRY_FILE }}
+        key: package-registry

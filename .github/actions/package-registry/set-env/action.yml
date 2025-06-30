@@ -1,0 +1,29 @@
+name: 'Set Package Registry Environment Variables'
+description: 'Set package registry environment variables'
+
+runs:
+  using: composite
+  steps:
+    - name: Get home directory path
+      uses: ./.github/actions/core/get-home-directory
+      id: home-directory
+
+    - name: Generate environment variables
+      shell: bash
+      env:
+        HOME_DIR: ${{ steps.home-directory.outputs.path }}
+      run: |        
+        # Set pipx paths
+        REGISTRY_HOME="$HOME_DIR/.local/registry"
+        REGISTRY_FILE="$REGISTRY_HOME/registry.json"
+        
+        # Create directories if they don't exist
+        mkdir --parents "$REGISTRY_HOME"
+        
+        # Set pipx environment variables
+        echo "REGISTRY_HOME=$REGISTRY_HOME" >> $GITHUB_ENV
+        echo "REGISTRY_FILE=$REGISTRY_FILE" >> $GITHUB_ENV
+        
+        # Debug output
+        echo "REGISTRY_HOME: $REGISTRY_HOME"
+        echo "REGISTRY_FILE: $REGISTRY_FILE"

@@ -1,0 +1,20 @@
+name: 'Restore Package Registry'
+description: 'Restore package registry from cache'
+
+outputs:
+  registry-file:
+    description: 'The path to the package registry file'
+    value: ${{ env.REGISTRY_FILE }}
+
+runs:
+  using: composite
+  steps:
+    - name: Set environment variables
+      uses: ./.github/actions/package-registry/set-env
+
+    - name: Restore cache
+      id: cached-registry
+      uses: actions/cache/restore@v4
+      with:
+        path: ${{ env.REGISTRY_FILE }}
+        key: package-registry
