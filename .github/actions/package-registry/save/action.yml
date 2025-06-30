@@ -3,8 +3,6 @@ description: 'Save package registry to cache'
 
 runs:
   using: composite
-  permissions:
-    actions: write 
   steps:
     - name: Set environment variables
       uses: ./.github/actions/package-registry/set-env
@@ -13,7 +11,6 @@ runs:
       env:
         CACHE_KEY: package-registry-${{ github.workflow_sha }}
         GH_TOKEN: ${{ env.GITHUB_TOKEN }}
-      continue-on-error: true
       shell: bash
       run: |
         gh extension install actions/gh-actions-cache

@@ -153,6 +153,8 @@ jobs:
     name: Package
     runs-on: ${{ inputs.os }}
     needs: [setup-environment]
+    permissions:
+      actions: write 
 
     steps:
       - name: Checkout Code
