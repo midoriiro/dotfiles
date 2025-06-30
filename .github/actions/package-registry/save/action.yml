@@ -3,6 +3,8 @@ description: 'Save package registry to cache'
 
 runs:
   using: composite
+  permissions:
+    actions: write 
   steps:
     - name: Set environment variables
       uses: ./.github/actions/package-registry/set-env
