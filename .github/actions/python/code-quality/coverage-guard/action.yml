@@ -47,6 +47,7 @@ runs:
     - name: Check coverage threshold
       env:
         ARTIFACT_PATH: ${{ steps.download-artifact.outputs.download-path }}/${{ inputs.artifact-path }}
+        THRESHOLD: ${{ inputs.threshold }}
       shell: bash
       run: |
         # Check if file exists
