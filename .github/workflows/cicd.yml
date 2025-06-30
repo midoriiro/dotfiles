@@ -13,6 +13,13 @@ jobs:
     name: Init Package Registry
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          sparse-checkout: |
+            .github  
+
       - name: Init Package Registry
         uses: ./.github/actions/package-registry/init
 

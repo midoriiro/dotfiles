@@ -19,10 +19,6 @@ on:
         description: 'Name of the Poetry package'
         required: true
         type: string
-    outputs:
-      package-artifacts: 
-        description: 'Package artifacts in JSON format: { "os": "...", "python-version": "...", "source": "...", "wheel": "...", "[additional]": "..." }'
-        value: ${{ jobs.package.outputs.artifacts }}
 
 env:
   PYTHON_VERSION: ${{ inputs.python-version }}
@@ -156,9 +152,6 @@ jobs:
     runs-on: ${{ inputs.os }}
     needs: [setup-environment, tests]
 
-    outputs: 
-      artifacts: ${{ steps.build-artifacts.outputs.artifacts }}
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -179,3 +172,33 @@ jobs:
           build-script: build
           additional-artifact-paths: |
             ${{ env.POETRY_PROJECT_PATH }}/dist/${{ inputs.poetry-package-name }}
+
+      - name: Restore Package Registry
+        id: package-registry
+        uses: ./.github/actions/package-registry/restore
+
+      - name: Save Package Artifacts
+        env:
+          REGISTRY_FILE: ${{ steps.package-registry.outputs.registry-file }}
+          ARTIFACTS: ${{ steps.build-artifacts.outputs.artifacts }}
+        shell: python
+        run: |
+          import json
+          import os
+          import sys
+
+          # Get the package artifacts from the build-artifacts step
+          package_artifacts = json.loads(os.environ['artifacts'])
+          
+          # Load the registry file
+          registry_file = os.environ['REGISTRY_FILE']
+          with open(registry_file, 'r') as f:
+            registry = json.load(f)
+
+          # Add the package artifacts to the registry
+          registry.append(package_artifacts)
+
+          # Save the registry file
+          with open(registry_file, 'w') as f:
+            json.dump(registry, f)
+          
