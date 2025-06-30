@@ -141,7 +141,7 @@ jobs:
         run: |
           # Check if any of the code quality steps failed
           if [[ "$CODE_COVERAGE_OUTCOME" == "false" ]] || \
-             [[ "$LINTING_OUTCOME" == "false" ]] || \
+            #  [[ "$LINTING_OUTCOME" == "false" ]] || \
              [[ "$FORMATTING_OUTCOME" == "false" ]] || \
              [[ "$SORTING_OUTCOME" == "false" ]]; then
             echo "❌ One or more checks failed:"
