@@ -20,50 +20,50 @@ runs:
         VERSION: ${{ inputs.version }}
       shell: bash
       run: |
-      # Parse version components (year.month.iteration format)
-      IFS='.' read -r YEAR MONTH ITERATION <<< "$VERSION"
-      
-      # Validate version format
-      if [[ -z "$YEAR" || -z "$MONTH" || -z "$ITERATION" ]]; then
-        echo "❌ Error: Invalid version format. Expected year.month.iteration, got: $VERSION"
-        exit 1
-      fi
-      
-      # Validate components are numeric
-      if ! [[ "$YEAR" =~ ^[0-9]+$ ]] || ! [[ "$MONTH" =~ ^[0-9]+$ ]] || ! [[ "$ITERATION" =~ ^[0-9]+$ ]]; then
-        echo "❌ Error: Version components must be numeric. Got: year=$YEAR, month=$MONTH, iteration=$ITERATION"
-        exit 1
-      fi
-      
-      echo "✅ Parsed version: year=$YEAR, month=$MONTH, iteration=$ITERATION"
+        # Parse version components (year.month.iteration format)
+        IFS='.' read -r YEAR MONTH ITERATION <<< "$VERSION"
+        
+        # Validate version format
+        if [[ -z "$YEAR" || -z "$MONTH" || -z "$ITERATION" ]]; then
+          echo "❌ Error: Invalid version format. Expected year.month.iteration, got: $VERSION"
+          exit 1
+        fi
+        
+        # Validate components are numeric
+        if ! [[ "$YEAR" =~ ^[0-9]+$ ]] || ! [[ "$MONTH" =~ ^[0-9]+$ ]] || ! [[ "$ITERATION" =~ ^[0-9]+$ ]]; then
+          echo "❌ Error: Version components must be numeric. Got: year=$YEAR, month=$MONTH, iteration=$ITERATION"
+          exit 1
+        fi
+        
+        echo "✅ Parsed version: year=$YEAR, month=$MONTH, iteration=$ITERATION"
 
-      # Check if current year is different from version year
-      CURRENT_YEAR=$(date +%Y)
-      CURRENT_MONTH=$(date +%-m)
-      
-      if [[ "$YEAR" != "$CURRENT_YEAR" ]]; then
-        echo "📅 Year changed from $YEAR to $CURRENT_YEAR, resetting version to $CURRENT_YEAR.$CURRENT_MONTH.1"
-        YEAR="$CURRENT_YEAR"
-        MONTH="$CURRENT_MONTH"
-        ITERATION="1"
+        # Check if current year is different from version year
+        CURRENT_YEAR=$(date +%Y)
+        CURRENT_MONTH=$(date +%-m)
+        
+        if [[ "$YEAR" != "$CURRENT_YEAR" ]]; then
+          echo "📅 Year changed from $YEAR to $CURRENT_YEAR, resetting version to $CURRENT_YEAR.$CURRENT_MONTH.1"
+          YEAR="$CURRENT_YEAR"
+          MONTH="$CURRENT_MONTH"
+          ITERATION="1"
+          echo "✅ Updated version components: year=$YEAR, month=$MONTH, iteration=$ITERATION"
+          echo "version=${YEAR}.${MONTH}.${ITERATION}" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+
+        # Check if current month is different from version month
+        if [[ "$MONTH" != "$CURRENT_MONTH" ]]; then
+          echo "📅 Month changed from $MONTH to $CURRENT_MONTH, resetting iteration to 1"
+          YEAR="$YEAR"
+          MONTH="$CURRENT_MONTH"
+          ITERATION="1"
+          echo "✅ Updated version components: year=$YEAR, month=$MONTH, iteration=$ITERATION"
+          echo "version=${YEAR}.${MONTH}.${ITERATION}" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+
+        # Increment iteration
+        ITERATION=$((ITERATION + 1))
         echo "✅ Updated version components: year=$YEAR, month=$MONTH, iteration=$ITERATION"
         echo "version=${YEAR}.${MONTH}.${ITERATION}" >> $GITHUB_OUTPUT
         exit 0
-      fi
-
-      # Check if current month is different from version month
-      if [[ "$MONTH" != "$CURRENT_MONTH" ]]; then
-        echo "📅 Month changed from $MONTH to $CURRENT_MONTH, resetting iteration to 1"
-        YEAR="$YEAR"
-        MONTH="$CURRENT_MONTH"
-        ITERATION="1"
-        echo "✅ Updated version components: year=$YEAR, month=$MONTH, iteration=$ITERATION"
-        echo "version=${YEAR}.${MONTH}.${ITERATION}" >> $GITHUB_OUTPUT
-        exit 0
-      fi
-
-      # Increment iteration
-      ITERATION=$((ITERATION + 1))
-      echo "✅ Updated version components: year=$YEAR, month=$MONTH, iteration=$ITERATION"
-      echo "version=${YEAR}.${MONTH}.${ITERATION}" >> $GITHUB_OUTPUT
-      exit 0
