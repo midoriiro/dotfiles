@@ -8,6 +8,10 @@ on:
   pull_request:
     branches: [ main, ci-cd-pipeline ]
 
+permissions:
+  contents: read
+  actions: write # required for delete cache with gh cli extension
+
 jobs:
   init-package-registry:
     name: Init Package Registry
