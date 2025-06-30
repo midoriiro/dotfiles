@@ -1,6 +1,6 @@
 import pytest
-from pydantic import ValidationError
 from assertpy import assert_that
+from pydantic import ValidationError
 
 from ignite.models.fs import FileTemplateVariables
 
@@ -81,7 +81,7 @@ class TestFileTemplateVariablesResolveValidation:
         """Test resolve method with empty template."""
         variables = FileTemplateVariables(project_name="test-project")
         template = ""
-        
+
         with pytest.raises(ValueError, match="Template cannot be empty"):
             variables.resolve(template)
 
@@ -89,7 +89,7 @@ class TestFileTemplateVariablesResolveValidation:
         """Test resolve method with empty template."""
         variables = FileTemplateVariables(project_name="test-project")
         template = None
-        
+
         with pytest.raises(ValueError, match="Template cannot be empty"):
             variables.resolve(template)
 
@@ -97,6 +97,6 @@ class TestFileTemplateVariablesResolveValidation:
         """Test resolve method with empty template."""
         variables = FileTemplateVariables(project_name="test-project")
         template = "   "
-        
+
         with pytest.raises(ValueError, match="Template cannot be empty"):
             variables.resolve(template)

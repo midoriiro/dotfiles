@@ -1,6 +1,6 @@
 import pytest
-from pydantic import ValidationError
 from assertpy import assert_that
+from pydantic import ValidationError
 
 from ignite.models.container import Users
 
@@ -8,13 +8,16 @@ from ignite.models.container import Users
 class TestValidUsers:
     """Test cases for valid user configurations."""
 
-    @pytest.mark.parametrize("remote,container", [
-        ("user1", "user2"),
-        ("developer", "appuser"),
-        ("admin", "worker"),
-        ("test_user", "prod_user"),
-        ("user_a", "user_b"),
-    ])
+    @pytest.mark.parametrize(
+        "remote,container",
+        [
+            ("user1", "user2"),
+            ("developer", "appuser"),
+            ("admin", "worker"),
+            ("test_user", "prod_user"),
+            ("user_a", "user_b"),
+        ],
+    )
     def test_valid_users_with_different_names(self, remote, container):
         """Test that valid user configurations with different names are accepted."""
         users = Users(remote=remote, container=container)
@@ -46,7 +49,9 @@ class TestUsersValidation:
 
     def test_users_with_same_remote_and_container(self):
         """Test that users with same remote and container names are rejected."""
-        with pytest.raises(ValidationError, match="Remote and container users cannot be the same"):
+        with pytest.raises(
+            ValidationError, match="Remote and container users cannot be the same"
+        ):
             Users(remote="sameuser", container="sameuser")
 
     def test_users_with_empty_remote(self):
@@ -89,20 +94,14 @@ class TestUsersCompose:
         """Test that users with different names are composed correctly."""
         users = Users(remote="developer", container="appuser")
         result = users.compose()
-        expected = {
-            "remoteUser": "developer",
-            "containerUser": "appuser"
-        }
+        expected = {"remoteUser": "developer", "containerUser": "appuser"}
         assert_that(result).is_equal_to(expected)
 
     def test_compose_users_with_minimal_names(self):
         """Test that users with minimal names are composed correctly."""
         users = Users(remote="a", container="b")
         result = users.compose()
-        expected = {
-            "remoteUser": "a",
-            "containerUser": "b"
-        }
+        expected = {"remoteUser": "a", "containerUser": "b"}
         assert_that(result).is_equal_to(expected)
 
     def test_compose_users_with_long_names(self):
@@ -110,20 +109,14 @@ class TestUsersCompose:
         long_name = "a" * 256
         users = Users(remote=long_name, container="other")
         result = users.compose()
-        expected = {
-            "remoteUser": long_name,
-            "containerUser": "other"
-        }
+        expected = {"remoteUser": long_name, "containerUser": "other"}
         assert_that(result).is_equal_to(expected)
 
     def test_compose_users_with_special_characters(self):
         """Test that users with special characters are composed correctly."""
         users = Users(remote="user_123", container="app-user")
         result = users.compose()
-        expected = {
-            "remoteUser": "user_123",
-            "containerUser": "app-user"
-        }
+        expected = {"remoteUser": "user_123", "containerUser": "app-user"}
         assert_that(result).is_equal_to(expected)
 
 

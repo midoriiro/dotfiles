@@ -4,6 +4,7 @@ from typing import Any, Optional, override
 
 from pydantic import BaseModel, Field
 
+
 class BaseMessage(BaseModel):
     type: str
 
@@ -20,11 +21,15 @@ class BaseMessage(BaseModel):
             )
         elif record.type == PydanticValidationErrorMessageList.__name__:
             return PydanticValidationErrorMessageList.model_construct(
-                errors=[PydanticValidationErrorMessage.model_construct(
-                    location=error["location"],
-                    error_type=error["error_type"],
-                    error_message=error["error_message"],
-                    input=error["input"]) for error in record.errors]
+                errors=[
+                    PydanticValidationErrorMessage.model_construct(
+                        location=error["location"],
+                        error_type=error["error_type"],
+                        error_message=error["error_message"],
+                        input=error["input"],
+                    )
+                    for error in record.errors
+                ]
             )
         elif record.type == FilesystemMessage.__name__:
             return FilesystemMessage.model_construct(
@@ -53,24 +58,29 @@ class JsonSchemaValidationErrorMessage(BaseMessage):
     json_path: str
     error_message: str
 
+
 class PydanticValidationErrorMessage(BaseMessage):
     location: str
     error_type: Optional[str] = None
     error_message: Optional[str] = None
     input: Optional[Any] = None
 
+
 class PydanticValidationErrorMessageList(BaseMessage):
     errors: list[PydanticValidationErrorMessage]
+
 
 class ConfigurationFileErrorMessage(BaseMessage):
     line: int
     column: int
     problem: str
 
+
 class ComposerMessage(BaseMessage):
     composer_type: str
     error_type: str
     error_message: str
+
 
 class FilesystemMessage(BaseMessage):
     level: int
@@ -86,7 +96,7 @@ class FilesystemMessage(BaseMessage):
             message=f"Folder '{path}' created.",
             path=path,
         )
-    
+
     @staticmethod
     def skip_folder(path: Path) -> "FilesystemMessage":
         return FilesystemMessage.model_construct(
@@ -104,7 +114,7 @@ class FilesystemMessage(BaseMessage):
             message=f"File '{path}' saved.",
             path=path,
         )
-    
+
     @staticmethod
     def skip_file(path: Path) -> "FilesystemMessage":
         return FilesystemMessage.model_construct(
@@ -113,7 +123,7 @@ class FilesystemMessage(BaseMessage):
             message=f"File '{path}' skipped.",
             path=path,
         )
-    
+
     @staticmethod
     def overwrite_file(path: Path) -> "FilesystemMessage":
         return FilesystemMessage.model_construct(
@@ -122,10 +132,14 @@ class FilesystemMessage(BaseMessage):
             message=f"File '{path}' will be overwritten.",
             path=path,
         )
-    
+
     def log(self, logger: logging.Logger) -> None:
-        logger.log(self.level, self.message, extra={
-            "type": self.type,
-            "operation": self.operation,
-            "path": self.path,
-        })
+        logger.log(
+            self.level,
+            self.message,
+            extra={
+                "type": self.type,
+                "operation": self.operation,
+                "path": self.path,
+            },
+        )

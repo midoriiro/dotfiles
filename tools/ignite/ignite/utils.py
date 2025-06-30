@@ -1,13 +1,12 @@
+import json
 from pathlib import Path
 from typing import Dict
 
 import yaml
-import json
 from jsonschema import SchemaError, ValidationError, validate
 
-def load_yaml_config(
-    file_path: Path, schema: Dict
-) -> Dict:
+
+def load_yaml_config(file_path: Path, schema: Dict) -> Dict:
     """
     Load and validate a YAML configuration file.
 
@@ -24,7 +23,7 @@ def load_yaml_config(
         json.JSONDecodeError: If the schema JSON is invalid.
         ValidationError: If the configuration does not match the schema.
     """
-    
+
     if len(schema.keys()) == 0:
         raise SchemaError("Schema is empty")
 
@@ -37,30 +36,31 @@ def load_yaml_config(
     validate(instance=config_data, schema=schema)
     return config_data
 
+
 def merge_dicts(a: Dict, b: Dict) -> None:
     """
     Recursively merge two dictionaries.
-    
+
     This function performs a deep merge of two dictionaries, handling nested
     dictionaries and lists. The merge process modifies the first dictionary
     in-place and returns it. For nested dictionaries, the function recursively
     merges their contents. For lists, the function concatenates them.
-    
+
     Args:
         a (Dict): The target dictionary to merge into. This dictionary will be
                   modified in-place during the merge process.
         b (Dict): The source dictionary whose contents will be merged into 'a'.
-    
+
     Returns:
         None: The function modifies the first dictionary in-place.
-    
+
     Note:
         - The function modifies the first dictionary in-place
         - Nested dictionaries are merged recursively
         - Lists are concatenated (not merged element-wise)
         - Other data types are overwritten if they exist in both dictionaries
         - Keys that only exist in 'b' are added to 'a'
-    
+
     Example:
         >>> a = {'x': 1, 'y': {'a': 1, 'b': 2}, 'z': [1, 2]}
         >>> b = {'y': {'b': 3, 'c': 4}, 'z': [3, 4], 'w': 5}

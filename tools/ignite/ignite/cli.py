@@ -2,21 +2,26 @@ import logging
 import os
 from pathlib import Path
 from typing import Annotated, Any, List, Optional, override
+
 import jsonschema
 import pydantic
-from pydantic import BaseModel, Field
 import typer
 import yaml
 import yaml.scanner
+from dotenv import load_dotenv
+from pydantic import BaseModel, Field
 
 from ignite.composers import Composer, ContainerComposer, WorkspaceComposer
-from ignite.logging import ComposerMessage, JsonSchemaValidationErrorMessage, PydanticValidationErrorMessage, ConfigurationFileErrorMessage, PydanticValidationErrorMessageList
+from ignite.logging import (
+    ComposerMessage,
+    ConfigurationFileErrorMessage,
+    JsonSchemaValidationErrorMessage,
+    PydanticValidationErrorMessage,
+    PydanticValidationErrorMessageList,
+)
 from ignite.models.config import Configuration
 from ignite.resolvers import PathResolver
 from ignite.utils import load_yaml_config
-
-from dotenv import load_dotenv
-
 
 REPOSITORY_CONTEXT_ENV_VAR = "REPOSITORY_CONTEXT"
 
@@ -36,17 +41,15 @@ def __get_repository_context() -> Path:
         raise typer.Exit(1)
     return Path(repository_context)
 
+
 def __handle_yaml_error(error: yaml.scanner.ScannerError) -> None:
     """Handle YAML parsing errors with structured logging."""
     message = ConfigurationFileErrorMessage.model_construct(
         line=error.problem_mark.line,
         column=error.problem_mark.column,
-        problem=error.problem
+        problem=error.problem,
     )
-    logger.error(
-        "YAML parsing failed",
-        extra=message.model_dump()
-    )
+    logger.error("YAML parsing failed", extra=message.model_dump())
     typer.echo(f"Configuration file is invalid:", err=True)
     typer.echo(f"  - Problem: {error.problem}", err=True)
     typer.echo(f"  - Line: {error.problem_mark.line}", err=True)
@@ -60,10 +63,7 @@ def __handle_schema_error(error: jsonschema.ValidationError) -> None:
         json_path=error.json_path,
         error_message=error.message,
     )
-    logger.error(
-        "JSON Schema validation failed",
-        extra=message.model_dump()
-    )    
+    logger.error("JSON Schema validation failed", extra=message.model_dump())
     # Keep user-friendly output for CLI
     typer.echo(f"Configuration file is invalid:", err=True)
     typer.echo(f"  - Location: {error.json_path}", err=True)
@@ -75,21 +75,20 @@ def __handle_pydantic_error(error: pydantic.ValidationError) -> None:
     """Handle Pydantic validation errors with structured logging."""
     errors = []
     for error in error.errors():
-        errors.append(PydanticValidationErrorMessage.model_construct(
-            location=".".join(str(item) for item in error.get("loc", "Unknown location")),
-            error_type=error.get("type", None),
-            error_message=error.get("msg", None),
-            input=error.get("input", None),
-        ))
+        errors.append(
+            PydanticValidationErrorMessage.model_construct(
+                location=".".join(
+                    str(item) for item in error.get("loc", "Unknown location")
+                ),
+                error_type=error.get("type", None),
+                error_message=error.get("msg", None),
+                input=error.get("input", None),
+            )
+        )
 
-    message = PydanticValidationErrorMessageList.model_construct(
-        errors=errors
-    )
-    
-    logger.error(
-        "Pydantic validation failed",
-        extra=message.model_dump()
-    )    
+    message = PydanticValidationErrorMessageList.model_construct(errors=errors)
+
+    logger.error("Pydantic validation failed", extra=message.model_dump())
     # Keep user-friendly output for CLI
     typer.echo("Configuration file is invalid:", err=True)
     for error in errors:
@@ -108,10 +107,7 @@ def __handle_composer_error(error: Exception, composer: Composer) -> None:
         error_type=error.__class__.__name__,
         error_message=str(error),
     )
-    logger.error(
-        "Composer failed",
-        extra=message.model_dump()
-    )    
+    logger.error("Composer failed", extra=message.model_dump())
     # Keep user-friendly output for CLI
     typer.echo(f"Composer failed:", err=True)
     typer.echo(f"  - Composer Type: {composer.__class__.__name__}", err=True)
@@ -119,33 +115,34 @@ def __handle_composer_error(error: Exception, composer: Composer) -> None:
     typer.echo(f"  - Error Message: {str(error)}", err=True)
 
 
-cli = typer.Typer(
-    no_args_is_help=True,
-    add_completion=False
-)
+cli = typer.Typer(no_args_is_help=True, add_completion=False)
+
 
 class Command(BaseModel):
     configuration_path: Path = Field(default=Path("workspace.yml"))
     context_path: Path = Field(default=Path("."))
 
-@cli.command(help="Development workspace environment management CLI tool.", no_args_is_help=True)
+
+@cli.command(
+    help="Development workspace environment management CLI tool.", no_args_is_help=True
+)
 def command(
     configuration: Path = typer.Option(
         Path("workspace.yml"),
-        help='Path to the configuration file.',
+        help="Path to the configuration file.",
         file_okay=True,
         dir_okay=False,
         exists=True,
-        resolve_path=True
+        resolve_path=True,
     ),
     context: Path = typer.Argument(
         Path("."),
-        help='Path to the context directory.',
+        help="Path to the context directory.",
         file_okay=False,
         dir_okay=True,
         exists=True,
-        resolve_path=True
-    )
+        resolve_path=True,
+    ),
 ):
     command = Command(configuration_path=configuration, context_path=context)
     schema = Configuration.model_json_schema()
@@ -163,9 +160,9 @@ def command(
     repository_context = __get_repository_context()
     user_context = Path(command.context_path)
     path_resolver = PathResolver(repository_context, user_context)
-    polices = configuration.workspace.policies;
+    polices = configuration.workspace.policies
     composer_raised_error = False
-    
+
     try:
         container_composer = ContainerComposer(configuration.container)
         container_composer.compose()
@@ -183,4 +180,3 @@ def command(
 
     if composer_raised_error:
         raise typer.Exit(1)
-

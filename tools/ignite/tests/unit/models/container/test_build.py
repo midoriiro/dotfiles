@@ -1,22 +1,25 @@
 import pytest
-from pydantic import ValidationError
 from assertpy import assert_that
+from pydantic import ValidationError
 
-from ignite.models.container import Build
 from ignite.models.common import Identifier
+from ignite.models.container import Build
 
 
 class TestValidBuild:
     """Test cases for valid build configurations."""
 
-    @pytest.mark.parametrize("container_file", [
-        "Dockerfile",
-        "Containerfile",
-        "docker/Dockerfile",
-        "build/Containerfile",
-        "dockerfile",
-        "containerfile",
-    ])
+    @pytest.mark.parametrize(
+        "container_file",
+        [
+            "Dockerfile",
+            "Containerfile",
+            "docker/Dockerfile",
+            "build/Containerfile",
+            "dockerfile",
+            "containerfile",
+        ],
+    )
     def test_valid_build_with_container_file_only(self, container_file):
         """Test that valid build configurations with only container_file are accepted."""
         build = Build(container_file=container_file)
@@ -24,12 +27,15 @@ class TestValidBuild:
         assert_that(build.context).is_none()
         assert_that(build.target).is_none()
 
-    @pytest.mark.parametrize("container_file,context", [
-        ("Dockerfile", "src"),
-        ("Containerfile", "app"),
-        ("docker/Dockerfile", "backend"),
-        ("build/Containerfile", "frontend"),
-    ])
+    @pytest.mark.parametrize(
+        "container_file,context",
+        [
+            ("Dockerfile", "src"),
+            ("Containerfile", "app"),
+            ("docker/Dockerfile", "backend"),
+            ("build/Containerfile", "frontend"),
+        ],
+    )
     def test_valid_build_with_container_file_and_context(self, container_file, context):
         """Test that valid build configurations with container_file and context are accepted."""
         build = Build(container_file=container_file, context=context)
@@ -37,12 +43,15 @@ class TestValidBuild:
         assert_that(build.context).is_equal_to(context)
         assert_that(build.target).is_none()
 
-    @pytest.mark.parametrize("container_file,target", [
-        ("Dockerfile", "development"),
-        ("Containerfile", "production"),
-        ("docker/Dockerfile", "test"),
-        ("build/Containerfile", "staging"),
-    ])
+    @pytest.mark.parametrize(
+        "container_file,target",
+        [
+            ("Dockerfile", "development"),
+            ("Containerfile", "production"),
+            ("docker/Dockerfile", "test"),
+            ("build/Containerfile", "staging"),
+        ],
+    )
     def test_valid_build_with_container_file_and_target(self, container_file, target):
         """Test that valid build configurations with container_file and target are accepted."""
         build = Build(container_file=container_file, target=target)
@@ -52,11 +61,7 @@ class TestValidBuild:
 
     def test_valid_build_with_all_parameters(self):
         """Test that valid build configurations with all parameters are accepted."""
-        build = Build(
-            container_file="Dockerfile",
-            context="src",
-            target="production"
-        )
+        build = Build(container_file="Dockerfile", context="src", target="production")
         assert_that(build.container_file).is_equal_to("Dockerfile")
         assert_that(build.context).is_equal_to("src")
         assert_that(build.target).is_equal_to("production")
@@ -121,50 +126,32 @@ class TestBuildCompose:
         """Test that build with only container_file is composed correctly."""
         build = Build(container_file="Dockerfile")
         result = build.compose()
-        expected = {
-            "build": {
-                "dockerFile": "Dockerfile"
-            }
-        }
+        expected = {"build": {"dockerFile": "Dockerfile"}}
         assert_that(result).is_equal_to(expected)
 
     def test_compose_build_with_container_file_and_context(self):
         """Test that build with container_file and context is composed correctly."""
         build = Build(container_file="Dockerfile", context="src")
         result = build.compose()
-        expected = {
-            "build": {
-                "dockerFile": "Dockerfile",
-                "context": "src"
-            }
-        }
+        expected = {"build": {"dockerFile": "Dockerfile", "context": "src"}}
         assert_that(result).is_equal_to(expected)
 
     def test_compose_build_with_container_file_and_target(self):
         """Test that build with container_file and target is composed correctly."""
         build = Build(container_file="Dockerfile", target="production")
         result = build.compose()
-        expected = {
-            "build": {
-                "dockerFile": "Dockerfile",
-                "target": "production"
-            }
-        }
+        expected = {"build": {"dockerFile": "Dockerfile", "target": "production"}}
         assert_that(result).is_equal_to(expected)
 
     def test_compose_build_with_all_parameters(self):
         """Test that build with all parameters is composed correctly."""
-        build = Build(
-            container_file="Dockerfile",
-            context="src",
-            target="production"
-        )
+        build = Build(container_file="Dockerfile", context="src", target="production")
         result = build.compose()
         expected = {
             "build": {
                 "dockerFile": "Dockerfile",
                 "context": "src",
-                "target": "production"
+                "target": "production",
             }
         }
         assert_that(result).is_equal_to(expected)
@@ -173,6 +160,7 @@ class TestBuildCompose:
         """Test that build with context and target (no container_file) raises ValidationError."""
         with pytest.raises(ValidationError, match="Field required"):
             Build(context="src", target="production")
+
 
 class TestBuildEdgeCases:
     """Test cases for build edge cases."""
@@ -298,11 +286,7 @@ class TestBuildAlias:
 
     def test_build_serialization_with_all_fields(self):
         """Test that Build serialization uses aliases for all fields with aliases."""
-        build = Build(
-            container_file="Dockerfile",
-            context="src",
-            target="production"
-        )
+        build = Build(container_file="Dockerfile", context="src", target="production")
         serialized = build.model_dump(by_alias=True)
         assert_that(serialized).contains_key("container-file")
         assert_that(serialized["container-file"]).is_equal_to("Dockerfile")

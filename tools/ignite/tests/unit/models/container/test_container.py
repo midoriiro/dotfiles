@@ -1,10 +1,23 @@
 import pytest
-from pydantic import ValidationError
 from assertpy import assert_that
+from pydantic import ValidationError
 
 from ignite.models.container import (
-    Container, Workspace, Runtime, Expose, Image, Build, Network, Extensions,
-    Users, Env, Mount, MountType, Socket, URL, URLScheme
+    URL,
+    Build,
+    Container,
+    Env,
+    Expose,
+    Extensions,
+    Image,
+    Mount,
+    MountType,
+    Network,
+    Runtime,
+    Socket,
+    URLScheme,
+    Users,
+    Workspace,
 )
 
 
@@ -17,9 +30,9 @@ class TestValidContainer:
             workspace=Workspace(
                 name="test-workspace",
                 folder="/workspace",
-                volume_name="test-workspace-volume"
+                volume_name="test-workspace-volume",
             ),
-            image=Image(name="test-image")
+            image=Image(name="test-image"),
         )
         assert_that(container.workspace.name).is_equal_to("test-workspace")
         assert_that(container.image.name).is_equal_to("test-image")
@@ -35,9 +48,9 @@ class TestValidContainer:
             workspace=Workspace(
                 name="test-workspace",
                 folder="/workspace",
-                volume_name="test-workspace-volume"
+                volume_name="test-workspace-volume",
             ),
-            build=Build(container_file="Containerfile")
+            build=Build(container_file="Containerfile"),
         )
         assert_that(container.workspace.name).is_equal_to("test-workspace")
         assert_that(container.build.container_file).is_equal_to("Containerfile")
@@ -49,23 +62,25 @@ class TestValidContainer:
             workspace=Workspace(
                 name="test-workspace",
                 folder="/workspace",
-                volume_name="test-workspace-volume"
+                volume_name="test-workspace-volume",
             ),
             image=Image(name="test-image"),
             runtime=Runtime(
                 user=Users(remote="remote-user", container="container-user"),
                 env=[Env(key="TEST_VAR", value="test_value")],
-                mounts=[Mount(
-                    source="/host/path",
-                    target="/container/path",
-                    type=MountType.BIND
-                )]
+                mounts=[
+                    Mount(
+                        source="/host/path",
+                        target="/container/path",
+                        type=MountType.BIND,
+                    )
+                ],
             ),
             expose=Expose(
                 socket=Socket(host="/host/socket", container="/container/socket")
             ),
             network=Network(name="test-network"),
-            extensions=Extensions(vscode=["ms-python.python"])
+            extensions=Extensions(vscode=["ms-python.python"]),
         )
         assert_that(container.workspace.name).is_equal_to("test-workspace")
         assert_that(container.image.name).is_equal_to("test-image")
@@ -85,26 +100,30 @@ class TestContainerValidation:
 
     def test_container_without_image_and_build_raises_error(self):
         """Test that container without both image and build raises validation error."""
-        with pytest.raises(ValueError, match="At least one of 'image' or 'build' must be set"):
+        with pytest.raises(
+            ValueError, match="At least one of 'image' or 'build' must be set"
+        ):
             Container(
                 workspace=Workspace(
                     name="test-workspace",
                     folder="/workspace",
-                    volume_name="test-workspace-volume"
+                    volume_name="test-workspace-volume",
                 )
             )
 
     def test_container_with_both_image_and_build_raises_error(self):
         """Test that container with both image and build raises validation error."""
-        with pytest.raises(ValueError, match="Only one of 'image' or 'build' can be set"):
+        with pytest.raises(
+            ValueError, match="Only one of 'image' or 'build' can be set"
+        ):
             Container(
                 workspace=Workspace(
                     name="test-workspace",
                     folder="/workspace",
-                    volume_name="test-workspace-volume"
+                    volume_name="test-workspace-volume",
                 ),
                 image=Image(name="test-image"),
-                build=Build(container_file="Containerfile")
+                build=Build(container_file="Containerfile"),
             )
 
 
@@ -117,19 +136,19 @@ class TestContainerComposeMethod:
             workspace=Workspace(
                 name="test-workspace",
                 folder="/workspace",
-                volume_name="test-workspace-volume"
+                volume_name="test-workspace-volume",
             ),
-            image=Image(name="test-image")
+            image=Image(name="test-image"),
         )
         result = container.compose()
-        
+
         expected = {
             "workspace": {
                 "name": "test-workspace",
                 "workspaceFolder": "/workspace",
-                "workspaceMount": "source=test-workspace-volume,target=/workspace,type=volume"
+                "workspaceMount": "source=test-workspace-volume,target=/workspace,type=volume",
             },
-            "image": {"image": "test-image"}
+            "image": {"image": "test-image"},
         }
         assert_that(result).is_equal_to(expected)
 
@@ -139,23 +158,19 @@ class TestContainerComposeMethod:
             workspace=Workspace(
                 name="test-workspace",
                 folder="/workspace",
-                volume_name="test-workspace-volume"
+                volume_name="test-workspace-volume",
             ),
-            build=Build(container_file="Containerfile")
+            build=Build(container_file="Containerfile"),
         )
         result = container.compose()
-        
+
         expected = {
             "workspace": {
                 "name": "test-workspace",
                 "workspaceFolder": "/workspace",
-                "workspaceMount": "source=test-workspace-volume,target=/workspace,type=volume"
+                "workspaceMount": "source=test-workspace-volume,target=/workspace,type=volume",
             },
-            "build": {
-                "build": {
-                    "dockerFile": "Containerfile"
-                }
-            }
+            "build": {"build": {"dockerFile": "Containerfile"}},
         }
         assert_that(result).is_equal_to(expected)
 
@@ -165,21 +180,23 @@ class TestContainerComposeMethod:
             workspace=Workspace(
                 name="test-workspace",
                 folder="/workspace",
-                volume_name="test-workspace-volume"
+                volume_name="test-workspace-volume",
             ),
             image=Image(name="test-image"),
             runtime=Runtime(
                 user=Users(remote="remote-user", container="container-user"),
                 env=[Env(key="TEST_VAR", value="test_value")],
-                mounts=[Mount(
-                    source="/host/path",
-                    target="/container/path",
-                    type=MountType.BIND
-                )]
-            )
+                mounts=[
+                    Mount(
+                        source="/host/path",
+                        target="/container/path",
+                        type=MountType.BIND,
+                    )
+                ],
+            ),
         )
         result = container.compose()
-        
+
         # Check that runtime is included
         assert_that(result).contains_key("runtime")
         runtime_data = result["runtime"]
@@ -194,21 +211,23 @@ class TestContainerComposeMethod:
             workspace=Workspace(
                 name="test-workspace",
                 folder="/workspace",
-                volume_name="test-workspace-volume"
+                volume_name="test-workspace-volume",
             ),
             image=Image(name="test-image"),
             expose=Expose(
                 socket=Socket(host="/host/socket", container="/container/socket")
-            )
+            ),
         )
         result = container.compose()
-        
+
         # Check that expose is included
         assert_that(result).contains_key("expose")
         expose_data = result["expose"]
         assert_that(expose_data).contains_key("mounts")
         assert_that(expose_data["mounts"]).is_length(1)
-        assert_that(expose_data["mounts"][0]).is_equal_to("source=/host/socket,target=/container/socket,type=bind")
+        assert_that(expose_data["mounts"][0]).is_equal_to(
+            "source=/host/socket,target=/container/socket,type=bind"
+        )
 
     def test_compose_with_network(self):
         """Test that compose method works correctly with network configuration."""
@@ -216,13 +235,13 @@ class TestContainerComposeMethod:
             workspace=Workspace(
                 name="test-workspace",
                 folder="/workspace",
-                volume_name="test-workspace-volume"
+                volume_name="test-workspace-volume",
             ),
             image=Image(name="test-image"),
-            network=Network(name="test-network")
+            network=Network(name="test-network"),
         )
         result = container.compose()
-        
+
         # Check that network is included
         assert_that(result).contains_key("network")
         network_data = result["network"]
@@ -236,21 +255,27 @@ class TestContainerComposeMethod:
             workspace=Workspace(
                 name="test-workspace",
                 folder="/workspace",
-                volume_name="test-workspace-volume"
+                volume_name="test-workspace-volume",
             ),
             image=Image(name="test-image"),
-            extensions=Extensions(vscode=["ms-python.python"])
+            extensions=Extensions(vscode=["ms-python.python"]),
         )
         result = container.compose()
-        
+
         # Check that extensions is included
         assert_that(result).contains_key("extensions")
         extensions_data = result["extensions"]
         assert_that(extensions_data).contains_key("customizations")
         assert_that(extensions_data["customizations"]).contains_key("vscode")
-        assert_that(extensions_data["customizations"]["vscode"]).contains_key("extensions")
-        assert_that(extensions_data["customizations"]["vscode"]["extensions"]).is_length(1)
-        assert_that(extensions_data["customizations"]["vscode"]["extensions"][0]).is_equal_to("ms-python.python")
+        assert_that(extensions_data["customizations"]["vscode"]).contains_key(
+            "extensions"
+        )
+        assert_that(
+            extensions_data["customizations"]["vscode"]["extensions"]
+        ).is_length(1)
+        assert_that(
+            extensions_data["customizations"]["vscode"]["extensions"][0]
+        ).is_equal_to("ms-python.python")
 
     def test_compose_with_all_fields(self):
         """Test that compose method works correctly with all fields."""
@@ -258,7 +283,7 @@ class TestContainerComposeMethod:
             workspace=Workspace(
                 name="test-workspace",
                 folder="/workspace",
-                volume_name="test-workspace-volume"
+                volume_name="test-workspace-volume",
             ),
             image=Image(name="test-image"),
             runtime=Runtime(
@@ -268,12 +293,19 @@ class TestContainerComposeMethod:
                 socket=Socket(host="/host/socket", container="/container/socket")
             ),
             network=Network(name="test-network"),
-            extensions=Extensions(vscode=["ms-python.python"])
+            extensions=Extensions(vscode=["ms-python.python"]),
         )
         result = container.compose()
-        
+
         # Check that all expected keys are present
-        expected_keys = ["workspace", "image", "runtime", "expose", "network", "extensions"]
+        expected_keys = [
+            "workspace",
+            "image",
+            "runtime",
+            "expose",
+            "network",
+            "extensions",
+        ]
         for key in expected_keys:
             assert_that(result).contains_key(key)
 
@@ -283,12 +315,12 @@ class TestContainerComposeMethod:
             workspace=Workspace(
                 name="test-workspace",
                 folder="/workspace",
-                volume_name="test-workspace-volume"
+                volume_name="test-workspace-volume",
             ),
-            image=Image(name="test-image")
+            image=Image(name="test-image"),
         )
         result = container.compose()
-        
+
         # Check that the structure is correct
         assert_that(result).is_instance_of(dict)
         assert_that(result).contains_key("workspace")
@@ -312,15 +344,15 @@ class TestContainerInheritance:
             workspace=Workspace(
                 name="test-workspace",
                 folder="/workspace",
-                volume_name="test-workspace-volume"
+                volume_name="test-workspace-volume",
             ),
-            image=Image(name="test-image")
+            image=Image(name="test-image"),
         )
         assert_that(container).is_instance_of(Container)
         # Check that it has the compose method
-        assert_that(hasattr(container, 'compose')).is_true()
+        assert_that(hasattr(container, "compose")).is_true()
         # Check that it has the feature_name class method
-        assert_that(hasattr(Container, 'feature_name')).is_true()
+        assert_that(hasattr(Container, "feature_name")).is_true()
 
     def test_container_compose_returns_dict(self):
         """Test that Container.compose() returns a dictionary."""
@@ -328,9 +360,9 @@ class TestContainerInheritance:
             workspace=Workspace(
                 name="test-workspace",
                 folder="/workspace",
-                volume_name="test-workspace-volume"
+                volume_name="test-workspace-volume",
             ),
-            image=Image(name="test-image")
+            image=Image(name="test-image"),
         )
         result = container.compose()
         assert_that(result).is_instance_of(dict)
@@ -350,14 +382,14 @@ class TestContainerEdgeCases:
             workspace=Workspace(
                 name="test-workspace",
                 folder="/workspace",
-                volume_name="test-workspace-volume"
+                volume_name="test-workspace-volume",
             ),
             image=Image(name="test-image"),
             runtime=None,
             expose=None,
             build=None,
             network=None,
-            extensions=None
+            extensions=None,
         )
         assert_that(container.runtime).is_none()
         assert_that(container.expose).is_none()
@@ -371,29 +403,29 @@ class TestContainerEdgeCases:
             workspace=Workspace(
                 name="test-workspace",
                 folder="/workspace",
-                volume_name="test-workspace-volume"
+                volume_name="test-workspace-volume",
             ),
             image=Image(name="test-image"),
             runtime=Runtime(
                 user=Users(remote="remote-user", container="container-user"),
                 env=[
                     Env(key="ENV1", value="value1", type="remote"),
-                    Env(key="ENV2", value="value2", type="container")
+                    Env(key="ENV2", value="value2", type="container"),
                 ],
                 mounts=[
                     Mount(
                         source="/host/path1",
                         target="/container/path1",
                         type=MountType.BIND,
-                        options=["ro"]
+                        options=["ro"],
                     ),
                     Mount(
                         source="volume1",
                         target="/container/path2",
-                        type=MountType.VOLUME
-                    )
-                ]
-            )
+                        type=MountType.VOLUME,
+                    ),
+                ],
+            ),
         )
         result = container.compose()
         assert_that(result).contains_key("runtime")
@@ -410,16 +442,10 @@ class TestContainerEdgeCases:
             workspace=Workspace(
                 name="test-workspace",
                 folder="/workspace",
-                volume_name="test-workspace-volume"
+                volume_name="test-workspace-volume",
             ),
             image=Image(name="test-image"),
-            expose=Expose(
-                address=URL(
-                    scheme=URLScheme.SSH,
-                    host="localhost",
-                    port=22
-                )
-            )
+            expose=Expose(address=URL(scheme=URLScheme.SSH, host="localhost", port=22)),
         )
         result = container.compose()
         assert_that(result).contains_key("expose")
@@ -433,13 +459,13 @@ class TestContainerEdgeCases:
             workspace=Workspace(
                 name="test-workspace",
                 folder="/workspace",
-                volume_name="test-workspace-volume"
+                volume_name="test-workspace-volume",
             ),
             build=Build(
                 container_file="Containerfile",
                 context="build-context",
-                target="build-stage"
-            )
+                target="build-stage",
+            ),
         )
         result = container.compose()
         assert_that(result).contains_key("build")

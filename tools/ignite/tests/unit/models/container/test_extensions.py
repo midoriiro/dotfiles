@@ -1,6 +1,6 @@
 import pytest
-from pydantic import ValidationError
 from assertpy import assert_that
+from pydantic import ValidationError
 
 from ignite.models.container import Extensions
 
@@ -16,11 +16,13 @@ class TestValidExtensionsList:
 
     def test_multiple_extensions(self):
         """Test that multiple extensions in the list are valid."""
-        extensions = Extensions(vscode=[
-            "ms-python.python",
-            "ms-vscode.vscode-json",
-            "esbenp.prettier-vscode"
-        ])
+        extensions = Extensions(
+            vscode=[
+                "ms-python.python",
+                "ms-vscode.vscode-json",
+                "esbenp.prettier-vscode",
+            ]
+        )
         assert_that(extensions.vscode).is_length(3)
         assert_that(extensions.vscode).contains("ms-python.python")
         assert_that(extensions.vscode).contains("ms-vscode.vscode-json")
@@ -71,32 +73,28 @@ class TestExtensionsComposeMethod:
         """Test that compose method works correctly with a single extension."""
         extensions = Extensions(vscode=["ms-python.python"])
         result = extensions.compose()
-        
-        expected = {
-            "customizations": {
-                "vscode": {
-                    "extensions": ["ms-python.python"]
-                }
-            }
-        }
+
+        expected = {"customizations": {"vscode": {"extensions": ["ms-python.python"]}}}
         assert_that(result).is_equal_to(expected)
 
     def test_compose_multiple_extensions(self):
         """Test that compose method works correctly with multiple extensions."""
-        extensions = Extensions(vscode=[
-            "ms-python.python",
-            "ms-vscode.vscode-json",
-            "esbenp.prettier-vscode"
-        ])
+        extensions = Extensions(
+            vscode=[
+                "ms-python.python",
+                "ms-vscode.vscode-json",
+                "esbenp.prettier-vscode",
+            ]
+        )
         result = extensions.compose()
-        
+
         expected = {
             "customizations": {
                 "vscode": {
                     "extensions": [
                         "ms-python.python",
                         "ms-vscode.vscode-json",
-                        "esbenp.prettier-vscode"
+                        "esbenp.prettier-vscode",
                     ]
                 }
             }
@@ -105,26 +103,26 @@ class TestExtensionsComposeMethod:
 
     def test_compose_preserves_order(self):
         """Test that compose method preserves the order of extensions."""
-        vscode_list = [
-            "first.extension",
-            "second.extension",
-            "third.extension"
-        ]
+        vscode_list = ["first.extension", "second.extension", "third.extension"]
         extensions = Extensions(vscode=vscode_list)
         result = extensions.compose()
-        
-        assert_that(result["customizations"]["vscode"]["extensions"]).is_equal_to(vscode_list)
+
+        assert_that(result["customizations"]["vscode"]["extensions"]).is_equal_to(
+            vscode_list
+        )
 
     def test_compose_structure(self):
         """Test that compose method returns the correct structure."""
         extensions = Extensions(vscode=["test.extension"])
         result = extensions.compose()
-        
+
         # Check that the structure is correct
         assert_that(result).contains_key("customizations")
         assert_that(result["customizations"]).contains_key("vscode")
         assert_that(result["customizations"]["vscode"]).contains_key("extensions")
-        assert_that(result["customizations"]["vscode"]["extensions"]).is_instance_of(list)
+        assert_that(result["customizations"]["vscode"]["extensions"]).is_instance_of(
+            list
+        )
 
 
 class TestExtensionsFeatureName:
@@ -140,11 +138,13 @@ class TestExtensionsEdgeCases:
 
     def test_duplicate_extensions(self):
         """Test that duplicate extensions in the list are allowed."""
-        extensions = Extensions(vscode=[
-            "ms-python.python",
-            "ms-python.python",  # Duplicate
-            "ms-vscode.vscode-json"
-        ])
+        extensions = Extensions(
+            vscode=[
+                "ms-python.python",
+                "ms-python.python",  # Duplicate
+                "ms-vscode.vscode-json",
+            ]
+        )
         assert_that(extensions.vscode).is_length(3)
         assert_that(extensions.vscode).contains("ms-python.python")
 
@@ -160,7 +160,7 @@ class TestExtensionsEdgeCases:
         long_publisher = "a" * 127
         long_name = "b" * 128
         long_extension = f"{long_publisher}.{long_name}"
-        
+
         extensions = Extensions(vscode=[long_extension])
         assert_that(extensions.vscode).is_length(1)
         assert_that(extensions.vscode[0]).is_equal_to(long_extension)

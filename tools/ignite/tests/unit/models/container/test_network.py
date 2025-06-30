@@ -1,6 +1,6 @@
 import pytest
-from pydantic import ValidationError
 from assertpy import assert_that
+from pydantic import ValidationError
 
 from ignite.models.container import Network
 
@@ -41,17 +41,15 @@ class TestNetworkComposeMethod:
         """Test that compose method works correctly with a basic network name."""
         network = Network(name="test-network")
         result = network.compose()
-        
-        expected = {
-            "runArgs": ["--network=test-network"]
-        }
+
+        expected = {"runArgs": ["--network=test-network"]}
         assert_that(result).is_equal_to(expected)
 
     def test_compose_structure(self):
         """Test that compose method returns the correct structure."""
         network = Network(name="test-network")
         result = network.compose()
-        
+
         # Check that the structure is correct
         assert_that(result).contains_key("runArgs")
         assert_that(result["runArgs"]).is_instance_of(list)
@@ -87,7 +85,7 @@ class TestNetworkEdgeCases:
         """Test that network names with special characters are rejected."""
         with pytest.raises(ValidationError, match="should match pattern"):
             Network(name="test-network@123")
-    
+
     def test_network_with_dots(self):
         """Test that network names with dots are accepted."""
         with pytest.raises(ValidationError, match="should match pattern"):
@@ -102,9 +100,9 @@ class TestNetworkInheritance:
         network = Network(name="test-network")
         assert_that(network).is_instance_of(Network)
         # Check that it has the compose method
-        assert_that(hasattr(network, 'compose')).is_true()
+        assert_that(hasattr(network, "compose")).is_true()
         # Check that it has the feature_name class method
-        assert_that(hasattr(Network, 'feature_name')).is_true()
+        assert_that(hasattr(Network, "feature_name")).is_true()
 
     def test_network_compose_returns_dict(self):
         """Test that Network.compose() returns a dictionary."""

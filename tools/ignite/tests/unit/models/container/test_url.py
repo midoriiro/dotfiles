@@ -1,6 +1,6 @@
 import pytest
-from pydantic import ValidationError
 from assertpy import assert_that
+from pydantic import ValidationError
 
 from ignite.models.container import URL, URLScheme
 
@@ -8,14 +8,17 @@ from ignite.models.container import URL, URLScheme
 class TestValidURL:
     """Test cases for valid URL configurations."""
 
-    @pytest.mark.parametrize("scheme,host,port", [
-        (URLScheme.SSH, "localhost", 22),
-        (URLScheme.SSH, "192.168.1.1", 2222),
-        (URLScheme.TCP, "example.com", 8080),
-        (URLScheme.TCP, "10.0.0.1", 443),
-        (URLScheme.SSH, "server.example.org", 2200),
-        (URLScheme.TCP, "api.example.com", 3000),
-    ])
+    @pytest.mark.parametrize(
+        "scheme,host,port",
+        [
+            (URLScheme.SSH, "localhost", 22),
+            (URLScheme.SSH, "192.168.1.1", 2222),
+            (URLScheme.TCP, "example.com", 8080),
+            (URLScheme.TCP, "10.0.0.1", 443),
+            (URLScheme.SSH, "server.example.org", 2200),
+            (URLScheme.TCP, "api.example.com", 3000),
+        ],
+    )
     def test_valid_url_with_port(self, scheme, host, port):
         """Test that valid URLs with ports are accepted."""
         url = URL(scheme=scheme, host=host, port=port)
@@ -23,14 +26,17 @@ class TestValidURL:
         assert_that(url.host).is_equal_to(host)
         assert_that(url.port).is_equal_to(port)
 
-    @pytest.mark.parametrize("scheme,host", [
-        (URLScheme.SSH, "localhost"),
-        (URLScheme.SSH, "192.168.1.1"),
-        (URLScheme.TCP, "example.com"),
-        (URLScheme.TCP, "10.0.0.1"),
-        (URLScheme.SSH, "server.example.org"),
-        (URLScheme.TCP, "api.example.com"),
-    ])
+    @pytest.mark.parametrize(
+        "scheme,host",
+        [
+            (URLScheme.SSH, "localhost"),
+            (URLScheme.SSH, "192.168.1.1"),
+            (URLScheme.TCP, "example.com"),
+            (URLScheme.TCP, "10.0.0.1"),
+            (URLScheme.SSH, "server.example.org"),
+            (URLScheme.TCP, "api.example.com"),
+        ],
+    )
     def test_valid_url_without_port(self, scheme, host):
         """Test that valid URLs without ports are accepted."""
         url = URL(scheme=scheme, host=host)
@@ -74,17 +80,23 @@ class TestURLValidation:
 
     def test_url_with_port_below_minimum(self):
         """Test that URLs with ports below 1 are rejected."""
-        with pytest.raises(ValidationError, match="should be greater than or equal to 1"):
+        with pytest.raises(
+            ValidationError, match="should be greater than or equal to 1"
+        ):
             URL(scheme=URLScheme.SSH, host="localhost", port=0)
 
     def test_url_with_port_above_maximum(self):
         """Test that URLs with ports above 65535 are rejected."""
-        with pytest.raises(ValidationError, match="should be less than or equal to 65535"):
+        with pytest.raises(
+            ValidationError, match="should be less than or equal to 65535"
+        ):
             URL(scheme=URLScheme.SSH, host="localhost", port=65536)
 
     def test_url_with_negative_port(self):
         """Test that URLs with negative ports are rejected."""
-        with pytest.raises(ValidationError, match="should be greater than or equal to 1"):
+        with pytest.raises(
+            ValidationError, match="should be greater than or equal to 1"
+        ):
             URL(scheme=URLScheme.SSH, host="localhost", port=-1)
 
     def test_url_with_missing_scheme(self):
@@ -101,27 +113,38 @@ class TestURLValidation:
 class TestURLStringRepresentation:
     """Test cases for URL string representation."""
 
-    @pytest.mark.parametrize("scheme,host,port,expected", [
-        (URLScheme.SSH, "localhost", 22, "ssh://localhost:22"),
-        (URLScheme.SSH, "192.168.1.1", 2222, "ssh://192.168.1.1:2222"),
-        (URLScheme.TCP, "example.com", 8080, "tcp://example.com:8080"),
-        (URLScheme.TCP, "10.0.0.1", 443, "tcp://10.0.0.1:443"),
-        (URLScheme.SSH, "server.example.org", 2200, "ssh://server.example.org:2200"),
-        (URLScheme.TCP, "api.example.com", 3000, "tcp://api.example.com:3000"),
-    ])
+    @pytest.mark.parametrize(
+        "scheme,host,port,expected",
+        [
+            (URLScheme.SSH, "localhost", 22, "ssh://localhost:22"),
+            (URLScheme.SSH, "192.168.1.1", 2222, "ssh://192.168.1.1:2222"),
+            (URLScheme.TCP, "example.com", 8080, "tcp://example.com:8080"),
+            (URLScheme.TCP, "10.0.0.1", 443, "tcp://10.0.0.1:443"),
+            (
+                URLScheme.SSH,
+                "server.example.org",
+                2200,
+                "ssh://server.example.org:2200",
+            ),
+            (URLScheme.TCP, "api.example.com", 3000, "tcp://api.example.com:3000"),
+        ],
+    )
     def test_url_string_with_port(self, scheme, host, port, expected):
         """Test that URLs with ports are stringified correctly."""
         url = URL(scheme=scheme, host=host, port=port)
         assert_that(str(url)).is_equal_to(expected)
 
-    @pytest.mark.parametrize("scheme,host,expected", [
-        (URLScheme.SSH, "localhost", "ssh://localhost"),
-        (URLScheme.SSH, "192.168.1.1", "ssh://192.168.1.1"),
-        (URLScheme.TCP, "example.com", "tcp://example.com"),
-        (URLScheme.TCP, "10.0.0.1", "tcp://10.0.0.1"),
-        (URLScheme.SSH, "server.example.org", "ssh://server.example.org"),
-        (URLScheme.TCP, "api.example.com", "tcp://api.example.com"),
-    ])
+    @pytest.mark.parametrize(
+        "scheme,host,expected",
+        [
+            (URLScheme.SSH, "localhost", "ssh://localhost"),
+            (URLScheme.SSH, "192.168.1.1", "ssh://192.168.1.1"),
+            (URLScheme.TCP, "example.com", "tcp://example.com"),
+            (URLScheme.TCP, "10.0.0.1", "tcp://10.0.0.1"),
+            (URLScheme.SSH, "server.example.org", "ssh://server.example.org"),
+            (URLScheme.TCP, "api.example.com", "tcp://api.example.com"),
+        ],
+    )
     def test_url_string_without_port(self, scheme, host, expected):
         """Test that URLs without ports are stringified correctly."""
         url = URL(scheme=scheme, host=host)

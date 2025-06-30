@@ -1,8 +1,8 @@
 import pytest
-from pydantic import ValidationError
 from assertpy import assert_that
+from pydantic import ValidationError
 
-from ignite.models.container import Workspace, Mount, MountType
+from ignite.models.container import Mount, MountType, Workspace
 
 
 class TestValidWorkspace:
@@ -13,7 +13,7 @@ class TestValidWorkspace:
         workspace = Workspace(
             name="test-workspace",
             folder="/workspace",
-            volume_name="test-workspace-volume"
+            volume_name="test-workspace-volume",
         )
         assert_that(workspace.name).is_equal_to("test-workspace")
         assert_that(workspace.folder).is_equal_to("/workspace")
@@ -24,7 +24,7 @@ class TestValidWorkspace:
         workspace = Workspace(
             name="test-workspace",
             folder="/workspace",
-            volume_name="test-workspace-volume"
+            volume_name="test-workspace-volume",
         )
         assert_that(workspace.volume_name).is_equal_to("test-workspace-volume")
 
@@ -32,9 +32,7 @@ class TestValidWorkspace:
         """Test that workspace accepts long folder paths."""
         long_path = "/very/long/workspace/path/that/exceeds/normal/length"
         workspace = Workspace(
-            name="test-workspace",
-            folder=long_path,
-            volume_name="test-workspace-volume"
+            name="test-workspace", folder=long_path, volume_name="test-workspace-volume"
         )
         assert_that(workspace.folder).is_equal_to(long_path)
 
@@ -43,7 +41,7 @@ class TestValidWorkspace:
         workspace = Workspace(
             name="a",  # Minimum 1 character
             folder="/workspace",
-            volume_name="test-workspace-volume"
+            volume_name="test-workspace-volume",
         )
         assert_that(workspace.name).is_equal_to("a")
 
@@ -51,9 +49,7 @@ class TestValidWorkspace:
         """Test that workspace accepts maximum length name."""
         max_name = "a" * 256  # Maximum 256 characters
         workspace = Workspace(
-            name=max_name,
-            folder="/workspace",
-            volume_name="test-workspace-volume"
+            name=max_name, folder="/workspace", volume_name="test-workspace-volume"
         )
         assert_that(workspace.name).is_equal_to(max_name)
 
@@ -66,14 +62,14 @@ class TestWorkspaceComposeMethod:
         workspace = Workspace(
             name="test-workspace",
             folder="/workspace",
-            volume_name="test-workspace-volume"
+            volume_name="test-workspace-volume",
         )
         result = workspace.compose()
-        
+
         expected = {
             "name": "test-workspace",
             "workspaceFolder": "/workspace",
-            "workspaceMount": "source=test-workspace-volume,target=/workspace,type=volume"
+            "workspaceMount": "source=test-workspace-volume,target=/workspace,type=volume",
         }
         assert_that(result).is_equal_to(expected)
 
@@ -82,14 +78,14 @@ class TestWorkspaceComposeMethod:
         workspace = Workspace(
             name="my-project",
             folder="/home/user/project",
-            volume_name="my-project-volume"
+            volume_name="my-project-volume",
         )
         result = workspace.compose()
-        
+
         expected = {
             "name": "my-project",
             "workspaceFolder": "/home/user/project",
-            "workspaceMount": "source=my-project-volume,target=/home/user/project,type=volume"
+            "workspaceMount": "source=my-project-volume,target=/home/user/project,type=volume",
         }
         assert_that(result).is_equal_to(expected)
 
@@ -98,10 +94,10 @@ class TestWorkspaceComposeMethod:
         workspace = Workspace(
             name="test-workspace",
             folder="/workspace",
-            volume_name="test-workspace-volume"
+            volume_name="test-workspace-volume",
         )
         result = workspace.compose()
-        
+
         # Check that the structure is correct
         assert_that(result).contains_key("name")
         assert_that(result).contains_key("workspaceFolder")
@@ -115,10 +111,10 @@ class TestWorkspaceComposeMethod:
         workspace = Workspace(
             name="test-workspace",
             folder="/workspace",
-            volume_name="test-workspace-volume"
+            volume_name="test-workspace-volume",
         )
         result = workspace.compose()
-        
+
         mount_string = result["workspaceMount"]
         assert_that(mount_string).contains("source=test-workspace-volume")
         assert_that(mount_string).contains("target=/workspace")
@@ -139,20 +135,14 @@ class TestWorkspaceValidation:
     def test_empty_name_raises_error(self):
         """Test that empty name raises validation error."""
         with pytest.raises(ValidationError, match="should have at least 1 character"):
-            Workspace(
-                name="",
-                folder="/workspace",
-                volume_name="test-workspace-volume"
-            )
+            Workspace(name="", folder="/workspace", volume_name="test-workspace-volume")
 
     def test_name_too_long_raises_error(self):
         """Test that name too long raises validation error."""
         long_name = "a" * 257  # Exceeds 256 character limit
         with pytest.raises(ValidationError, match="should have at most 256 characters"):
             Workspace(
-                name=long_name,
-                folder="/workspace",
-                volume_name="test-workspace-volume"
+                name=long_name, folder="/workspace", volume_name="test-workspace-volume"
             )
 
     def test_name_with_special_characters_raises_error(self):
@@ -161,7 +151,7 @@ class TestWorkspaceValidation:
             Workspace(
                 name="test@workspace",
                 folder="/workspace",
-                volume_name="test-workspace-volume"
+                volume_name="test-workspace-volume",
             )
 
     def test_name_starting_with_hyphen_raises_error(self):
@@ -170,7 +160,7 @@ class TestWorkspaceValidation:
             Workspace(
                 name="-test-workspace",
                 folder="/workspace",
-                volume_name="test-workspace-volume"
+                volume_name="test-workspace-volume",
             )
 
     def test_name_ending_with_hyphen_raises_error(self):
@@ -179,16 +169,14 @@ class TestWorkspaceValidation:
             Workspace(
                 name="test-workspace-",
                 folder="/workspace",
-                volume_name="test-workspace-volume"
+                volume_name="test-workspace-volume",
             )
 
     def test_empty_folder_raises_error(self):
         """Test that empty folder raises validation error."""
         with pytest.raises(ValidationError, match="should have at least 1 character"):
             Workspace(
-                name="test-workspace",
-                folder="",
-                volume_name="test-workspace-volume"
+                name="test-workspace", folder="", volume_name="test-workspace-volume"
             )
 
     def test_folder_too_long_raises_error(self):
@@ -198,35 +186,27 @@ class TestWorkspaceValidation:
             Workspace(
                 name="test-workspace",
                 folder=long_folder,
-                volume_name="test-workspace-volume"
+                volume_name="test-workspace-volume",
             )
 
     def test_empty_volume_name_raises_error(self):
         """Test that empty volume name raises validation error."""
         with pytest.raises(ValidationError, match="should have at least 1 character"):
-            Workspace(
-                name="test-workspace",
-                folder="/workspace",
-                volume_name=""
-            )
+            Workspace(name="test-workspace", folder="/workspace", volume_name="")
 
     def test_volume_name_too_long_raises_error(self):
         """Test that volume name too long raises validation error."""
         long_volume_name = "a" * 257  # Exceeds 256 character limit
         with pytest.raises(ValidationError, match="should have at most 256 characters"):
             Workspace(
-                name="test-workspace",
-                folder="/workspace",
-                volume_name=long_volume_name
+                name="test-workspace", folder="/workspace", volume_name=long_volume_name
             )
 
     def test_volume_name_with_special_characters_raises_error(self):
         """Test that volume name with special characters raises validation error."""
         with pytest.raises(ValidationError, match="should match pattern"):
             Workspace(
-                name="test-workspace",
-                folder="/workspace",
-                volume_name="test@volume"
+                name="test-workspace", folder="/workspace", volume_name="test@volume"
             )
 
 
@@ -236,26 +216,17 @@ class TestWorkspaceModelValidator:
     def test_missing_name_raises_error(self):
         """Test that missing name raises validation error."""
         with pytest.raises(ValidationError, match="Field required"):
-            Workspace(
-                folder="/workspace",
-                volume_name="test-workspace-volume"
-            )
+            Workspace(folder="/workspace", volume_name="test-workspace-volume")
 
     def test_missing_folder_raises_error(self):
         """Test that missing folder raises validation error."""
         with pytest.raises(ValidationError, match="Field required"):
-            Workspace(
-                name="test-workspace",
-                volume_name="test-workspace-volume"
-            )
+            Workspace(name="test-workspace", volume_name="test-workspace-volume")
 
     def test_missing_volume_name_raises_error(self):
         """Test that missing volume name raises validation error."""
         with pytest.raises(ValidationError, match="Field required"):
-            Workspace(
-                name="test-workspace",
-                folder="/workspace"
-            )
+            Workspace(name="test-workspace", folder="/workspace")
 
 
 class TestWorkspaceEdgeCases:
@@ -266,7 +237,7 @@ class TestWorkspaceEdgeCases:
         workspace = Workspace(
             name="a",  # Exactly 1 character
             folder="/workspace",
-            volume_name="test-workspace-volume"
+            volume_name="test-workspace-volume",
         )
         assert_that(workspace.name).is_equal_to("a")
 
@@ -274,9 +245,7 @@ class TestWorkspaceEdgeCases:
         """Test that maximum valid name is accepted."""
         max_name = "a" * 256  # Exactly 256 characters
         workspace = Workspace(
-            name=max_name,
-            folder="/workspace",
-            volume_name="test-workspace-volume"
+            name=max_name, folder="/workspace", volume_name="test-workspace-volume"
         )
         assert_that(workspace.name).is_equal_to(max_name)
 
@@ -285,7 +254,7 @@ class TestWorkspaceEdgeCases:
         workspace = Workspace(
             name="test-workspace",
             folder="/a",  # Exactly 2 characters
-            volume_name="test-workspace-volume"
+            volume_name="test-workspace-volume",
         )
         assert_that(workspace.folder).is_equal_to("/a")
 
@@ -295,7 +264,7 @@ class TestWorkspaceEdgeCases:
         workspace = Workspace(
             name="test-workspace",
             folder=max_folder,
-            volume_name="test-workspace-volume"
+            volume_name="test-workspace-volume",
         )
         assert_that(workspace.folder).is_equal_to(max_folder)
 
@@ -304,7 +273,7 @@ class TestWorkspaceEdgeCases:
         workspace = Workspace(
             name="test-workspace",
             folder="/workspace",
-            volume_name="a"  # Exactly 1 character
+            volume_name="a",  # Exactly 1 character
         )
         assert_that(workspace.volume_name).is_equal_to("a")
 
@@ -312,9 +281,7 @@ class TestWorkspaceEdgeCases:
         """Test that maximum valid volume name is accepted."""
         max_volume_name = "a" * 256  # Exactly 256 characters
         workspace = Workspace(
-            name="test-workspace",
-            folder="/workspace",
-            volume_name=max_volume_name
+            name="test-workspace", folder="/workspace", volume_name=max_volume_name
         )
         assert_that(workspace.volume_name).is_equal_to(max_volume_name)
 
@@ -323,18 +290,14 @@ class TestWorkspaceEdgeCases:
         workspace = Workspace(
             name="test-workspace-name",
             folder="/workspace",
-            volume_name="test-workspace-volume-name"
+            volume_name="test-workspace-volume-name",
         )
         assert_that(workspace.name).is_equal_to("test-workspace-name")
         assert_that(workspace.volume_name).is_equal_to("test-workspace-volume-name")
 
     def test_workspace_with_single_character_names(self):
         """Test that workspace accepts single character names."""
-        workspace = Workspace(
-            name="a",
-            folder="/workspace",
-            volume_name="b"
-        )
+        workspace = Workspace(name="a", folder="/workspace", volume_name="b")
         assert_that(workspace.name).is_equal_to("a")
         assert_that(workspace.volume_name).is_equal_to("b")
 
@@ -347,20 +310,20 @@ class TestWorkspaceInheritance:
         workspace = Workspace(
             name="test-workspace",
             folder="/workspace",
-            volume_name="test-workspace-volume"
+            volume_name="test-workspace-volume",
         )
         assert_that(workspace).is_instance_of(Workspace)
         # Check that it has the compose method
-        assert_that(hasattr(workspace, 'compose')).is_true()
+        assert_that(hasattr(workspace, "compose")).is_true()
         # Check that it has the feature_name class method
-        assert_that(hasattr(Workspace, 'feature_name')).is_true()
+        assert_that(hasattr(Workspace, "feature_name")).is_true()
 
     def test_workspace_compose_returns_dict(self):
         """Test that Workspace.compose() returns a dictionary."""
         workspace = Workspace(
             name="test-workspace",
             folder="/workspace",
-            volume_name="test-workspace-volume"
+            volume_name="test-workspace-volume",
         )
         result = workspace.compose()
         assert_that(result).is_instance_of(dict)
@@ -380,10 +343,10 @@ class TestWorkspaceMountIntegration:
         workspace = Workspace(
             name="test-workspace",
             folder="/workspace",
-            volume_name="test-workspace-volume"
+            volume_name="test-workspace-volume",
         )
         result = workspace.compose()
-        
+
         # The workspaceMount should be a string representation of a Mount
         mount_string = result["workspaceMount"]
         assert_that(mount_string).contains("source=test-workspace-volume")
@@ -395,10 +358,10 @@ class TestWorkspaceMountIntegration:
         workspace = Workspace(
             name="test-workspace",
             folder="/workspace",
-            volume_name="test-workspace-volume"
+            volume_name="test-workspace-volume",
         )
         result = workspace.compose()
-        
+
         mount_string = result["workspaceMount"]
         assert_that(mount_string).contains("type=volume")
         assert_that(mount_string).does_not_contain("type=bind")
