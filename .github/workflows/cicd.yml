@@ -57,6 +57,8 @@ jobs:
     needs: [matrix, init-package-registry]
     strategy:
       matrix: ${{ fromJSON(needs.matrix.outputs.result) }}
+    permissions:
+      actions: write
     uses: ./.github/workflows/python-poetry-ci.yml
     with:
         os: ${{ matrix.os }}
