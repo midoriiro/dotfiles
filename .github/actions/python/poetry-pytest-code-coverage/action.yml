@@ -42,6 +42,9 @@ outputs:
   coverage-artifact-name:
     description: 'Name of the coverage artifact'
     value: ${{ steps.artifact-info.outputs.artifact-name }}
+  coverage-artifact-path:
+    description: 'Path to the coverage artifact'
+    value: ${{ inputs.coverage-artifact-path }}
 
 runs:
   using: composite

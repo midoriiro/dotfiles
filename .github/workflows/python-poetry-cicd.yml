@@ -87,6 +87,7 @@ jobs:
         with:
           threshold: 95
           artifact-name: ${{ steps.code-coverage.outputs.coverage-artifact-name }}
+          artifact-path: ${{ steps.code-coverage.outputs.coverage-artifact-path }}
 
   code-quality:
     name: Code Quality

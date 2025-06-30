@@ -6,6 +6,10 @@ inputs:
     description: 'Artifact name to download (report coverage file in XML format)'
     required: true
     type: string
+  artifact-path:
+    description: 'Path where to download the artifact'
+    required: true
+    type: string
   threshold:
     description: 'Coverage threshold in percentage (0-100)'
     required: true
@@ -42,11 +46,9 @@ runs:
 
     - name: Check coverage threshold
       env:
-        ARTIFACT_PATH: ${{ steps.download-artifact.outputs.download-path }}
+        ARTIFACT_PATH: ${{ steps.download-artifact.outputs.download-path }}/${{ inputs.artifact-path }}
       shell: bash
       run: |
-        echo $PWD
-        ls -la $PWD
         # Check if file exists
         if [ ! -f "$ARTIFACT_PATH" ]; then
           echo "❌ Error: $ARTIFACT_PATH not found"
