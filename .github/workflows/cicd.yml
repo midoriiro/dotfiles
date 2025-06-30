@@ -71,12 +71,14 @@ jobs:
           package_artifacts.append(artifacts_to_add)
           package_artifacts_data = json.dumps(package_artifacts)
           # Update the global environment variable
-          with open(os.environ['GITHUB_ENV'], 'rw') as f:
-            lines = f.readlines()
-            for line in lines:
+          github_env_file_lines = []
+          with open(os.environ['GITHUB_ENV'], 'r') as f:
+            github_env_file_lines = f.readlines()
+          with open(os.environ['GITHUB_ENV'], 'w') as f:
+            for line in github_env_file_lines:
               if line.startswith('PACKAGE_ARTIFACTS='):
                 line = f"PACKAGE_ARTIFACTS={package_artifacts_data}"
-            f.write(lines)
+            f.write(github_env_file_lines)
 
   show-package-artifacts:
     name: Show Package Artifacts
