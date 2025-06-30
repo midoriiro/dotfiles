@@ -149,12 +149,13 @@ jobs:
           else
             echo "✅ All checks passed!"
           fi
-
-  build:
-    name: Build Package
+  package:
+    name: Package Artifacts
     runs-on: ${{ inputs.os }}
-    needs: [setup-environment]
-    # if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [setup-environment, tests]
+
+    outputs: 
+      artifacts-name: ${{ steps.build-artifacts.outputs.artifacts-name }}
 
     steps:
       - name: Checkout Code
@@ -167,10 +168,37 @@ jobs:
           pipx-tools: '["poetry"]'
           poetry-dependency-groups: '["main", "dev"]'
 
+      - name: Bump Version
+        uses: ./.github/actions/python/poetry/version  
+
       - name: Build Artifacts
+        id: build-artifacts
         uses: ./.github/actions/python/poetry/build
         with:
           python-version: ${{ inputs.python-version }}
           build-script: build
           additional-artifact-paths: |
             ${{ env.POETRY_PROJECT_PATH }}/dist/${{ inputs.poetry-package-name }}
+
+  release:
+    name: Release Package
+    runs-on: ${{ inputs.os }}
+    needs: [package]
+    # if: github.ref == 'refs/heads/main' && github.ref_type == 'tag'
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Get Version
+        id: info
+        uses: ./.github/actions/python/poetry/info
+
+      - name: Commit Version Changes
+        run: |
+          echo "commiting as ${{ github.actor }}"
+          # git config --local user.email "action@github.com"
+          # git config --local user.name "GitHub Action"
+          # git add ${{ env.POETRY_PROJECT_PATH }}/pyproject.toml
+          # git commit -m "chore(release): bump version to ${{ steps.info.outputs.project-version }}"
+          # git push 
