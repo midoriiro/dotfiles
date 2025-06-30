@@ -10,7 +10,7 @@ on:
 
 permissions:
   contents: read
-  actions: write
+  actions: write # required for delete cache with gh cli extension
 
 jobs:
   init-package-registry:
