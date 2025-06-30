@@ -53,33 +53,11 @@ jobs:
       poetry-project-path: 'tools/ignite'
       poetry-package-name: 'ignite'
 
-  prepare-delivery:
-    name: Add Delivery Artifacts
+  cd:
+    name: CD
     needs: [ci]
     runs-on: ubuntu-latest
     steps:
-      - name: Add Delivery Artifacts
-        env:
-          PACKAGE_ARTIFACTS: ${{ env.PACKAGE_ARTIFACTS }}
-          ARTIFACTS_TO_ADD: ${{ needs.ci.outputs.package-artifacts }}
-        shell: python
-        run: |
-          import json
-          import os
-          package_artifacts = json.loads(os.environ['PACKAGE_ARTIFACTS'])
-          artifacts_to_add = json.loads(os.environ['ARTIFACTS_TO_ADD'])
-          package_artifacts.append(artifacts_to_add)
-          package_artifacts_data = json.dumps(package_artifacts)
-          # Update the global environment variable
-          github_env_file_lines = []
-          with open(os.environ['GITHUB_ENV'], 'r') as f:
-            github_env_file_lines = f.readlines()
-          with open(os.environ['GITHUB_ENV'], 'w') as f:
-            for line in github_env_file_lines:
-              if line.startswith('PACKAGE_ARTIFACTS='):
-                line = f"PACKAGE_ARTIFACTS={package_artifacts_data}"
-            f.writelines(github_env_file_lines)
-        
       - name: Show Delivery Artifacts
-        run: echo "PACKAGE_ARTIFACTS=${{ env.PACKAGE_ARTIFACTS }}"
+        run: echo "PACKAGE_ARTIFACTS=${{ needs.ci.outputs.package-artifacts }}"
       

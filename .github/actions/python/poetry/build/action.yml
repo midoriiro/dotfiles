@@ -102,7 +102,7 @@ runs:
         fi
 
     - name: Upload additional artifacts
-      if: steps.check-additional-artifacts.outputs.provided == 'true'
+      if: ${{ steps.check-additional-artifacts.outputs.provided == 'true' }}
       id: upload-additional-artifacts
       uses: actions/upload-artifact@v4
       with:
