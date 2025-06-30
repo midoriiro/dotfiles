@@ -49,7 +49,7 @@ runs:
       shell: bash
       run: |
         ARTIFACT_NAME=${PROJECT_NAME}-${PROJECT_VERSION}
-        ARTIFACT_NAME=poetry-build-${{ runner.os }}-${{ inputs.python-version }}-$ARTIFACT_NAME
+        ARTIFACT_NAME=poetry-build-${{ runner.os }}-${{ inputs.python-version }}-${ARTIFACT_NAME}
         echo "artifact-name=${ARTIFACT_NAME}" >> $GITHUB_OUTPUT
 
     - name: Run Build

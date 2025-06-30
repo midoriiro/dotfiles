@@ -30,6 +30,7 @@ runs:
         fi
 
     - name: Run Poetry Info
+      id: poetry-info
       working-directory: ${{ env.POETRY_PROJECT_PATH }}
       shell: bash
       run: |
