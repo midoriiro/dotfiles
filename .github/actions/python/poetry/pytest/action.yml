@@ -1,5 +1,5 @@
-name: 'Pytest'
-description: 'Pytest'
+name: 'Poetry Pytest'
+description: 'Run pytest with Poetry'
 
 inputs:
   test-path:

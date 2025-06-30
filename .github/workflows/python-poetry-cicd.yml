@@ -58,14 +58,14 @@ jobs:
           poetry-dependency-groups: '["main", "dev"]'
 
       - name: Run unit tests
-        uses: ./.github/actions/python/poetry-pytest
+        uses: ./.github/actions/python/poetry/pytest
         with:
           test-path: tests/unit/
           run-in-parallel: true
           additional-pytest-options: --tb=short
 
       - name: Run integration tests
-        uses: ./.github/actions/python/poetry-pytest
+        uses: ./.github/actions/python/poetry/pytest
         with:
           test-path: tests/integration/
           run-in-parallel: true
@@ -73,7 +73,7 @@ jobs:
 
       - name: Run code coverage
         id: code-coverage
-        uses: ./.github/actions/python/poetry-pytest-code-coverage
+        uses: ./.github/actions/python/poetry/pytest-code-coverage
         with:
           test-path: tests/
           coverage-report-format: xml
@@ -168,7 +168,7 @@ jobs:
           poetry-dependency-groups: '["main", "dev"]'
 
       - name: Build packages
-        uses: ./.github/actions/python/poetry-build
+        uses: ./.github/actions/python/poetry/build
         with:
           python-version: ${{ inputs.python-version }}
-          custom-build-command: build
+          build-script: build

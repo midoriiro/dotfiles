@@ -1,5 +1,5 @@
-name: 'Install Poetry Dependencies'
-description: 'Install Poetry dependencies'
+name: 'Poetry Install Dependencies'
+description: 'Install dependencies with Poetry'
 
 inputs:
   python-version:

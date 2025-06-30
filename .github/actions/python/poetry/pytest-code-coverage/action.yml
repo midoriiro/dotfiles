@@ -1,5 +1,5 @@
-name: 'Pytest - Code Coverage'
-description: 'Pytest code coverage'
+name: 'Poetry Pytest - Code Coverage'
+description: 'Run pytest with Poetry and with code coverage'
 
 inputs:
   run-in-parallel:
@@ -63,7 +63,7 @@ runs:
         echo "artifact-path=${ARTIFACT_PATH}" >> $GITHUB_OUTPUT
 
     - name: Run Test Suite
-      uses: ./.github/actions/python/poetry-pytest
+      uses: ./.github/actions/python/poetry/pytest
       with:
         test-path: ${{ inputs.test-path }}
         run-in-parallel: ${{ inputs.run-in-parallel }}

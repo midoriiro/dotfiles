@@ -29,8 +29,8 @@ runs:
         python-version: ${{ steps.setup-python.outputs.python-version }}
         tools: ${{ inputs.pipx-tools }}
 
-    - name: Install Poetry dependencies
-      uses: ./.github/actions/python/install-poetry-dependencies
+    - name: Install Poetry Project Dependencies
+      uses: ./.github/actions/python/poetry/install-dependencies
       with:
         python-version: ${{ steps.setup-python.outputs.python-version }}
         dependency-groups: ${{ inputs.poetry-dependency-groups }}
