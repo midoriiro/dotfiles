@@ -75,14 +75,20 @@ runs:
         DEPENDENCY_GROUPS_HASH=$(echo $DEPENDENCY_GROUPS | sha256sum | awk '{print $1}')
         echo "hash=$DEPENDENCY_GROUPS_HASH" >> $GITHUB_OUTPUT
 
+    - name: Get pyproject.toml hash
+      id: pyproject-toml-hash
+      working-directory: ${{ env.POETRY_PROJECT_PATH }}
+      shell: bash
+      run: |
+        PYPROJECT_TOML_HASH=$(cat pyproject.toml | sha256sum | awk '{print $1}')
+        echo "hash=$PYPROJECT_TOML_HASH" >> $GITHUB_OUTPUT
+
     - name: Restore Poetry dependencies cache
       id: cached-poetry-dependencies
-      env:
-        PYPROJECT_TOML_HASH: ${{ hashFiles('pyproject.toml') }}
       uses: actions/cache/restore@v4
       with:
         path: ${{ env.POETRY_CACHE_DIR }}
-        key: python-poetry-${{ runner.os }}-${{ inputs.python-version }}-${{ env.PYPROJECT_TOML_HASH }}-${{ steps.dependency-groups-hash.outputs.hash }}
+        key: python-poetry-${{ runner.os }}-${{ inputs.python-version }}-${{ steps.pyproject-toml-hash.outputs.hash }}-${{ steps.dependency-groups-hash.outputs.hash }}
 
     - name: Install dependencies
       if: ${{ steps.cached-poetry-dependencies.outputs.cache-hit != 'true' }}
