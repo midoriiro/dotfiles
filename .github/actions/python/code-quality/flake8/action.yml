@@ -23,6 +23,8 @@ runs:
       run: |
         if [ -z "$PATHS" ]; then
           echo "❌ Error: Paths is empty"
+          exit 1
+        fi
 
     - name: Check if poetry is installed
       shell: bash

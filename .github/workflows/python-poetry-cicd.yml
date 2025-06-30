@@ -110,21 +110,21 @@ jobs:
         continue-on-error: true
         uses: ./.github/actions/python/code-quality/flake8
         with:
-          paths: ${{ inputs.poetry-project-path }}/${{ inputs.poetry-package-name }}/ tests/
+          paths: ${{ inputs.poetry-package-name }}/ tests/
 
       - name: Check code formatting
         id: formatting
         continue-on-error: true
         uses: ./.github/actions/python/code-quality/black
         with:
-          paths: ${{ inputs.poetry-project-path }}/${{ inputs.poetry-package-name }}/ tests/
+          paths: ${{ inputs.poetry-package-name }}/ tests/
 
       - name: Check import sorting
         id: sorting
         continue-on-error: true
         uses: ./.github/actions/python/code-quality/isort
         with:
-          paths: ${{ inputs.poetry-project-path }}/${{ inputs.poetry-package-name }}/ tests/
+          paths: ${{ inputs.poetry-package-name }}/ tests/
 
       - name: Check all code quality steps
         if: always()
