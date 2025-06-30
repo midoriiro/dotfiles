@@ -50,6 +50,7 @@ runs:
       shell: bash
       run: |
         echo $PWD
+        ls -la $PWD/tools/ignite
         # Check if file exists
         if [ ! -f $ARTIFACT_PATH ]; then
           echo "❌ Error: $ARTIFACT_PATH not found"
