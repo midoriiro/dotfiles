@@ -76,3 +76,4 @@ runs:
         path: |
           ${{ env.POETRY_PROJECT_PATH }}/dist/*.whl
           ${{ env.POETRY_PROJECT_PATH }}/dist/*.tar.gz
+        if-no-files-found: error
