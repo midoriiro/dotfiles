@@ -7,36 +7,13 @@ on:
       - v*.*.*
   pull_request:
     branches: [ main, ci-cd-pipeline ]
-  workflow_dispatch:
-    inputs:
-      python-version:
-        description: 'Python version to test'
-        required: true
-        default: '3.11'
-        type: choice
-        options:
-          - '3.9'
-          - '3.10'
-          - '3.11'
-          - '3.12'
-          - '3.13'
-      os:
-        description: 'Operating system to test'
-        required: true
-        default: 'ubuntu-latest'
-        type: choice
-        options:
-          - 'ubuntu-latest'
-          - 'windows-latest'
-          - 'macos-latest'
 
 env:
-  MAXTRIX_OS: toJSON(["ubuntu-latest", "windows-latest", "macos-latest"])
-  MAXTRIX_PYTHON_VERSION: toJSON(["3.9", "3.10", "3.11", "3.12", "3.13"])
   PACKAGE_ARTIFACTS: '[]'
 
 jobs:
   matrix:
+    name: Matrix
     runs-on: ubuntu-latest
     outputs:
       result: ${{ steps.set-matrix.outputs.result }}
@@ -47,8 +24,18 @@ jobs:
           import json
           import os
           matrix = {
-            "os": os.environ['MAXTRIX_OS'],
-            "python-version": os.environ['MAXTRIX_PYTHON_VERSION']
+            "os": [
+              'ubuntu-latest', 
+              # 'windows-latest', 
+              # 'macos-latest'
+            ],
+            "python-version": [
+              # '3.9', 
+              # '3.10', 
+              # '3.11', 
+              # '3.12', 
+              '3.13'
+            ]
           }
           matrix_data = json.dumps(matrix)
           print(matrix_data)
