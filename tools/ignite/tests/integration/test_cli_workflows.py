@@ -93,9 +93,9 @@ def test_complete_workflow_with_complex_configuration(
         Path("workspace.code-workspace"),
         {
             "folders": [
-                {"path": "/workspace/backend", "name": "backend"},
-                {"path": "/workspace/frontend", "name": "frontend"},
-                {"path": "/workspace/shared", "name": "shared"}   
+                {"path": f"{str(Path(os.path.sep, 'workspace', 'backend'))}", "name": "backend"},
+                {"path": f"{str(Path(os.path.sep, 'workspace', 'frontend'))}", "name": "frontend"},
+                {"path": f"{str(Path(os.path.sep, 'workspace', 'shared'))}", "name": "shared"}   
             ],
             "settings": {}
         }
@@ -273,12 +273,12 @@ def test_cli_with_composer_error(
         ComposerMessage.model_construct(
             composer_type="ContainerComposer",
             error_type="ValueError",
-            error_message=f"Folder '{user_context}/.devcontainer' does not exist and policy is set to never."
+            error_message=f"Folder '{str(Path(user_context, '.devcontainer'))}' does not exist and policy is set to never."
         ),
         ComposerMessage.model_construct(
             composer_type="WorkspaceComposer",
             error_type="ValueError",
-            error_message=f"File '{user_context}/workspace.code-workspace' already exists and policy is set to never."
+            error_message=f"File '{str(Path(user_context, 'workspace.code-workspace'))}' already exists and policy is set to never."
         )
     ])
 
@@ -315,7 +315,7 @@ def test_cli_with_nonexistent_configuration_file(
     nonexistent_file = Path("/nonexistent/workspace.yml")
     result = runner("--configuration", str(nonexistent_file), str(user_context))
     assert_that(result.exit_code).is_equal_to(2)
-    assert_that(result.output).contains("Error: Invalid value for '--configuration': File '/nonexistent/workspace.yml' does not exist.")
+    assert_that(result.output).contains(f"Error: Invalid value for '--configuration': File '{str(nonexistent_file)}' does not exist.")
 
 
 def test_cli_with_nonexistent_context_directory(
@@ -329,7 +329,7 @@ def test_cli_with_nonexistent_context_directory(
     nonexistent_context = Path("/nonexistent/context")
     result = runner("--configuration", str(configuration_file), str(nonexistent_context))
     assert_that(result.exit_code).is_equal_to(2)
-    assert_that(result.output).contains("Error: Invalid value for '[CONTEXT]': Directory '/nonexistent/context' does not exist.")
+    assert_that(result.output).contains(f"Error: Invalid value for '[CONTEXT]': Directory '{str(nonexistent_context)}' does not exist.")
 
 
 def test_cli_help_output(runner: Runner):
