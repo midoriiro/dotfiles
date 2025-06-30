@@ -99,6 +99,7 @@ runs:
         else
           echo "✅ Additional artifacts provided"
           echo "provided=true" >> $GITHUB_OUTPUT
+        fi
 
     - name: Upload additional artifacts
       if: steps.check-additional-artifacts.outputs.provided == 'true'

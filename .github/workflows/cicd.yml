@@ -13,7 +13,7 @@ env:
 
 jobs:
   matrix:
-    name: Matrix
+    name: Matrix Definition
     runs-on: ubuntu-latest
     outputs:
       result: ${{ steps.set-matrix.outputs.result }}
@@ -42,7 +42,7 @@ jobs:
           with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
             f.write(f"result={matrix_data}\n")
   ci:
-    name: CICD (${{ matrix.os }} - Python ${{ matrix.python-version }})
+    name: CI (${{ matrix.os }} - Python ${{ matrix.python-version }})
     needs: [matrix]
     strategy:
       matrix: ${{ fromJSON(needs.matrix.outputs.result) }}
@@ -53,8 +53,8 @@ jobs:
       poetry-project-path: 'tools/ignite'
       poetry-package-name: 'ignite'
 
-  add-package-artifacts:
-    name: Add Package Artifacts
+  prepare-package-artifacts:
+    name: Prepare Package Artifacts Before Delivery
     needs: [ci]
     runs-on: ubuntu-latest
     steps:
