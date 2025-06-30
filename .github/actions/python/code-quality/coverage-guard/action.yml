@@ -52,7 +52,7 @@ runs:
         echo $PWD
         ls -la $PWD/tools/ignite
         # Check if file exists
-        if [ ! -f $ARTIFACT_PATH ]; then
+        if [ ! -f "$ARTIFACT_PATH" ]; then
           echo "❌ Error: $ARTIFACT_PATH not found"
           exit 1
         fi
