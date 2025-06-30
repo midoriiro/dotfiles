@@ -42,7 +42,6 @@ jobs:
       - name: Setup Environment
         uses: ./.github/actions/python/setup-python-pipx-poetry
         with:
-          python-version: ${{ inputs.python-version }}
           pipx-tools: '["poetry"]'
           poetry-dependency-groups: '["main", "dev"]'
         
@@ -58,7 +57,6 @@ jobs:
       - name: Setup Environment
         uses: ./.github/actions/python/setup-python-pipx-poetry
         with:
-          python-version: ${{ inputs.python-version }}
           pipx-tools: '["poetry"]'
           poetry-dependency-groups: '["main", "dev"]'
 
@@ -106,7 +104,6 @@ jobs:
       - name: Setup Environment
         uses: ./.github/actions/python/setup-python-pipx-poetry
         with:
-          python-version: ${{ inputs.python-version }}
           pipx-tools: '["poetry"]'
           poetry-dependency-groups: '["main", "dev"]'
 
@@ -169,7 +166,6 @@ jobs:
       - name: Setup Environment
         uses: ./.github/actions/python/setup-python-pipx-poetry
         with:
-          python-version: ${{ inputs.python-version }}
           pipx-tools: '["poetry"]'
           poetry-dependency-groups: '["main", "dev"]'
 
@@ -180,7 +176,6 @@ jobs:
         id: build-artifacts
         uses: ./.github/actions/python/poetry/build
         with:
-          python-version: ${{ inputs.python-version }}
           build-script: build
           additional-artifact-paths: |
             ${{ env.POETRY_PROJECT_PATH }}/dist/${{ inputs.poetry-package-name }}
