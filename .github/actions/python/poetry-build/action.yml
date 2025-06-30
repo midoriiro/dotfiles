@@ -64,7 +64,7 @@ runs:
           echo "✅ Using default build command: $POETRY_CMD"
         else
           POETRY_CMD="$POETRY_CMD run $CUSTOM_BUILD_COMMAND"
-          echo "✅ Using custom build command: $POETRY_CMD²" 
+          echo "✅ Using custom build command: $POETRY_CMD" 
         fi
         $POETRY_CMD
 
@@ -74,5 +74,5 @@ runs:
       with:
         name: ${{ steps.artifact-info.outputs.artifact-name }}
         path: |
-          dist/*.whl
-          dist/*.tar.gz
+          ${{ env.POETRY_PROJECT_PATH }}/dist/*.whl
+          ${{ env.POETRY_PROJECT_PATH }}/dist/*.tar.gz
