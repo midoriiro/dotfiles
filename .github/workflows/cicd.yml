@@ -30,26 +30,58 @@ on:
           - 'windows-latest'
           - 'macos-latest'
 
+env:
+  MAXTRIX_OS: toJSON(["ubuntu-latest", "windows-latest", "macos-latest"])
+  MAXTRIX_PYTHON_VERSION: toJSON(["3.9", "3.10", "3.11", "3.12", "3.13"])
+  PACKAGE_ARTIFACTS: '[]'
+
 jobs:
-  cicd:
+  matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      result: ${{ steps.set-matrix.outputs.result }}
+    steps:
+      - id: set-matrix
+        shell: python
+        run: |
+          import json
+          import os
+          matrix = {
+            "os": os.environ['MAXTRIX_OS'],
+            "python-version": os.environ['MAXTRIX_PYTHON_VERSION']
+          }
+          matrix_data = json.dumps(matrix)
+          print(matrix_data)
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+            f.write(f"result={matrix_data}\n")
+  ci:
     name: CICD (${{ matrix.os }} - Python ${{ matrix.python-version }})
+    needs: [matrix]
     strategy:
-      matrix:
-        os: [
-          'ubuntu-latest',
-          # 'windows-latest',
-          # 'macos-latest'
-        ]
-        python-version: [
-          # '3.9', 
-          # '3.10', 
-          # '3.11', 
-          # '3.12', 
-          '3.13'
-        ]    
-    uses: ./.github/workflows/python-poetry-cicd.yml
+      matrix: ${{ needs.matrix.outputs.result }}
+    uses: ./.github/workflows/python-poetry-ci.yml
     with:
       os: ${{ matrix.os }}
       python-version: ${{ matrix.python-version }}
       poetry-project-path: 'tools/ignite'
       poetry-package-name: 'ignite'
+
+  add-package-artifacts:
+    name: Add Package Artifacts
+    needs: [ci]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add Package Artifacts
+        env:
+          PACKAGE_ARTIFACTS: ${{ env.PACKAGE_ARTIFACTS }}
+          ARTIFACTS_TO_ADD: ${{ needs.ci.outputs.package-artifacts }}
+        shell: python
+        run: |
+          import json
+          import os
+          package_artifacts = json.loads(os.environ['PACKAGE_ARTIFACTS'])
+          artifacts_to_add = json.loads(os.environ['ARTIFACTS_TO_ADD'])
+          package_artifacts.append(artifacts_to_add)
+          package_artifacts_data = json.dumps(package_artifacts)
+          with open(os.environ['GITHUB_ENV'], 'a') as f:
+            f.write(f"PACKAGE_ARTIFACTS={package_artifacts_data}\n")

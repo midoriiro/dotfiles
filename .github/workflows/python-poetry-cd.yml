@@ -1,0 +1,67 @@
+name: Python Poetry CI/CD Pipeline
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        description: 'Operating system to run on'
+        required: true
+        type: string
+      python-version:
+        description: 'Python version to use'
+        required: true
+        type: string
+      poetry-project-path:
+        description: 'Path to the Poetry project'
+        required: true
+        type: string
+      package-artifact-name:
+        description: 'Name of the package artifact'
+        required: true
+        type: string
+
+env:
+  # Some composite actions related to Poetry are sensitive to working-directory,
+  # but to simplify access to them, Poetry project path need to be set via an
+  # environment variable defined globally.
+  POETRY_PROJECT_PATH: ${{ inputs.poetry-project-path }}
+
+jobs:
+  release:
+    name: Release Package
+    runs-on: ${{ inputs.os }}
+    # if: github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.base_ref == 'main'
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: ./.github/actions/python/setup-python-pipx-poetry
+        with:
+          python-version: ${{ inputs.python-version }}
+          pipx-tools: '["poetry"]'
+          poetry-dependency-groups: '["main", "dev"]'
+
+      - name: Download Package Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.package-artifact-name }}
+          path: /tmp/dist
+
+      - name: Bump Version
+        uses: ./.github/actions/python/poetry/version  
+
+      - name: Get Version
+        id: info
+        uses: ./.github/actions/python/poetry/info
+
+      - name: Commit Version Changes
+        run: |
+          echo "version: ${{ steps.info.outputs.project-version }}"
+          echo "commiting as ${{ github.actor }}"
+          # git config --local user.email "action@github.com"
+          # git config --local user.name "GitHub Action"
+          # git add ${{ env.POETRY_PROJECT_PATH }}/pyproject.toml
+          # git commit -m "chore(release): bump version to ${{ steps.info.outputs.project-version }}"
+          # git push 

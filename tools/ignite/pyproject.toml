@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ignite"
-version = "2025.6.1"
+version = "2025.6.0"
 description = "CLI tool to initialize and manage development environment configuration from a workspace.yml file"
 packages = [{include = "ignite"}]
 exclude = ["ignite", "scripts", "build", "dist", "tests"]

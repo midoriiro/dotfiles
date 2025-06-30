@@ -19,6 +19,10 @@ on:
         description: 'Name of the Poetry package'
         required: true
         type: string
+    outputs:
+      package-artifacts: 
+        description: 'Package artifacts in JSON format: { "os": "...", "python-version": "...", "source": "...", "wheel": "...", "[additional]": "..." }'
+        value: ${{ jobs.package.outputs.artifacts }}
 
 env:
   # Some composite actions related to Poetry are sensitive to working-directory,
@@ -155,7 +159,7 @@ jobs:
     needs: [setup-environment, tests]
 
     outputs: 
-      artifacts-name: ${{ steps.build-artifacts.outputs.artifacts-name }}
+      artifacts: ${{ steps.build-artifacts.outputs.artifacts }}
 
     steps:
       - name: Checkout Code
@@ -179,34 +183,3 @@ jobs:
           build-script: build
           additional-artifact-paths: |
             ${{ env.POETRY_PROJECT_PATH }}/dist/${{ inputs.poetry-package-name }}
-
-  release:
-    name: Release Package
-    runs-on: ${{ inputs.os }}
-    needs: [package]
-    # if: github.ref == 'refs/heads/main' && github.ref_type == 'tag'
-
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Setup Environment
-        uses: ./.github/actions/python/setup-python-pipx-poetry
-        with:
-          python-version: ${{ inputs.python-version }}
-          pipx-tools: '["poetry"]'
-          poetry-dependency-groups: '["main", "dev"]'
-
-      - name: Get Version
-        id: info
-        uses: ./.github/actions/python/poetry/info
-
-      - name: Commit Version Changes
-        run: |
-          echo "version: ${{ steps.info.outputs.project-version }}"
-          echo "commiting as ${{ github.actor }}"
-          # git config --local user.email "action@github.com"
-          # git config --local user.name "GitHub Action"
-          # git add ${{ env.POETRY_PROJECT_PATH }}/pyproject.toml
-          # git commit -m "chore(release): bump version to ${{ steps.info.outputs.project-version }}"
-          # git push 
