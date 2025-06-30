@@ -56,10 +56,10 @@ runs:
         ADDITIONAL_PYTEST_OPTIONS: ${{ inputs.additional-pytest-options }}
       shell: bash
       run: |
-        PYTEST_CMD="poetry run pytest"
+        PYTEST_CMD="poetry run pytest $TEST_PATH"
         if [ "$RUN_IN_PARALLEL" = "true" ]; then  
           PYTEST_CMD="$PYTEST_CMD --numprocesses=auto"
         fi
-        $PYTEST_CMD="$PYTEST_CMD $TEST_PATH --verbose $ADDITIONAL_PYTEST_OPTIONS"
+        $PYTEST_CMD="$PYTEST_CMD --verbose $ADDITIONAL_PYTEST_OPTIONS"
         echo "Running pytest command: $PYTEST_CMD"
         $PYTEST_CMD
