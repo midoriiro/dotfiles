@@ -312,7 +312,7 @@ def test_cli_with_nonexistent_configuration_file(
     user_context: Path,
 ):
     """Test CLI behavior with non-existent configuration file."""
-    nonexistent_file = Path("/nonexistent/workspace.yml")
+    nonexistent_file = Path("nonexistent", "workspace.yml")
     result = runner("--configuration", str(nonexistent_file), str(user_context))
     assert_that(result.exit_code).is_equal_to(2)
     assert_that(result.output).contains(f"Error: Invalid value for '--configuration': File '{str(nonexistent_file)}' does not exist.")
@@ -326,7 +326,7 @@ def test_cli_with_nonexistent_context_directory(
 ):
     """Test CLI behavior with non-existent context directory."""
     configuration_dumper(minimal_configuration, configuration_file)
-    nonexistent_context = Path("/nonexistent/context")
+    nonexistent_context = Path("nonexistent", "context")
     result = runner("--configuration", str(configuration_file), str(nonexistent_context))
     assert_that(result.exit_code).is_equal_to(2)
     assert_that(result.output).contains(f"Error: Invalid value for '[CONTEXT]': Directory '{str(nonexistent_context)}' does not exist.")
