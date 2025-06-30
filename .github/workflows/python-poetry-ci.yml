@@ -28,6 +28,9 @@ env:
   POETRY_PROJECT_PATH: ${{ inputs.poetry-project-path }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+permissions:
+  actions: write 
+
 jobs:
   setup-environment:
     name: Setup Environment
@@ -153,8 +156,6 @@ jobs:
     name: Package
     runs-on: ${{ inputs.os }}
     needs: [setup-environment]
-    permissions:
-      actions: write 
 
     steps:
       - name: Checkout Code
