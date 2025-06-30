@@ -4,7 +4,7 @@ description: 'Restore package registry from cache'
 outputs:
   file:
     description: 'The path to the package registry file'
-    value: ${{ env.REGISTRY_FILE }}
+    value: ${{ steps.output.outputs.file }}
 
 runs:
   using: composite
@@ -25,3 +25,16 @@ runs:
       run: |
         echo "Registry file located at: ${REGISTRY_FILE}"
         cat $REGISTRY_FILE
+
+    - name: Set output
+      id: output
+      env:
+        REGISTRY_FILE: ${{ env.REGISTRY_FILE }}
+      shell: bash
+      run: |
+        echo "file=${REGISTRY_FILE}" >> $GITHUB_OUTPUT
+
+    - name: Show output
+      shell: bash
+      run: |
+        echo "Output: ${{ steps.output.outputs.file }}"
