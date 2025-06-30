@@ -1,0 +1,22 @@
+name: 'Save Package Registry'
+description: 'Save package registry to cache'
+
+runs:
+  using: composite
+  steps:
+    - name: Set environment variables
+      uses: ./.github/actions/package-registry/set-env
+
+    - name: Save cache
+      uses: actions/cache/save@v4
+      with:
+        path: ${{ env.REGISTRY_FILE }}
+        key: package-registry-${{ github.workflow_sha }}
+
+    - name: Show registry file
+      env:
+        REGISTRY_FILE: ${{ env.REGISTRY_FILE }}
+      shell: bash
+      run: |
+        echo "Registry file located at: ${REGISTRY_FILE}"
+        cat $REGISTRY_FILE

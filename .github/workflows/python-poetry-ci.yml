@@ -177,7 +177,7 @@ jobs:
         id: package-registry
         uses: ./.github/actions/package-registry/restore
 
-      - name: Save Package Artifacts
+      - name: Add Package Artifacts to Registry
         env:
           REGISTRY_FILE: ${{ steps.package-registry.outputs.file }}
           ARTIFACTS: ${{ steps.build-artifacts.outputs.artifacts }}
