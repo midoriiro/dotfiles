@@ -17,6 +17,7 @@ runs:
       with:
         path: ${{ env.REGISTRY_FILE }}
         key: package-registry-${{ github.workflow_sha }}
+        fail-on-cache-miss: true
 
     - name: Show registry file
       env:
