@@ -1,0 +1,84 @@
+name: 'Poetry Build'
+description: 'Build Python packages with Poetry'
+
+inputs:
+  python-version:
+    description: 'Python version to use'
+    required: true
+    type: string
+  build-script:
+    description: 'Poetry build script to use'
+    required: false
+    type: string
+  additional-artifact-paths:
+    description: 'Additional artifact paths to include in upload'
+    required: false
+    type: string
+
+
+outputs:
+  artifacts-name:
+    description: 'Name of the build artifacts'
+    value: ${{ steps.artifact-info.outputs.artifact-name }}
+
+runs:
+  using: composite
+  steps:
+    - name: Check if we are in a Poetry project
+      working-directory: ${{ env.POETRY_PROJECT_PATH }}
+      shell: bash
+      run: |
+        if [ ! -f "pyproject.toml" ]; then
+          echo "❌ Error: Not in a Poetry project"
+          exit 1
+        fi
+
+    - name: Check if poetry is installed
+      shell: bash
+      run: |
+        if ! command -v poetry &> /dev/null; then
+          echo "❌ Error: Poetry is not installed"
+          exit 1
+        fi
+
+    - name: Poetry Info
+      id: poetry-info
+      uses: ./.github/actions/python/poetry-info
+
+    - name: Artifact Info
+      id: artifact-info
+      env:
+        PROJECT_NAME: ${{ steps.poetry-info.outputs.project-name }}
+        PROJECT_VERSION: ${{ steps.poetry-info.outputs.project-version }}
+      shell: bash
+      run: |
+        ARTIFACT=${PROJECT_NAME}-${PROJECT_VERSION}
+        ARTIFACT_NAME=poetry-build-${{ runner.os }}-${{ inputs.python-version }}-${ARTIFACT}
+        echo "artifact-name=${ARTIFACT_NAME}" >> $GITHUB_OUTPUT
+
+    - name: Run Build
+      working-directory: ${{ env.POETRY_PROJECT_PATH }}
+      env:
+        BUILD_SCRIPT: ${{ inputs.build-script }}
+      shell: bash
+      run: |
+        POETRY_CMD="poetry"
+        if [ -z "$BUILD_SCRIPT" ]; then
+          POETRY_CMD="$POETRY_CMD build"
+          echo "✅ Using default build command: $POETRY_CMD"
+        else
+          POETRY_CMD="$POETRY_CMD run $BUILD_SCRIPT"
+          echo "✅ Using custom build command: $POETRY_CMD" 
+        fi
+        $POETRY_CMD
+
+    - name: Upload build artifacts
+      id: upload-artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ steps.artifact-info.outputs.artifact-name }}
+        path: |
+          ${{ env.POETRY_PROJECT_PATH }}/dist/*.whl
+          ${{ env.POETRY_PROJECT_PATH }}/dist/*.tar.gz
+          ${{ inputs.additional-artifact-paths }}
+        if-no-files-found: error

@@ -15,6 +15,7 @@ venv/
 # Build artifacts
 dist/
 build/
+!.github/actions/**/build/
 *.egg-info/
 
 # Logs
