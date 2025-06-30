@@ -9,15 +9,15 @@ on:
     branches: [ main, ci-cd-pipeline ]
 
 env:
-  PACKAGE_ARTIFACTS_FILE: 'package-artifacts.json'
+  PACKAGE_ARTIFACTS_REGISTRY: 'package-artifacts.json'
 
 jobs:
-  prepare-package-artifacts-file:
-    name: Prepare Package Artifacts File
+  prepare-package-artifacts-registry:
+    name: Prepare Package Artifacts Registry
     runs-on: ubuntu-latest
     steps:
       - name: Prepare Package Artifacts File
-        run: echo "[]" > ${{ env.PACKAGE_ARTIFACTS_FILE }}
+        run: echo "[]" > ${{ env.PACKAGE_ARTIFACTS_REGISTRY }}
 
   matrix:
     name: Matrix Definition
@@ -50,37 +50,27 @@ jobs:
             f.write(f"result={matrix_data}\n")
   ci:
     name: CI (${{ matrix.os }} - Python ${{ matrix.python-version }})
-    runs-on: ${{ matrix.os }}
-    needs: [matrix, prepare-package-artifacts-file]
+    needs: [matrix, prepare-package-artifacts-registry]
     strategy:
       matrix: ${{ fromJSON(needs.matrix.outputs.result) }}
+    uses: ./.github/workflows/python-poetry-ci.yml
+    with:
+        os: ${{ matrix.os }}
+        python-version: ${{ matrix.python-version }}
+        poetry-project-path: 'tools/ignite'
+        poetry-package-name: 'ignite'
+  post-ci:
+    name: Post CI
+    needs: [ci]
+    runs-on: ubuntu-latest
     steps:
-      - name: CI
-        id: ci
-        uses: ./.github/workflows/python-poetry-ci.yml
-        with:
-          os: ${{ matrix.os }}
-          python-version: ${{ matrix.python-version }}
-          poetry-project-path: 'tools/ignite'
-      
       - name: Prepare Delivery
-        env:
-          PACKAGE_ARTIFACTS_FILE: ${{ env.PACKAGE_ARTIFACTS_FILE }}
-          ARTIFACTS_TO_ADD: ${{ steps.ci.outputs.package-artifacts }}
-        shell: python
-        run: |
-          import json
-          import os
-          with open(os.environ['PACKAGE_ARTIFACTS_FILE'], 'r') as f:
-            package_artifacts = json.load(f)
-          package_artifacts.append(os.environ['ARTIFACTS_TO_ADD'])
-          with open(os.environ['PACKAGE_ARTIFACTS_FILE'], 'w') as f:
-            json.dump(package_artifacts, f)
+        run: echo "PACKAGE_ARTIFACTS=${{ needs.ci.outputs.package-artifacts }}"
   cd:
     name: CD
     needs: [ci]
     runs-on: ubuntu-latest
     steps:
       - name: Show Delivery Artifacts
-        run: cat ${{ env.PACKAGE_ARTIFACTS_FILE }}
+        run: cat ${{ env.PACKAGE_ARTIFACTS_REGISTRY }}
       
