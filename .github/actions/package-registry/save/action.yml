@@ -7,16 +7,7 @@ runs:
     - name: Set environment variables
       uses: ./.github/actions/package-registry/set-env
 
-    - name: Restore cache
-      uses: actions/cache/restore@v4
-      with:
-        path: ${{ env.REGISTRY_FILE }}
-        key: package-registry-${{ github.workflow_sha }}
-        fail-on-cache-miss: true
-        lookup-only: true
-
     - name: Delete Previous Cache
-      if: ${{ steps.cache-restore.outputs.cache-hit == 'true' }}
       env:
         CACHE_KEY: package-registry-${{ github.workflow_sha }}
         GH_TOKEN: ${{ env.GITHUB_TOKEN }}
@@ -27,14 +18,12 @@ runs:
         gh actions-cache delete "${{ env.CACHE_KEY }}" --confirm
 
     - name: Save cache
-      if: ${{ steps.cache-restore.outputs.cache-hit == 'true' }}
       uses: actions/cache/save@v4
       with:
         path: ${{ env.REGISTRY_FILE }}
         key: package-registry-${{ github.workflow_sha }}
 
     - name: Show registry file
-      if: ${{ steps.cache-restore.outputs.cache-hit == 'true' }}
       env:
         REGISTRY_FILE: ${{ env.REGISTRY_FILE }}
       shell: bash
