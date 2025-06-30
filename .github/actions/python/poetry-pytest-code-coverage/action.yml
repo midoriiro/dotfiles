@@ -84,3 +84,8 @@ runs:
         name: ${{ steps.artifact-info.outputs.artifact-name }}
         path: |
           ${{ steps.artifact-info.outputs.artifact-path }}
+
+    - name: Delete coverage report artifacts
+      shell: bash
+      run: |
+        rm --force ${{ steps.artifact-info.outputs.artifact-path }}
