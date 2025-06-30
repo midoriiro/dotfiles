@@ -57,7 +57,7 @@ runs:
         additional-pytest-options: --cov --cov-report=${{ inputs.coverage-report-format }}:${{ inputs.coverage-artifact-path }} --cov-report=term-missing
 
     - name: Upload coverage report to Codecov
-      if: ${{ inputs.upload-to-codecov }}
+      if: ${{ inputs.upload-to-codecov == 'true' }}
       uses: codecov/codecov-action@v3
       with:
         file: ${{ inputs.coverage-artifact-path }}
