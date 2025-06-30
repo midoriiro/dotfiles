@@ -19,12 +19,12 @@ runs:
       uses: actions/cache/save@v4
       with:
         path: ${{ env.REGISTRY_FILE }}
-        key: package-registry
+        key: package-registry-${{ github.workflow_sha }}
 
     - name: Show registry file
       shell: bash
       env:
         REGISTRY_FILE: ${{ env.REGISTRY_FILE }}
       run: |
-        echo "Registry file located at: $REGISTRY_FILE"
+        echo "Registry file located at: ${REGISTRY_FILE}"
         cat $REGISTRY_FILE
