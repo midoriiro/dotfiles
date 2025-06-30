@@ -60,7 +60,7 @@ runs:
       uses: actions/cache/restore@v4
       with:
         path: ${{ env.PIPX_HOME }}
-        key: python-pipx-${{ runner.os }}-${{ inputs.python-version }}-${{ join( fromJSON(inputs.tools), '-' ) }}
+        key: python-pipx-${{ runner.os }}-${{ inputs.python-version }}-with-${{ join( fromJSON(inputs.tools), '-' ) }}
 
     - name: Install pipx
       if: ${{ steps.cached-pipx.outputs.cache-hit != 'true' }}

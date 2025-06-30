@@ -2,10 +2,6 @@ name: 'Pytest - Code Coverage'
 description: 'Pytest code coverage'
 
 inputs:
-  python-version:
-    description: 'Python version to use'
-    required: true
-    type: string
   run-in-parallel:
     description: 'Run tests in parallel'
     required: false
@@ -56,7 +52,6 @@ runs:
     - name: Run Test Suite
       uses: ./.github/actions/python/poetry-pytest
       with:
-        python-version: ${{ inputs.python-version }}
         test-path: ${{ inputs.test-path }}
         run-in-parallel: ${{ inputs.run-in-parallel }}
         additional-pytest-options: --cov --cov-report=${{ inputs.coverage-report-format }}:${{ inputs.coverage-artifact-path }} --cov-report=term-missing
