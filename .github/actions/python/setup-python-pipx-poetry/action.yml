@@ -22,6 +22,7 @@ runs:
         if [ -z "$PYTHON_VERSION" ]; then
           echo "PYTHON_VERSION is not set"
           exit 1
+        fi
 
     - name: Set up Python ${{ env.PYTHON_VERSION }}
       id: setup-python

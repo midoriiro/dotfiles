@@ -19,6 +19,7 @@ runs:
         if [ -z "$PYTHON_VERSION" ]; then
           echo "PYTHON_VERSION is not set"
           exit 1
+        fi
 
     - name: Check tools is not empty list
       env:

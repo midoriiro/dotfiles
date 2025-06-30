@@ -18,6 +18,7 @@ runs:
         if [ -z "$PYTHON_VERSION" ]; then
           echo "PYTHON_VERSION is not set"
           exit 1
+        fi
 
     - name: Check if we are in a Poetry project
       working-directory: ${{ env.POETRY_PROJECT_PATH }}
