@@ -31,10 +31,10 @@ jobs:
     name: Setup Environment
     runs-on: ${{ inputs.os }}
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup environment
+      - name: Setup Environment
         uses: ./.github/actions/python/setup-python-pipx-poetry
         with:
           python-version: ${{ inputs.python-version }}
@@ -47,31 +47,31 @@ jobs:
     needs: setup-environment
     
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup environment
+      - name: Setup Environment
         uses: ./.github/actions/python/setup-python-pipx-poetry
         with:
           python-version: ${{ inputs.python-version }}
           pipx-tools: '["poetry"]'
           poetry-dependency-groups: '["main", "dev"]'
 
-      - name: Run unit tests
+      - name: Run Unit Tests
         uses: ./.github/actions/python/poetry/pytest
         with:
           test-path: tests/unit/
           run-in-parallel: true
           additional-pytest-options: --tb=short
 
-      - name: Run integration tests
+      - name: Run Integration Tests
         uses: ./.github/actions/python/poetry/pytest
         with:
           test-path: tests/integration/
           run-in-parallel: true
           additional-pytest-options: --tb=short
 
-      - name: Run code coverage
+      - name: Run Code Coverage
         id: code-coverage
         uses: ./.github/actions/python/poetry/pytest-code-coverage
         with:
@@ -95,38 +95,38 @@ jobs:
     needs: [setup-environment, tests]
 
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup environment
+      - name: Setup Environment
         uses: ./.github/actions/python/setup-python-pipx-poetry
         with:
           python-version: ${{ inputs.python-version }}
           pipx-tools: '["poetry"]'
           poetry-dependency-groups: '["main", "dev"]'
 
-      - name: Check linting
+      - name: Check Linting
         id: linting
         continue-on-error: true
         uses: ./.github/actions/python/code-quality/flake8
         with:
           paths: ${{ inputs.poetry-package-name }}/ tests/
 
-      - name: Check code formatting
+      - name: Check Code Formatting
         id: formatting
         continue-on-error: true
         uses: ./.github/actions/python/code-quality/black
         with:
           paths: ${{ inputs.poetry-package-name }}/ tests/
 
-      - name: Check import sorting
+      - name: Check Import Sorting
         id: sorting
         continue-on-error: true
         uses: ./.github/actions/python/code-quality/isort
         with:
           paths: ${{ inputs.poetry-package-name }}/ tests/
 
-      - name: Check all code quality steps
+      - name: Check All Code Quality Steps
         if: always()
         env:
           CODE_COVERAGE_OUTCOME: ${{ needs.tests.result == 'success' }}
@@ -157,18 +157,20 @@ jobs:
     # if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup environment
+      - name: Setup Environment
         uses: ./.github/actions/python/setup-python-pipx-poetry
         with:
           python-version: ${{ inputs.python-version }}
           pipx-tools: '["poetry"]'
           poetry-dependency-groups: '["main", "dev"]'
 
-      - name: Build packages
+      - name: Build Artifacts
         uses: ./.github/actions/python/poetry/build
         with:
           python-version: ${{ inputs.python-version }}
           build-script: build
+          additional-artifact-paths: |
+            ${{ env.POETRY_PROJECT_PATH }}/dist/${{ inputs.poetry-package-name }}
