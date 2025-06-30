@@ -179,7 +179,7 @@ jobs:
 
       - name: Save Package Artifacts
         env:
-          REGISTRY_FILE: ${{ steps.package-registry.outputs.registry-file }}
+          REGISTRY_FILE: ${{ steps.package-registry.outputs.file }}
           ARTIFACTS: ${{ steps.build-artifacts.outputs.artifacts }}
         shell: python
         run: |
