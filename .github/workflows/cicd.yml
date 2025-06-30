@@ -78,7 +78,7 @@ jobs:
             for line in github_env_file_lines:
               if line.startswith('PACKAGE_ARTIFACTS='):
                 line = f"PACKAGE_ARTIFACTS={package_artifacts_data}"
-            f.write(github_env_file_lines)
+            f.writelines(github_env_file_lines)
 
   show-package-artifacts:
     name: Show Package Artifacts
