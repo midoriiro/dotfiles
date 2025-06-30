@@ -67,7 +67,7 @@ runs:
       with:
         test-path: ${{ inputs.test-path }}
         run-in-parallel: ${{ inputs.run-in-parallel }}
-        additional-pytest-options: --cov --cov-report=${{ inputs.coverage-report-format }}:${{ steps.artifact-info.outputs.artifact-path }} --cov-report=term-missing
+        additional-pytest-options: --cov --cov-report=${{ inputs.coverage-report-format }}:${{ inputs.coverage-artifact-path }} --cov-report=term-missing
 
     - name: Upload coverage report to Codecov
       if: ${{ inputs.upload-to-codecov == 'true' }}
