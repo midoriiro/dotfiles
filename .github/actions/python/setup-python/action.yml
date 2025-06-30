@@ -6,7 +6,7 @@ runs:
   steps:
     - name: Check Python Version
       env:
-        PYTHON_VERSION: ${{ inputs.python-version }}
+        PYTHON_VERSION: ${{ env.PYTHON_VERSION }}
       shell: bash
       run: |
         if [ -z "$PYTHON_VERSION" ]; then
@@ -14,7 +14,7 @@ runs:
           exit 1
         fi
 
-    - name: Set up Python ${{ inputs.python-version }}
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
       uses: actions/setup-python@v4
       with:
         python-version: ${{ env.PYTHON_VERSION }}
