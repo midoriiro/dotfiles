@@ -77,10 +77,12 @@ runs:
 
     - name: Restore Poetry dependencies cache
       id: cached-poetry-dependencies
+      env:
+        PYPROJECT_TOML_HASH: ${{ hashFiles('pyproject.toml') }}
       uses: actions/cache/restore@v4
       with:
         path: ${{ env.POETRY_CACHE_DIR }}
-        key: python-poetry-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('pyproject.toml') }}-${{ steps.dependency-groups-hash.outputs.hash }}
+        key: python-poetry-${{ runner.os }}-${{ inputs.python-version }}-${{ env.PYPROJECT_TOML_HASH }}-${{ steps.dependency-groups-hash.outputs.hash }}
 
     - name: Install dependencies
       if: ${{ steps.cached-poetry-dependencies.outputs.cache-hit != 'true' }}
