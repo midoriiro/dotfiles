@@ -124,14 +124,14 @@ runs:
 
         if additional_artifacts_provided == 'true':
           artifacts = {
-            "source": ${{ steps.artifact-info.outputs.source-artifact-name }},
-            "wheel": ${{ steps.artifact-info.outputs.wheel-artifact-name }},
-            "additional": ${{ steps.artifact-info.outputs.additional-artifacts-name }}
+            "source": "${{ steps.artifact-info.outputs.source-artifact-name }}",
+            "wheel": "${{ steps.artifact-info.outputs.wheel-artifact-name }}",
+            "additional": "${{ steps.artifact-info.outputs.additional-artifacts-name }}"
           }
         else:
           artifacts = {
-            "source": ${{ steps.artifact-info.outputs.source-artifact-name }},
-            "wheel": ${{ steps.artifact-info.outputs.wheel-artifact-name }},
+            "source": "${{ steps.artifact-info.outputs.source-artifact-name }}",
+            "wheel": "${{ steps.artifact-info.outputs.wheel-artifact-name }}",
           }
 
         runner_os = os.environ['RUNNER_OS']
