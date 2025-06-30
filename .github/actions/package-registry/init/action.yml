@@ -20,3 +20,8 @@ runs:
       with:
         path: ${{ env.REGISTRY_FILE }}
         key: package-registry
+
+    - name: Show registry file
+      run: |
+        echo "Registry file located at: $REGISTRY_FILE"
+        cat $REGISTRY_FILE
