@@ -1,0 +1,103 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "mutex-cli: Install",
+      "type": "shell",
+      "command": "poetry install",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "mutex-cli: Build",
+      "type": "shell",
+      "command": "poetry build",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "mutex-cli: Remove Environment",
+      "type": "shell",
+      "command": "poetry env remove",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "mutex-cli: Remove All Environments",
+      "type": "shell",
+      "command": "poetry env remove --all",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "mutex-cli: Run Tests",
+      "type": "shell",
+      "command": "poetry run pytest",
+      "problemMatcher": [
+        "$python"
+      ],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "mutex-cli: Run Tests with Coverage",
+      "type": "shell",
+      "command": "poetry run pytest --cov=mutex-cli",
+      "problemMatcher": [
+        "$python"
+      ],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "mutex-cli: Lock",
+      "type": "shell",
+      "command": "poetry lock",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "mutex-cli: Run Lint (flake8)",
+      "type": "shell",
+      "command": "poetry run flake8",
+      "problemMatcher": [
+        "$python"
+      ]
+    },
+    {
+      "label": "mutex-cli: Run Lint (pylint)",
+      "type": "shell",
+      "command": "poetry run pylint",
+      "problemMatcher": [
+        "$python"
+      ]
+    },
+    {
+      "label": "mutex-cli: Run Format (black)",
+      "type": "shell",
+      "command": "poetry run black",
+      "problemMatcher": [
+        "$python"
+      ]
+    }
+  ]
+}
