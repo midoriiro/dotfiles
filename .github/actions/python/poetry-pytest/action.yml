@@ -60,4 +60,6 @@ runs:
         if [ "$RUN_IN_PARALLEL" = "true" ]; then  
           PYTEST_CMD="$PYTEST_CMD --numprocesses=auto"
         fi
-        $PYTEST_CMD $TEST_PATH --verbose $ADDITIONAL_PYTEST_OPTIONS
+        $PYTEST_CMD="$PYTEST_CMD $TEST_PATH --verbose $ADDITIONAL_PYTEST_OPTIONS"
+        echo "Running pytest command: $PYTEST_CMD"
+        $PYTEST_CMD
