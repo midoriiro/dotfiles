@@ -1,0 +1,39 @@
+name: 'Poetry Info'
+description: 'Get information about the Poetry project'
+
+outputs:
+  project-name:
+    description: 'Name of the Poetry project'
+    value: ${{ steps.poetry-info.outputs.project-name }}
+  project-version:
+    description: 'Version of the Poetry project'
+    value: ${{ steps.poetry-info.outputs.project-version }}
+
+runs:
+  using: composite
+  steps:
+    - name: Check if we are in a Poetry project
+      working-directory: ${{ env.POETRY_PROJECT_PATH }}
+      shell: bash
+      run: |
+        if [ ! -f "pyproject.toml" ]; then
+          echo "❌ Error: Not in a Poetry project"
+          exit 1
+        fi
+
+    - name: Check if poetry is installed
+      shell: bash
+      run: |
+        if ! command -v poetry &> /dev/null; then
+          echo "❌ Error: Poetry is not installed"
+          exit 1
+        fi
+
+    - name: Run Poetry Info
+      working-directory: ${{ env.POETRY_PROJECT_PATH }}
+      shell: bash
+      run: |
+        PROJECT_NAME=$(poetry version | awk {'print $1'})
+        PROJECT_VERSION=$(poetry version | awk {'print $2'})
+        echo "project-name=${PROJECT_NAME}" >> $GITHUB_OUTPUT
+        echo "project-version=${PROJECT_VERSION}" >> $GITHUB_OUTPUT
