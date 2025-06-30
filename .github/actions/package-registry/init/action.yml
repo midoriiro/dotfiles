@@ -22,6 +22,9 @@ runs:
         key: package-registry
 
     - name: Show registry file
+      shell: bash
+      env:
+        REGISTRY_FILE: ${{ env.REGISTRY_FILE }}
       run: |
         echo "Registry file located at: $REGISTRY_FILE"
         cat $REGISTRY_FILE
