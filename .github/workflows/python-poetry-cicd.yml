@@ -203,6 +203,7 @@ jobs:
 
       - name: Commit Version Changes
         run: |
+          echo "version: ${{ steps.info.outputs.project-version }}"
           echo "commiting as ${{ github.actor }}"
           # git config --local user.email "action@github.com"
           # git config --local user.name "GitHub Action"

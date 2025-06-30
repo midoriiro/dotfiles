@@ -31,7 +31,7 @@ on:
           - 'macos-latest'
 
 jobs:
-  ci-cd:
+  cicd:
     name: CICD (${{ matrix.os }} - Python ${{ matrix.python-version }})
     strategy:
       matrix:
