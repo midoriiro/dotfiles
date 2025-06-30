@@ -187,8 +187,8 @@ jobs:
           import os
           import sys
 
-          # Get the package artifacts from the build-artifacts step
-          package_artifacts = json.loads(os.environ['artifacts'])
+          # Get the package artifacts from the build step
+          artifacts = json.loads(os.environ['ARTIFACTS'])
           
           # Load the registry file
           registry_file = os.environ['REGISTRY_FILE']
@@ -196,7 +196,7 @@ jobs:
             registry = json.load(f)
 
           # Add the package artifacts to the registry
-          registry.append(package_artifacts)
+          registry.append(artifacts)
 
           # Save the registry file
           with open(registry_file, 'w') as f:

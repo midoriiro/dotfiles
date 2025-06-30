@@ -97,6 +97,7 @@ runs:
         if-no-files-found: error
 
     - name: Check if additional artifacts are provided
+      id: check-additional-artifacts
       shell: bash
       run: |
         if [ -z "${{ inputs.additional-artifact-paths }}" ]; then
