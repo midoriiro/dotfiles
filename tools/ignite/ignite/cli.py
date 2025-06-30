@@ -29,7 +29,7 @@ def __get_repository_context() -> Path:
     repository_context = os.getenv(REPOSITORY_CONTEXT_ENV_VAR, None)
     if repository_context is None:
         load_dotenv()
-        repository_context = os.getenv(REPOSITORY_CONTEXT_ENV_VAR, None)
+        repository_context = os.getenv(REPOSITORY_CONTEXT_ENV_VAR)
     if repository_context is None:
         logger.error(f"Environment variable '{REPOSITORY_CONTEXT_ENV_VAR}' is not set")
         typer.echo(f"'{REPOSITORY_CONTEXT_ENV_VAR}' is not set", err=True)
