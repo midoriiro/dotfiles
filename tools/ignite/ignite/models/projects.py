@@ -4,7 +4,7 @@ from typing import Dict, List, Literal, Optional, Union
 
 from pydantic import BaseModel, Field, RootModel, model_validator
 from ignite.models.common import Identifier
-from ignite.models.fs import AbsolutePath, Path, ResolvedFolder
+from ignite.models.fs import AbsolutePath, Path, RelativePath, ResolvedFolder
 from ignite.models.settings import VSCodeFolder
 
 class ReservedProjectKey(str, Enum):
@@ -123,8 +123,8 @@ class UserProject(BaseModel):
     Attributes:
         alias: An optional identifier that can be used as an alternative name for the project.
               If provided, must be a valid identifier string. If None, the project key will be used.
-        path: The absolute filesystem path where the project is located. Must be a valid
-              absolute path that exists or can be created.
+        path: The relative filesystem path where the project is located. Must be a valid
+              relative path that exists or can be created.
         vscode: Optional VSCode folder configuration containing settings and tasks for the project.
                 If provided, will be resolved to generate .vscode/settings.json and .vscode/tasks.json files.
 
@@ -143,14 +143,14 @@ class UserProject(BaseModel):
         ...     tasks=[Folder({"poetry": [File("build")]})]
         ... )
         >>> project = UserProject(
-        ...     path="/workspace/my-project",
+        ...     path="my-project/",
         ...     alias="my-python-project",
         ...     vscode=vscode_config
         ... )
         ```
 
     Validation:
-        - path: Must be a valid absolute path
+        - path: Must be a valid relative path
         - alias: If provided, must be a valid identifier string
         - vscode: If provided, must be a valid VSCodeFolder configuration
     """
@@ -158,7 +158,7 @@ class UserProject(BaseModel):
     alias: Optional[Identifier] = Field(
         None, description="The alias of the user project"
     )
-    path: AbsolutePath = Field(..., description="The path of the user project")
+    path: RelativePath = Field(..., description="The path of the user project")
     vscode: Optional[VSCodeFolder] = Field(
         None, description="Optional VSCode folder configuration for the project"
     )

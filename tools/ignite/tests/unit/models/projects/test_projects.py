@@ -18,11 +18,11 @@ class TestValidProjects:
     def test_minimal_projects_with_user_project(self):
         """Test that a minimal projects with user project is accepted."""
         projects = Projects({
-            "test-project": UserProject(path="/workspace/test-project")
+            "test-project": UserProject(path="tools")
         })
         assert_that(projects.root).contains_key("test-project")
         assert_that(projects.root["test-project"]).is_instance_of(UserProject)
-        assert_that(projects.root["test-project"].path).is_equal_to("/workspace/test-project")
+        assert_that(projects.root["test-project"].path).is_equal_to("tools")
 
     def test_projects_with_repository_project(self):
         """Test that projects with repository project is accepted."""
@@ -37,7 +37,7 @@ class TestValidProjects:
         projects = Projects({
             "root": RepositoryProject(),
             "ref": RepositoryProject(),
-            "user-project": UserProject(path="/workspace/user-project")
+            "user-project": UserProject(path="tools")
         })
         assert_that(projects.root).contains_key("root")
         assert_that(projects.root).contains_key("ref")
@@ -50,7 +50,7 @@ class TestValidProjects:
         """Test that projects with user project with alias is accepted."""
         projects = Projects({
             "project-key": UserProject(
-                path="/workspace/project",
+                path="tools",
                 alias="my-alias"
             )
         })
@@ -66,7 +66,7 @@ class TestValidProjects:
         )
         projects = Projects({
             "test-project": UserProject(
-                path="/workspace/test-project",
+                path="tools",
                 vscode=vscode_config
             )
         })
@@ -100,14 +100,14 @@ class TestProjectsValidation:
         """Test that root project with wrong type raises validation error."""
         with pytest.raises(ValueError, match="The value for key 'root' must be a RepositoryProject instance"):
             Projects({
-                "root": UserProject(path="/workspace/test")
+                "root": UserProject(path="tools")
             })
 
     def test_ref_project_with_wrong_type_raises_error(self):
         """Test that ref project with wrong type raises validation error."""
         with pytest.raises(ValueError, match="The value for key 'ref' must be a RepositoryProject instance"):
             Projects({
-                "ref": UserProject(path="/workspace/test")
+                "ref": UserProject(path="tools")
             })
 
     def test_valid_mixed_projects_with_reserved_keys(self):
@@ -115,7 +115,7 @@ class TestProjectsValidation:
         projects = Projects({
             "root": RepositoryProject(),
             "ref": RepositoryProject(),
-            "user-project": UserProject(path="/workspace/user-project")
+            "user-project": UserProject(path="tools")
         })
         assert_that(projects.root).contains_key("root")
         assert_that(projects.root).contains_key("ref")
@@ -128,7 +128,7 @@ class TestProjectsResolveProjectFolders:
     def test_resolve_project_folders_with_user_project_no_vscode(self):
         """Test that resolve_project_folders works with user project without VSCode."""
         projects = Projects({
-            "test-project": UserProject(path="/workspace/test-project")
+            "test-project": UserProject(path="tools")
         })
         result = projects.resolve_project_folders()
         
@@ -142,7 +142,7 @@ class TestProjectsResolveProjectFolders:
         )
         projects = Projects({
             "test-project": UserProject(
-                path="/workspace/test-project",
+                path="tools",
                 vscode=vscode_config
             )
         })
@@ -151,7 +151,7 @@ class TestProjectsResolveProjectFolders:
         assert_that(result).contains_key("test-project")
         assert_that(result["test-project"]).is_length(1)
         resolved_folder = result["test-project"][0]
-        assert_that(resolved_folder.destination).is_equal_to(str(pathlib.Path(os.path.sep, "workspace", "test-project", "test-project", ".vscode", "settings.json")))
+        assert_that(resolved_folder.destination).is_equal_to(str(pathlib.Path("tools", "test-project", ".vscode", "settings.json")))
 
     def test_resolve_project_folders_with_user_project_with_alias(self):
         """Test that resolve_project_folders uses alias when available."""
@@ -160,7 +160,7 @@ class TestProjectsResolveProjectFolders:
         )
         projects = Projects({
             "project-key": UserProject(
-                path="/workspace/project",
+                path="tools",
                 alias="my-alias",
                 vscode=vscode_config
             )
@@ -170,7 +170,7 @@ class TestProjectsResolveProjectFolders:
         assert_that(result).contains_key("my-alias")
         assert_that(result["my-alias"]).is_length(1)
         resolved_folder = result["my-alias"][0]
-        assert_that(resolved_folder.destination).is_equal_to(str(pathlib.Path(os.path.sep, "workspace", "project", "project-key", ".vscode", "settings.json")))
+        assert_that(resolved_folder.destination).is_equal_to(str(pathlib.Path("tools", "project-key", ".vscode", "settings.json")))
 
     def test_resolve_project_folders_with_repository_project_no_vscode(self):
         """Test that resolve_project_folders works with repository project without VSCode."""
@@ -207,7 +207,7 @@ class TestProjectsResolveProjectFolders:
         projects = Projects({
             "root": RepositoryProject(vscode=vscode_config),
             "user-project": UserProject(
-                path="/workspace/user-project",
+                path="tools",
                 vscode=vscode_config
             )
         })
@@ -225,11 +225,11 @@ class TestProjectsResolveProjectFolders:
         )
         projects = Projects({
             "project1": UserProject(
-                path="/workspace/project1",
+                path="tools",
                 vscode=vscode_config
             ),
             "project2": UserProject(
-                path="/workspace/project2",
+                path="tools",
                 alias="my-project",
                 vscode=vscode_config
             )
@@ -252,7 +252,7 @@ class TestProjectsEdgeCases:
         )
         projects = Projects({
             "project-key": UserProject(
-                path="/workspace/project",
+                path="tools",
                 vscode=vscode_config
             )
         })
@@ -320,7 +320,7 @@ class TestProjectsInheritance:
     def test_projects_inherits_from_root_model(self):
         """Test that Projects inherits from RootModel."""
         projects = Projects({
-            "test-project": UserProject(path="/workspace/test-project")
+            "test-project": UserProject(path="tools")
         })
         assert_that(projects).is_instance_of(Projects)
         assert_that(hasattr(projects, 'root')).is_true()
@@ -328,7 +328,7 @@ class TestProjectsInheritance:
     def test_projects_root_attribute_type(self):
         """Test that Projects root attribute has correct type."""
         projects = Projects({
-            "test-project": UserProject(path="/workspace/test-project")
+            "test-project": UserProject(path="tools")
         })
         assert_that(projects.root).is_instance_of(dict)
         assert_that(projects.root["test-project"]).is_instance_of(UserProject)

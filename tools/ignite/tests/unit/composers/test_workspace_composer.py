@@ -71,8 +71,8 @@ class TestWorkspaceComposerCompose:
                 "file": FilePolicy(write=FileWritePolicy.OVERWRITE),
             }),
             projects=Projects({
-                "test-project-1": UserProject(path="/workspace"),
-                "test-project-2": UserProject(path="/workspace"),
+                "test-project-1": UserProject(path="tools"),
+                "test-project-2": UserProject(path="tools"),
             }),
         )
         
@@ -151,8 +151,8 @@ class TestWorkspaceComposerResolveFileSpecification:
                 "file": FilePolicy(write=FileWritePolicy.OVERWRITE),
             }),
             projects=Projects({
-                "project1": UserProject(path="/workspace", alias="ProjectOne"),
-                "project2": UserProject(path="/workspace"),
+                "project1": UserProject(path="tools", alias="ProjectOne"),
+                "project2": UserProject(path="tools"),
             }),
         )
         
@@ -166,12 +166,12 @@ class TestWorkspaceComposerResolveFileSpecification:
         
         # Check first project
         folder1 = content['folders'][0]
-        assert_that(folder1['path']).is_equal_to(str(pathlib.Path(os.path.sep, "workspace", "project1")))
+        assert_that(folder1['path']).is_equal_to(str(pathlib.Path("tools", "project1")))
         assert_that(folder1['name']).is_equal_to("ProjectOne")
         
         # Check second project
         folder2 = content['folders'][1]
-        assert_that(folder2['path']).is_equal_to(str(pathlib.Path(os.path.sep, "workspace", "project2")))
+        assert_that(folder2['path']).is_equal_to(str(pathlib.Path("tools", "project2")))
         assert_that(folder2['name']).is_equal_to("project2")
 
     def test_resolve_file_specification_with_repository_root(self):
@@ -223,7 +223,7 @@ class TestWorkspaceComposerResolveProjectFiles:
             }),
             projects=Projects({
                 "test-project": UserProject(
-                    path="/workspace",
+                    path="tools",
                     vscode=VSCodeFolder(settings=[Folder({"python": [File("base")]})])
                 ),
             }),
@@ -233,7 +233,7 @@ class TestWorkspaceComposerResolveProjectFiles:
         resolved_files = composer._resolve_project_files()
         
         assert_that(resolved_files).is_length(1)
-        assert_that(resolved_files[0].path).is_equal_to(str(pathlib.Path(os.path.sep, "workspace", "test-project", ".vscode", "settings.json")))
+        assert_that(resolved_files[0].path).is_equal_to(str(pathlib.Path("tools", "test-project", ".vscode", "settings.json")))
         assert_that(resolved_files[0].content).is_not_empty()
  
 
@@ -247,11 +247,11 @@ class TestWorkspaceComposerResolveProjectFiles:
             }),
             projects=Projects({
                 "project1": UserProject(
-                    path="/workspace/project1",
+                    path="tools",
                     vscode=VSCodeFolder(settings=[Folder({"python": [File("base")]})])
                 ),
                 "project2": UserProject(
-                    path="/workspace/project2",
+                    path="tools",
                     vscode=VSCodeFolder(settings=[Folder({"python": [File("base")]})])
                 ),
             }),
@@ -261,9 +261,9 @@ class TestWorkspaceComposerResolveProjectFiles:
         resolved_files = composer._resolve_project_files()
             
         assert_that(resolved_files).is_length(2)
-        assert_that(resolved_files[0].path).is_equal_to(str(pathlib.Path(os.path.sep, "workspace", "project1", "project1", ".vscode", "settings.json")))
+        assert_that(resolved_files[0].path).is_equal_to(str(pathlib.Path("tools", "project1", ".vscode", "settings.json")))
         assert_that(resolved_files[0].content).is_not_empty()
-        assert_that(resolved_files[1].path).is_equal_to(str(pathlib.Path(os.path.sep, "workspace", "project2", "project2", ".vscode", "settings.json")))
+        assert_that(resolved_files[1].path).is_equal_to(str(pathlib.Path("tools", "project2", ".vscode", "settings.json")))
         assert_that(resolved_files[1].content).is_not_empty()
             
 
@@ -329,7 +329,7 @@ class TestWorkspaceComposerSave:
             }),
             projects=Projects({
                 "test-project": UserProject(
-                    path="/workspace",
+                    path="tools",
                     vscode=VSCodeFolder(settings=[Folder({"python": [File("base")]})])
                 ),
             }),
@@ -347,7 +347,7 @@ class TestWorkspaceComposerSave:
         assert_that(str(workspace_file)).exists()
         
         # Check project file
-        project_file = user_context / "workspace" / "test-project" / ".vscode" / "settings.json"
+        project_file = user_context / "tools" / "test-project" / ".vscode" / "settings.json"
         assert_that(str(project_file)).exists()
         assert_that(project_file.read_text()).is_not_empty()
 

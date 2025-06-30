@@ -2,7 +2,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "${projectName}: Lock",
+            "label": "${project-name}: Lock",
             "type": "shell",
             "command": "poetry lock",
             "problemMatcher": [],

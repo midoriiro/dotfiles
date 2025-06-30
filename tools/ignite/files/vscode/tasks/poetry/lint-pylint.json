@@ -2,7 +2,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "${projectName}: Run Lint (pylint)",
+            "label": "${project-name}: Run Lint (pylint)",
             "type": "shell",
             "command": "poetry run pylint",
             "problemMatcher": [

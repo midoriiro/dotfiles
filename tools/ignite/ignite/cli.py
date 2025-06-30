@@ -15,6 +15,8 @@ from ignite.models.config import Configuration
 from ignite.resolvers import PathResolver
 from ignite.utils import load_yaml_config
 
+from dotenv import load_dotenv
+
 
 REPOSITORY_CONTEXT_ENV_VAR = "REPOSITORY_CONTEXT"
 
@@ -23,7 +25,11 @@ logger = logging.getLogger(__name__)
 
 
 def __get_repository_context() -> Path:
-    repository_context = os.getenv(REPOSITORY_CONTEXT_ENV_VAR)
+    """Get the repository context from the environment variable."""
+    repository_context = os.getenv(REPOSITORY_CONTEXT_ENV_VAR, None)
+    if repository_context is None:
+        load_dotenv()
+        repository_context = os.getenv(REPOSITORY_CONTEXT_ENV_VAR, None)
     if repository_context is None:
         logger.error(f"Environment variable '{REPOSITORY_CONTEXT_ENV_VAR}' is not set")
         typer.echo(f"'{REPOSITORY_CONTEXT_ENV_VAR}' is not set", err=True)

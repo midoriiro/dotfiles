@@ -1,12 +1,12 @@
 {
-    "folders": [
-        {
-            "path": "."
-        },
-        {
-            "path": "tools/ignite",
-            "name": "Ignite"
-        }
-    ],
-    "settings": {}
+  "folders": [
+    {
+      "path": "."
+    },
+    {
+      "path": "tools/ignite",
+      "name": "Ignite"
+    }
+  ],
+  "settings": {}
 }

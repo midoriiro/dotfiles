@@ -13,20 +13,20 @@ class TestValidUserProject:
 
     def test_minimal_user_project(self):
         """Test that a minimal user project with only path is accepted."""
-        user_project = UserProject(path="/workspace/test-project")
+        user_project = UserProject(path="tools")
         
-        assert_that(user_project.path).is_equal_to("/workspace/test-project")
+        assert_that(user_project.path).is_equal_to("tools")
         assert_that(user_project.alias).is_none()
         assert_that(user_project.vscode).is_none()
 
     def test_user_project_with_alias(self):
         """Test that a user project with alias is accepted."""
         user_project = UserProject(
-            path="/workspace/test-project",
+            path="tools",
             alias="my-project"
         )
         
-        assert_that(user_project.path).is_equal_to("/workspace/test-project")
+        assert_that(user_project.path).is_equal_to("tools")
         assert_that(user_project.alias).is_equal_to("my-project")
         assert_that(user_project.vscode).is_none()
 
@@ -36,11 +36,11 @@ class TestValidUserProject:
             settings=[Folder({"python": [File("base")]})]
         )
         user_project = UserProject(
-            path="/workspace/test-project",
+            path="tools",
             vscode=vscode_folder
         )
         
-        assert_that(user_project.path).is_equal_to("/workspace/test-project")
+        assert_that(user_project.path).is_equal_to("tools")
         assert_that(user_project.alias).is_none()
         assert_that(user_project.vscode).is_not_none()
         assert_that(user_project.vscode.settings).is_not_none()
@@ -51,11 +51,11 @@ class TestValidUserProject:
             tasks=[Folder({"poetry": [File("build")]})]
         )
         user_project = UserProject(
-            path="/workspace/test-project",
+            path="tools",
             vscode=vscode_folder
         )
         
-        assert_that(user_project.path).is_equal_to("/workspace/test-project")
+        assert_that(user_project.path).is_equal_to("tools")
         assert_that(user_project.alias).is_none()
         assert_that(user_project.vscode).is_not_none()
         assert_that(user_project.vscode.tasks).is_not_none()
@@ -67,12 +67,12 @@ class TestValidUserProject:
             tasks=[Folder({"poetry": [File("build")]})]
         )
         user_project = UserProject(
-            path="/workspace/test-project",
+            path="tools",
             alias="my-project",
             vscode=vscode_folder
         )
         
-        assert_that(user_project.path).is_equal_to("/workspace/test-project")
+        assert_that(user_project.path).is_equal_to("tools")
         assert_that(user_project.alias).is_equal_to("my-project")
         assert_that(user_project.vscode).is_not_none()
         assert_that(user_project.vscode.settings).is_not_none()
@@ -90,7 +90,7 @@ class TestUserProjectValidation:
     def test_user_project_with_invalid_path_raises_error(self):
         """Test that user project with invalid path raises validation error."""
         with pytest.raises(ValidationError):
-            UserProject(path="invalid-path")
+            UserProject(path="/invalid-path")
 
     def test_user_project_with_empty_path_raises_error(self):
         """Test that user project with empty path raises validation error."""
@@ -113,20 +113,6 @@ class TestUserProjectValidation:
                 alias=""
             )
 
-    def test_user_project_with_absolute_path_validation(self):
-        """Test that user project accepts valid absolute paths."""
-        valid_paths = [
-            "/workspace/test-project",
-            "/home/user/project",
-            "/var/www/html",
-            "/tmp/test",
-            "/usr/local/bin"
-        ]
-        
-        for path in valid_paths:
-            user_project = UserProject(path=path)
-            assert_that(user_project.path).is_equal_to(path)
-
     @pytest.mark.parametrize("relative_path", [
         "workspace/test-project",
         "home/user/project", 
@@ -136,8 +122,8 @@ class TestUserProjectValidation:
     ])
     def test_user_project_with_relative_path_validation(self, relative_path):
         """Test that user project with relative path raises validation error."""
-        with pytest.raises(ValidationError):
-            UserProject(path=relative_path)
+        project = UserProject(path=relative_path)
+        assert_that(project.path).is_equal_to(relative_path)
 
     def test_user_project_with_long_path_raises_error(self):
         """Test that user project with long path raises validation error."""
@@ -152,7 +138,7 @@ class TestUserProjectResolveFoldersMethod:
 
     def test_resolve_folders_without_vscode(self):
         """Test that resolve_folders returns empty list when no vscode is configured."""
-        user_project = UserProject(path="/workspace/test-project")
+        user_project = UserProject(path="tools")
         resolved_folders = user_project.resolve_folders()
         
         assert_that(resolved_folders).is_empty()
@@ -163,7 +149,7 @@ class TestUserProjectResolveFoldersMethod:
             settings=[Folder({"python": [File("base")]})]
         )
         user_project = UserProject(
-            path="/workspace/test-project",
+            path="tools",
             vscode=vscode_folder
         )
         
@@ -183,7 +169,7 @@ class TestUserProjectResolveFoldersMethod:
             tasks=[Folder({"poetry": [File("build")]})]
         )
         user_project = UserProject(
-            path="/workspace/test-project",
+            path="tools",
             vscode=vscode_folder
         )
         
@@ -204,7 +190,7 @@ class TestUserProjectResolveFoldersMethod:
             tasks=[Folder({"poetry": [File("build")]})]
         )
         user_project = UserProject(
-            path="/workspace/test-project",
+            path="tools",
             vscode=vscode_folder
         )
         
@@ -227,7 +213,7 @@ class TestUserProjectResolveFoldersMethod:
             ]
         )
         user_project = UserProject(
-            path="/workspace/test-project",
+            path="tools",
             vscode=vscode_folder
         )
         
@@ -248,7 +234,7 @@ class TestUserProjectEdgeCases:
     def test_user_project_with_none_vscode(self):
         """Test that user project with None vscode is handled correctly."""
         user_project = UserProject(
-            path="/workspace/test-project",
+            path="tools",
             vscode=None
         )
         
@@ -259,7 +245,7 @@ class TestUserProjectEdgeCases:
     def test_user_project_with_none_alias(self):
         """Test that user project with None alias is handled correctly."""
         user_project = UserProject(
-            path="/workspace/test-project",
+            path="tools",
             alias=None
         )
         
@@ -281,7 +267,7 @@ class TestUserProjectEdgeCases:
             ]
         )
         user_project = UserProject(
-            path="/workspace/test-project",
+            path="tools",
             alias="complex-project",
             vscode=vscode_folder
         )
@@ -304,20 +290,16 @@ class TestUserProjectEdgeCases:
         assert_that(tasks_folder.sources).contains(str(pathlib.Path("vscode", "tasks", "npm", "start")))
 
     def test_user_project_with_root_path(self):
-        """Test that user project with root path is accepted."""
-        user_project = UserProject(path="/")
-        
-        assert_that(user_project.path).is_equal_to("/")
-        resolved_folders = user_project.resolve_folders()
-        assert_that(resolved_folders).is_empty()
-
+        """Test that user project with root path raises validation error."""
+        with pytest.raises(ValueError, match="should match pattern"):
+            UserProject(path="/")
 
 class TestUserProjectInheritance:
     """Test cases for UserProject inheritance and model behavior."""
 
     def test_user_project_inherits_from_basemodel(self):
         """Test that UserProject inherits from BaseModel."""
-        user_project = UserProject(path="/workspace/test-project")
+        user_project = UserProject(path="tools")
         
         # Check that it has BaseModel methods
         assert_that(hasattr(user_project, 'model_dump')).is_true()
@@ -326,7 +308,7 @@ class TestUserProjectInheritance:
     def test_user_project_model_dump(self):
         """Test that UserProject model_dump works correctly."""
         user_project = UserProject(
-            path="/workspace/test-project",
+            path="tools",
             alias="my-project"
         )
         
@@ -335,19 +317,19 @@ class TestUserProjectInheritance:
         assert_that(data).contains_key("path")
         assert_that(data).contains_key("alias")
         assert_that(data).contains_key("vscode")
-        assert_that(data["path"]).is_equal_to("/workspace/test-project")
+        assert_that(data["path"]).is_equal_to("tools")
         assert_that(data["alias"]).is_equal_to("my-project")
         assert_that(data["vscode"]).is_none()
 
     def test_user_project_model_validate(self):
         """Test that UserProject model_validate works correctly."""
         data = {
-            "path": "/workspace/test-project",
+            "path": "tools",
             "alias": "my-project"
         }
         
         user_project = UserProject.model_validate(data)
         
-        assert_that(user_project.path).is_equal_to("/workspace/test-project")
+        assert_that(user_project.path).is_equal_to("tools")
         assert_that(user_project.alias).is_equal_to("my-project")
         assert_that(user_project.vscode).is_none()

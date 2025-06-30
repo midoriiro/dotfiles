@@ -91,7 +91,7 @@ def minimal_workspace_configuration():
         }),
         projects=Projects({
             "test-project-1": UserProject(
-                path="/workspace/test-project-1",
+                path="tools",
             ),
         }),
     )

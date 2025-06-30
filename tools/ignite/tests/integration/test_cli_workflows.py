@@ -14,6 +14,7 @@ from ignite.models.config import Configuration
 from ignite.models.container import Container, Image, Runtime, Workspace as ContainerWorkspace, Mount, MountType
 from ignite.models.policies import ContainerBackendPolicy, ContainerPolicy, FilePolicy, FileWritePolicy, FolderCreatePolicy, FolderPolicy, Policies
 from ignite.models.projects import Projects, UserProject
+from ignite.models.settings import VSCodeFolder
 from ignite.models.workspace import Workspace as WorkspaceModel
 from ignite.cli import REPOSITORY_CONTEXT_ENV_VAR
 from ignite.main import cli
@@ -58,9 +59,17 @@ def test_complete_workflow_with_complex_configuration(
                 "file": FilePolicy(write=FileWritePolicy.OVERWRITE),
             }),
             projects=Projects({
-                "frontend": UserProject(path="/workspace"),
-                "backend": UserProject(path="/workspace"),
-                "shared": UserProject(path="/workspace"),
+                "frontend": UserProject(
+                    path="tools",
+                    vscode=VSCodeFolder(
+                        settings=[
+                            "on-save",
+                            "coverage-gutters",
+                        ]
+                    )
+                ),
+                "backend": UserProject(path="tools"),
+                "shared": UserProject(path="tools"),
             }),
         ),
     )
@@ -73,6 +82,8 @@ def test_complete_workflow_with_complex_configuration(
         FilesystemMessage.create_folder(Path(user_context, ".devcontainer")),
         FilesystemMessage.save_file(Path(user_context, ".devcontainer", "devcontainer.json")),
         FilesystemMessage.save_file(Path(user_context, "workspace.code-workspace")),
+        FilesystemMessage.create_folder(Path(user_context, "tools", "frontend", ".vscode")),
+        FilesystemMessage.save_file(Path(user_context, "tools", "frontend", ".vscode", "settings.json")),
     ])
 
     assert_file(
@@ -93,9 +104,9 @@ def test_complete_workflow_with_complex_configuration(
         Path("workspace.code-workspace"),
         {
             "folders": [
-                {"path": f"{str(Path(os.path.sep, 'workspace', 'backend'))}", "name": "backend"},
-                {"path": f"{str(Path(os.path.sep, 'workspace', 'frontend'))}", "name": "frontend"},
-                {"path": f"{str(Path(os.path.sep, 'workspace', 'shared'))}", "name": "shared"}   
+                {"path": f"{str(Path('tools', 'backend'))}", "name": "backend"},
+                {"path": f"{str(Path('tools', 'frontend'))}", "name": "frontend"},
+                {"path": f"{str(Path('tools', 'shared'))}", "name": "shared"}   
             ],
             "settings": {}
         }
@@ -299,8 +310,7 @@ def test_cli_with_missing_environment_variables(
     try:
         configuration_dumper(minimal_configuration, configuration_file)
         result = runner("--configuration", str(configuration_file), str(user_context))
-        assert_that(result.exit_code).is_equal_to(1)
-        assert_that(result.output).contains(f"'{REPOSITORY_CONTEXT_ENV_VAR}' is not set")
+        assert_that(result.exit_code).is_equal_to(0)
     finally:
         # Restore the environment variable
         if original_value is not None:

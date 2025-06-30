@@ -34,9 +34,9 @@ class TestWorkspace:
         })
         
         projects = Projects({
-            "test-project": UserProject(path="/workspace/test-project"),
+            "test-project": UserProject(path="tools"),
             "another-project": UserProject(
-                path="/workspace/another-project",
+                path="tools",
                 alias="custom-alias"
             ),
         })
@@ -80,7 +80,7 @@ class TestWorkspaceResolveProjectFolders:
 
         projects = Projects({
             "user-project": UserProject(
-                path="/workspace/user-project",
+                path="tools",
                 vscode=VSCodeFolder(settings=[Folder({"python": [File("$ref")]})])
             ),
         })
@@ -108,7 +108,7 @@ class TestWorkspaceResolveProjectFolders:
                 vscode=VSCodeFolder(settings=[Folder({"python": [File("base")]})])
             ),
             "user-project": UserProject(
-                path="/workspace/user-project",
+                path="tools",
                 vscode=VSCodeFolder(settings=[Folder({"python": [File("$ref")]})])
             ),
         })
@@ -142,9 +142,9 @@ class TestWorkspaceResolveFileSpecification:
         })
         
         projects = Projects({
-            "project1": UserProject(path="/workspace/project1"),
+            "project1": UserProject(path="tools"),
             "project2": UserProject(
-                path="/workspace/project2",
+                path="tools",
                 alias="custom-alias"
             ),
         })
@@ -159,12 +159,12 @@ class TestWorkspaceResolveFileSpecification:
         
         # Check first project
         folder1 = result.folders[0]
-        assert_that(folder1.path).is_equal_to(str(pathlib.Path(os.path.sep, "workspace", "project1", "project1")))
+        assert_that(folder1.path).is_equal_to(str(pathlib.Path("tools", "project1")))
         assert_that(folder1.name).is_equal_to("project1")
         
         # Check second project with alias
         folder2 = result.folders[1]
-        assert_that(folder2.path).is_equal_to(str(pathlib.Path(os.path.sep, "workspace", "project2", "project2")))
+        assert_that(folder2.path).is_equal_to(str(pathlib.Path("tools", "project2")))
         assert_that(folder2.name).is_equal_to("custom-alias")
 
     def test_resolve_file_specification_with_root_repository_project(self):
@@ -195,10 +195,10 @@ class TestWorkspaceResolveFileSpecification:
             "folder": FolderPolicy(create=FolderCreatePolicy.ALWAYS),
             "file": FilePolicy(write=FileWritePolicy.OVERWRITE),
         })
-        
+
         projects = Projects({
             ReservedProjectKey.ROOT: RepositoryProject(),
-            "user-project": UserProject(path="/workspace/user-project"),
+            "user-project": UserProject(path="tools"),
         })
         
         workspace = Workspace(policies=policies, projects=projects)
@@ -213,7 +213,7 @@ class TestWorkspaceResolveFileSpecification:
         
         # Check user project
         user_folder = next(f for f in result.folders if f.path != ".")
-        assert_that(user_folder.path).is_equal_to(str(pathlib.Path(os.path.sep, "workspace", "user-project", "user-project")))
+        assert_that(user_folder.path).is_equal_to(str(pathlib.Path("tools", "user-project")))
         assert_that(user_folder.name).is_equal_to("user-project")
 
     def test_resolve_file_specification_with_ref_project_only(self):

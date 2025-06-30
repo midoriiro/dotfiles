@@ -1,12 +1,10 @@
 {
-    "editor.formatOnSave": true,
-    "editor.rulers": [
-        88
-    ],
-    "files.exclude": {
-        "**/__pycache__": true,
-        "**/.pytest_cache": true,
-        "**/*.pyc": true,
-        "**/.venv": true
-    }
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit"
+  },
+  "coverage-gutters.coverageReportFileName": ".coverage",
+  "coverage-gutters.showLineCoverage": true,
+  "coverage-gutters.showRulerCoverage": true
 }
