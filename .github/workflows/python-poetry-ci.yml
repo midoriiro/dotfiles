@@ -154,7 +154,7 @@ jobs:
             echo "✅ All checks passed!"
           fi
   package:
-    name: Package Artifacts
+    name: Package
     runs-on: ${{ inputs.os }}
     needs: [setup-environment, tests]
 

@@ -53,12 +53,12 @@ jobs:
       poetry-project-path: 'tools/ignite'
       poetry-package-name: 'ignite'
 
-  prepare-package-artifacts:
-    name: Prepare Package Artifacts Before Delivery
+  prepare-delivery:
+    name: Add Delivery Artifacts
     needs: [ci]
     runs-on: ubuntu-latest
     steps:
-      - name: Prepare Package Artifacts Before Delivery
+      - name: Add Delivery Artifacts
         env:
           PACKAGE_ARTIFACTS: ${{ env.PACKAGE_ARTIFACTS }}
           ARTIFACTS_TO_ADD: ${{ needs.ci.outputs.package-artifacts }}
@@ -79,11 +79,7 @@ jobs:
               if line.startswith('PACKAGE_ARTIFACTS='):
                 line = f"PACKAGE_ARTIFACTS={package_artifacts_data}"
             f.writelines(github_env_file_lines)
-
-  show-package-artifacts:
-    name: Show Package Artifacts
-    needs: [prepare-package-artifacts]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Show Package Artifacts
+        
+      - name: Show Delivery Artifacts
         run: echo "PACKAGE_ARTIFACTS=${{ env.PACKAGE_ARTIFACTS }}"
+      
