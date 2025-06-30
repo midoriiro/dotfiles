@@ -43,7 +43,7 @@ runs:
 
     - name: Poetry Info
       id: poetry-info
-      uses: ./.github/actions/python/poetry-info
+      uses: ./.github/actions/python/poetry/info
 
     - name: Artifact Info
       id: artifact-info
