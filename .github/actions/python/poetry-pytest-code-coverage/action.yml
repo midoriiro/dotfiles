@@ -41,32 +41,45 @@ inputs:
 outputs:
   coverage-artifact-name:
     description: 'Name of the coverage artifact'
-    value: ${{ inputs.coverage-artifact-name }}
+    value: ${{ steps.artifact-info.outputs.artifact-name }}
   coverage-artifact-path:
     description: 'Path to the coverage artifact'
-    value: ${{ inputs.coverage-artifact-path }}
+    value: ${{ steps.artifact-info.outputs.artifact-path }}
 
 runs:
   using: composite
   steps:
+    - name: Artifact Info
+      id: artifact-info
+      env:
+        POETRY_PROJECT_PATH: ${{ env.POETRY_PROJECT_PATH }}
+        COVERAGE_ARTIFACT_NAME: ${{ inputs.coverage-artifact-name }}
+        COVERAGE_ARTIFACT_PATH: ${{ inputs.coverage-artifact-path }}
+      shell: bash
+      run: |
+        ARTIFACT_NAME=${POETRY_PROJECT_PATH}/${COVERAGE_ARTIFACT_NAME}
+        ARTIFACT_PATH=${POETRY_PROJECT_PATH}/${COVERAGE_ARTIFACT_PATH}
+        echo "artifact-name=${ARTIFACT_NAME}" >> $GITHUB_OUTPUT
+        echo "artifact-path=${ARTIFACT_PATH}" >> $GITHUB_OUTPUT
+
     - name: Run Test Suite
       uses: ./.github/actions/python/poetry-pytest
       with:
         test-path: ${{ inputs.test-path }}
         run-in-parallel: ${{ inputs.run-in-parallel }}
-        additional-pytest-options: --cov --cov-report=${{ inputs.coverage-report-format }}:${{ inputs.coverage-artifact-path }} --cov-report=term-missing
+        additional-pytest-options: --cov --cov-report=${{ inputs.coverage-report-format }}:${{ steps.artifact-info.outputs.artifact-path }} --cov-report=term-missing
 
     - name: Upload coverage report to Codecov
       if: ${{ inputs.upload-to-codecov == 'true' }}
       uses: codecov/codecov-action@v3
       with:
-        file: ${{ inputs.coverage-artifact-path }}
-        name: codecov-${{ inputs.coverage-artifact-name }}
+        file: ${{ steps.artifact-info.outputs.artifact-path }}
+        name: codecov-${{ steps.artifact-info.outputs.artifact-name }}
         fail_ci_if_error: true
 
     - name: Upload coverage report artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ inputs.coverage-artifact-name }}
+        name: ${{ steps.artifact-info.outputs.artifact-name }}
         path: |
-          ${{ inputs.coverage-artifact-path }}
+          ${{ steps.artifact-info.outputs.artifact-path }}
