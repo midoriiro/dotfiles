@@ -51,21 +51,21 @@ jobs:
   ci:
     name: CI (${{ matrix.os }} - Python ${{ matrix.python-version }})
     needs: [matrix, prepare-package-artifacts-registry]
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix: ${{ fromJSON(needs.matrix.outputs.result) }}
-    uses: ./.github/workflows/python-poetry-ci.yml
-    with:
-        os: ${{ matrix.os }}
-        python-version: ${{ matrix.python-version }}
-        poetry-project-path: 'tools/ignite'
-        poetry-package-name: 'ignite'
-  post-ci:
-    name: Post CI
-    needs: [ci]
-    runs-on: ubuntu-latest
     steps:
+      - name: CI
+        id: ci
+        uses: ./.github/workflows/python-poetry-ci.yml
+        with:
+          os: ${{ matrix.os }}
+          python-version: ${{ matrix.python-version }}
+          poetry-project-path: 'tools/ignite'
+      
       - name: Prepare Delivery
-        run: echo "PACKAGE_ARTIFACTS=${{ needs.ci.outputs.package-artifacts }}"
+        run: echo "PACKAGE_ARTIFACTS=${{ steps.ci.outputs.package-artifacts }}"
+      
   cd:
     name: CD
     needs: [ci]
