@@ -72,7 +72,7 @@ jobs:
           package_artifacts_data = json.dumps(package_artifacts)
           # Update the global environment variable
           with open(os.environ['GITHUB_ENV'], 'a') as f:
-              f.write(f"PACKAGE_ARTIFACTS={package_artifacts_data}\n")
+            f.write(f"PACKAGE_ARTIFACTS={package_artifacts_data}\n")
 
   show-package-artifacts:
     name: Show Package Artifacts
