@@ -45,7 +45,7 @@ jobs:
     name: CICD (${{ matrix.os }} - Python ${{ matrix.python-version }})
     needs: [matrix]
     strategy:
-      matrix: ${{ needs.matrix.outputs.result }}
+      matrix: ${{ fromJSON(needs.matrix.outputs.result) }}
     uses: ./.github/workflows/python-poetry-ci.yml
     with:
       os: ${{ matrix.os }}
