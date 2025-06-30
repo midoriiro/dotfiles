@@ -14,6 +14,7 @@ runs:
     - name: Check Python Version
       env:
         PYTHON_VERSION: ${{ env.PYTHON_VERSION }}
+      shell: bash
       run: |
         if [ -z "$PYTHON_VERSION" ]; then
           echo "PYTHON_VERSION is not set"
