@@ -153,7 +153,6 @@ jobs:
   build:
     name: Build Package
     runs-on: ${{ inputs.os }}
-    needs: [setup-environment]
     # if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
@@ -168,14 +167,7 @@ jobs:
           poetry-dependency-groups: '["main"]'
 
       - name: Build packages
-        shell: bash
-        run: |
-          poetry run build
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+        uses: ./.github/actions/python/poetry-build
         with:
-          name: build-artifacts-${{ inputs.os }}-${{ inputs.python-version }}
-          path: |
-            dist/*.whl
-            dist/*.tar.gz
+          python-version: ${{ inputs.python-version }}
+          custom-build-command: build
