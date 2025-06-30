@@ -70,8 +70,7 @@ jobs:
           artifacts_to_add = json.loads(os.environ['ARTIFACTS_TO_ADD'])
           package_artifacts.append(artifacts_to_add)
           package_artifacts_data = json.dumps(package_artifacts)
-          with open(os.environ['GITHUB_ENV'], 'a') as f:
-            f.write(f"PACKAGE_ARTIFACTS={package_artifacts_data}\n")
+          os.environ['PACKAGE_ARTIFACTS'] = package_artifacts_data
 
   show-package-artifacts:
     name: Show Package Artifacts
