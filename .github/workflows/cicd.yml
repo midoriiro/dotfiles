@@ -76,7 +76,7 @@ jobs:
             "poetry-projects": poetry_projects,
             "os": [
               'ubuntu-latest', 
-              # 'windows-latest', 
+              'windows-latest', 
               # 'macos-latest'
             ],
             "python-version": [

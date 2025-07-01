@@ -183,7 +183,7 @@ jobs:
         id: build-artifacts
         uses: ./.github/actions/python/poetry/build
         with:
-          # build-script: build
+          build-script: build
           database-connection-uri: ${{ secrets.database-connection-uri }}
 
       - name: Wait for Build Mutex Release
