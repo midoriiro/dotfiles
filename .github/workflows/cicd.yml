@@ -13,11 +13,11 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-        
+
       - name: Init Mutex
         uses: ./.github/actions/mutex/init
         with:
-          database-connection-uri: ${{ secrets.DATABASE_CONNECTION_URI }}
+          database-connection-uri: ${{ secrets.POSTGRESQL_CONNECTION_URI }}
 
   matrix:
     name: Matrix Definitions
