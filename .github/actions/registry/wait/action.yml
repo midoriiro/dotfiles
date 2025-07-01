@@ -1,0 +1,50 @@
+name: 'Wait Registry Lock Release'
+description: 'Wait Registry Lock Release'
+
+inputs:
+  key:
+    description: 'Key to the registry'
+    required: true
+    type: string
+  timeout:
+    description: 'Timeout in seconds'
+    required: false
+    type: number
+    default: 60 
+
+runs:
+  using: composite
+  steps:
+    - name: Set environment variables
+      id: registry
+      uses: ./.github/actions/registry/set-env
+      with:
+        path: ${{ inputs.path }}
+        key: ${{ inputs.key }}
+
+    - name: Wait for Lock File
+      id: wait-for-lock-file
+      env:
+        LOCK_FILE: ${{ steps.registry.outputs.lock }}
+        TIMEOUT: ${{ inputs.timeout }}
+      shell: bash
+      run: |
+        START_TIME=$(date +%s)
+        while [ -f "$LOCK_FILE" ]; do
+          sleep 1
+          CURRENT_TIME=$(date +%s)
+          ELAPSED_TIME=$((CURRENT_TIME - START_TIME))
+          if [ "$ELAPSED_TIME" -gt "$TIMEOUT" ]; then
+            echo "❌ Timeout waiting for lock file to be released"
+            exit 1
+          fi
+        done
+        echo "✅ Lock file was released after $ELAPSED_TIME seconds"
+
+    - name: Acquire Lock
+      env:
+        LOCK_FILE: ${{ steps.registry.outputs.lock }}
+      shell: bash
+      run: |
+        touch "$LOCK_FILE"
+        echo "Lock file acquired at $LOCK_FILE"

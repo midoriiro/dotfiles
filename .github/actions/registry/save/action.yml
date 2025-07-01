@@ -34,6 +34,12 @@ runs:
         path: ${{ inputs.path }}
         key: ${{ inputs.key }}
 
+    - name: Wait for Lock Release
+      uses: ./.github/actions/registry/wait
+      with:
+        key: ${{ inputs.key }}
+        timeout: 60
+
     - name: Delete Previous Cache
       if: ${{ inputs.delete-previous-cache == 'true' }}
       env:
@@ -48,3 +54,9 @@ runs:
       with:
         path: ${{ steps.registry.outputs.path }}
         key: ${{ steps.registry.outputs.key }}
+
+    - name: Release Lock
+      if: always()
+      uses: ./.github/actions/registry/release
+      with:
+        key: ${{ inputs.key }}

@@ -35,14 +35,18 @@ runs:
         # Set paths
         REGISTRY_PATH="$HOME_DIR/.local/registry/${{ inputs.path }}"
         REGISTRY_KEY="registry-${{ inputs.key }}-${{ github.workflow_sha }}"
+        REGISTRY_LOCKS_PATH="$REGISTRY_PATH/locks"
         
         # Create directories if they don't exist
         mkdir --parents "$REGISTRY_PATH"
+        mkdir --parents "$REGISTRY_LOCKS_PATH"
         
         # Set environment variables
         echo "path=${REGISTRY_PATH}" >> $GITHUB_OUTPUT
         echo "key=${REGISTRY_KEY}" >> $GITHUB_OUTPUT
+        echo "lock=${REGISTRY_LOCKS_PATH}/${{ inputs.key }}.lock" >> $GITHUB_OUTPUT
 
         # Debug output
         echo "REGISTRY_PATH: $REGISTRY_PATH"
         echo "REGISTRY_KEY: $REGISTRY_KEY"
+        echo "REGISTRY_LOCKS_PATH: $REGISTRY_LOCKS_PATH"

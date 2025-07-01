@@ -5,14 +5,7 @@ runs:
   using: composite
   steps:
     - name: Check Python Version
-      env:
-        PYTHON_VERSION: ${{ env.PYTHON_VERSION }}
-      shell: bash
-      run: |
-        if [ -z "$PYTHON_VERSION" ]; then
-          echo "PYTHON_VERSION is not set"
-          exit 1
-        fi
+      uses: ./.github/actions/python/version/check
 
     - name: Set up Python ${{ env.PYTHON_VERSION }}
       uses: actions/setup-python@v4
