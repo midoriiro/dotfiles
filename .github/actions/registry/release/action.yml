@@ -22,11 +22,10 @@ runs:
         key: ${{ inputs.key }}
 
     - name: Restore Locks Cache
-      id: registry-locks
       uses: actions/cache/restore@v4
       with:
         path: ${{ steps.registry.outputs.locks-path }}
-        key: registry-locks
+        key: ${{ steps.registry.outputs.locks-key }}
 
     - name: Release Lock File
       id: release-lock-file
@@ -41,4 +40,4 @@ runs:
       uses: actions/cache/save@v4
       with:
         path: ${{ steps.registry.outputs.locks-path }}
-        key: ${{ steps.registry-locks.outputs.cache-primary-key }}
+        key: ${{ steps.registry.outputs.locks-key }}

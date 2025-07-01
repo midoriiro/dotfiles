@@ -21,6 +21,9 @@ outputs:
   locks-path:
     description: 'The path to the locks cache'
     value: ${{ steps.registry.outputs.locks-path }}
+  locks-key:
+    description: 'The cache key for the locks cache'
+    value: ${{ steps.registry.outputs.locks-key }}
   lock:
     description: 'The lock file for the registry'
     value: ${{ steps.registry.outputs.lock }}
@@ -45,6 +48,7 @@ runs:
         REGISTRY_PATH="$REGISTRY_HOME/${{ env.REGISTRY_PATH }}"
         REGISTRY_KEY="registry-${{ env.REGISTRY_KEY }}-${{ github.workflow_sha }}"
         REGISTRY_LOCKS_PATH="$REGISTRY_HOME/locks"
+        REGISTRY_LOCKS_KEY="registry-locks"
         REGISTRY_LOCK_FILE="$REGISTRY_LOCKS_PATH/$REGISTRY_KEY.lock"
         
         # Create directories if they don't exist
@@ -55,6 +59,7 @@ runs:
         echo "path=$REGISTRY_PATH" >> $GITHUB_OUTPUT
         echo "key=$REGISTRY_KEY" >> $GITHUB_OUTPUT
         echo "locks-path=$REGISTRY_LOCKS_PATH" >> $GITHUB_OUTPUT
+        echo "locks-key=$REGISTRY_LOCKS_KEY" >> $GITHUB_OUTPUT
         echo "lock=$REGISTRY_LOCK_FILE" >> $GITHUB_OUTPUT
 
         # Debug output

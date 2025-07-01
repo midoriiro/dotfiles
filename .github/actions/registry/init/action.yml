@@ -1,0 +1,35 @@
+name: 'Init Registry'
+description: 'Initialize registry'
+
+inputs:
+  path:
+    description: 'Path to the registry'
+    required: true
+    type: string
+  key:
+    description: 'Key to the registry'
+    required: true
+    type: string 
+
+runs:
+  using: composite
+  steps:
+    - name: Set environment variables
+      id: registry
+      uses: ./.github/actions/registry/set-env
+      with:
+        path: ${{ inputs.path }}
+        key: ${{ inputs.key }}
+
+    - name: Init Registry Locks Cache
+      id: registry-locks
+      uses: actions/cache/save@v4
+      with:
+        path: ${{ steps.registry.outputs.locks-path }}
+        key: registry-locks
+
+    - name: Init Registry Cache
+      uses: actions/cache/save@v4
+      with:
+        path: ${{ steps.registry.outputs.path }}
+        key: ${{ steps.registry.outputs.key }}
