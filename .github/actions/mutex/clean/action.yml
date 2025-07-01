@@ -15,7 +15,7 @@ runs:
         GH_TOKEN: ${{ inputs.access-token }}
       shell: bash
       run: |
-        VARIABLES=$(gh variable list --jq '.variables[] | select(.name | startswith("mutex_")) | .name')
+        VARIABLES=$(gh variable list --json name --jq '.[].name | select(.name | startswith("mutex_")) | .name')
         echo "variables=$VARIABLES" >> $GITHUB_OUTPUT
 
     - name: Clean Mutexes
