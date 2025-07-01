@@ -55,7 +55,6 @@ runs:
 
     - name: Check if available commands
       if: ${{ steps.check-available-commands.outputs.provided == 'true' }}
-      id: check-available-commands
       env:
         AVAILABLE_COMMANDS: ${{ inputs.available-commands }}
       shell: python
