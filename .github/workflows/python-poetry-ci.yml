@@ -157,8 +157,8 @@ jobs:
   #           echo "✅ All checks passed!"
   #         fi
   
-  package:
-    name: Package
+  build:
+    name: Build
     runs-on: ${{ inputs.os }}
     needs: [setup-environment]
 

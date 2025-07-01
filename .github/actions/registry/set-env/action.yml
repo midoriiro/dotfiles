@@ -14,10 +14,10 @@ inputs:
 outputs:
   path:
     description: 'The path to the registry'
-    value: ${{ steps.registry-output.outputs.path }}
+    value: ${{ steps.registry.outputs.path }}
   key:
     description: 'The cache key for the registry'
-    value: ${{ steps.registry-output.outputs.key }}
+    value: ${{ steps.registry.outputs.key }}
 
 runs:
   using: composite
@@ -27,6 +27,7 @@ runs:
       id: home-directory
 
     - name: Generate environment variables
+      id: registry
       shell: bash
       env:
         HOME_DIR: ${{ steps.home-directory.outputs.path }}
