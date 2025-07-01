@@ -37,7 +37,7 @@ runs:
             exit 1
           fi
         done
-        if [ -n "$CURRENT_LOCK" ]; then
+        if [ -n "$(CURRENT_LOCK)" ]; then
           echo "✅ Mutex was not locked"
         else
           echo "✅ Mutex was released after $ELAPSED_TIME seconds"
