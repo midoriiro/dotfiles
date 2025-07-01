@@ -36,14 +36,12 @@ runs:
 
     - name: Delete Previous Cache
       if: ${{ inputs.delete-previous-cache == 'true' }}
-      continue-on-error: true
       env:
         CACHE_KEY: ${{ steps.registry.outputs.key }}
         GH_TOKEN: ${{ env.GITHUB_TOKEN }}
       shell: bash
       run: |
-        gh extension install actions/gh-actions-cache
-        gh actions-cache delete "${{ env.CACHE_KEY }}" --confirm
+        gh actions-cache delete "${{ env.CACHE_KEY }}" --confirm --succeed-on-no-caches
 
     - name: Save cache
       uses: actions/cache/save@v4
