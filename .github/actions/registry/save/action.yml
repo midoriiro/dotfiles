@@ -74,13 +74,13 @@ runs:
 
     - name: Add Registry to Clean Operation List
       if: ${{ inputs.clean == 'true' }}
-      working-directory: ${{ steps.registry.outputs.self-path }}/clean
       env:
+        REGISTRY_PATH: ${{ steps.registry.outputs.self-path }}/clean
         REGISTRY_KEY: ${{ steps.registry.outputs.key }}
       shell: bash
       run: |
-        mkdir --parents $PWD
-        touch ${{ env.REGISTRY_KEY }}
+        mkdir --parents ${{ env.REGISTRY_PATH }}
+        touch ${{ env.REGISTRY_PATH }}/$({{ env.REGISTRY_KEY }})
 
     - name: Delete Previous Self Registry
       if: ${{ inputs.clean == 'true' && steps.self-registry.outputs.cache-hit == 'true' }}
