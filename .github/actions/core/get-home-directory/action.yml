@@ -1,0 +1,42 @@
+name: 'Get Home Directory'
+description: 'Get home directory path'
+
+outputs:
+  path:
+    description: 'The home directory path for the current user'
+    value: ${{ steps.home-directory.outputs.path }}
+
+runs:
+  using: composite
+  steps:
+    - name: Set home directory (Unix only)
+      if: ${{ runner.os != 'Windows' }}
+      id: home-directory-unix
+      shell: bash
+      run: |
+        echo "path=$HOME" >> $GITHUB_OUTPUT
+
+    - name: Set home directory (Windows only)
+      if: ${{ runner.os == 'Windows' }}
+      id: home-directory-windows
+      shell: pwsh
+      run: |       
+        # Use USERPROFILE for Windows
+        $homePath = $env:USERPROFILE
+        if (-not $homePath) {
+            echo "path=$null" >> $env:GITHUB_OUTPUT
+            exit 0
+        }        
+        echo "path=$homePath" >> $env:GITHUB_OUTPUT
+
+    - name: Consolidate home directory
+      id: home-directory
+      shell: bash
+      run: |
+        if [[ "${{ runner.os }}" == "Windows" ]]; then
+          echo "path=${{ steps.home-directory-windows.outputs.path }}" >> $GITHUB_OUTPUT
+          echo "✅ Windows home directory: ${{ steps.home-directory-windows.outputs.path }}"
+        else
+          echo "path=${{ steps.home-directory-unix.outputs.path }}" >> $GITHUB_OUTPUT
+          echo "✅ Unix home directory: ${{ steps.home-directory-unix.outputs.path }}"
+        fi
