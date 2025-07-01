@@ -45,7 +45,7 @@ jobs:
               'path': 'tools/ignite',
               'package-name': 'ignite',
               'builds-registry-path': 'builds/',
-              'builds-registry-key': 'builds-ignite-registry'
+              'builds-registry-key': 'builds-ignite'
             })
           matrix_data = json.dumps(poetry_projects)
           print(matrix_data)
@@ -97,14 +97,15 @@ jobs:
         builds-registry-key: ${{ matrix.poetry-projects.builds-registry-key }}
 
   cd:
-    name: CD - Python (${{ matrix.package-name }})
+    name: CD - Python (${{ matrix.projects.package-name }})
     needs: [ci, python-matrix]
     strategy:
-      matrix: ${{ fromJSON(needs.python-matrix.outputs.project-result) }}
+      matrix: 
+        projects: ${{ fromJSON(needs.python-matrix.outputs.project-result) }}
     uses: ./.github/workflows/python-poetry-cd.yml
     with:
-      python-version: ${{ matrix.python-version }}
-      poetry-project-path: ${{ matrix.poetry-projects.path }}
-      builds-registry-path: ${{ matrix.poetry-projects.builds-registry-path }}
-      builds-registry-key: ${{ matrix.poetry-projects.builds-registry-key }}
+      python-version: '3.13'
+      poetry-project-path: ${{ matrix.projects.path }}
+      builds-registry-path: ${{ matrix.projects.builds-registry-path }}
+      builds-registry-key: ${{ matrix.projects.builds-registry-key }}
       
