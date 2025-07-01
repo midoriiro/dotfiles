@@ -42,7 +42,7 @@ runs:
         path: ${{ inputs.path }}
         key: ${{ inputs.key }}
 
-    - name: Wait for Mutex Release
+    - name: Wait for Registry Mutex Release
       uses: ./.github/actions/mutex/wait
       with:
         key: ${{ inputs.key }}
@@ -70,19 +70,19 @@ runs:
       run: |
         echo "✅ Saved registry with key: ${{ steps.registry.outputs.key }}"
 
-    - name: Release Mutex
-      if: always()
-      uses: ./.github/actions/mutex/release
-      with:
-        key: ${{ inputs.key }}
-        access-token: ${{ inputs.access-token }}
-
-    - name: Wait for Mutex Release
+    - name: Wait Self Registry Mutex Release
       if: ${{ inputs.clean == 'true' }} 
       uses: ./.github/actions/mutex/wait
       with:
         key: ${{ steps.registry.outputs.self-key }}
         timeout: 60
+        access-token: ${{ inputs.access-token }}
+
+    - name: Release Registry Mutex
+      if: always()
+      uses: ./.github/actions/mutex/release
+      with:
+        key: ${{ inputs.key }}
         access-token: ${{ inputs.access-token }}
 
     - name: Restore Self Registry
@@ -127,7 +127,7 @@ runs:
       run: |
         echo "✅ Saved self registry with key: ${{ steps.registry.outputs.self-key }}"
 
-    - name: Release Mutex
+    - name: Release Self Registry Mutex
       if: always() && ${{ inputs.clean == 'true' }}
       uses: ./.github/actions/mutex/release
       with:
