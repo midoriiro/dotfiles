@@ -38,7 +38,7 @@ runs:
         # Try to acquire the mutex with retry logic
         while true; do
           # Check if mutex is already locked
-          RESULT=$(gh variable get '${{ env.MUTEX_KEY }}' --json name --jq '.name' 2>/dev/null || echo '')
+          RESULT=$(gh variable get '${{ env.MUTEX_KEY }}' --json value --jq '.value' 2>/dev/null || echo '')
           
           if [ -n "$RESULT" ]; then
             # Mutex is locked, wait and retry
@@ -52,13 +52,19 @@ runs:
             echo "🔍 Mutex is locked, waiting... (${ELAPSED_TIME}s elapsed)"
             continue
           fi
+
+          ACQUISITION_ID=$RANDOM
           
           # Try to acquire the mutex
           echo "🔒 Attempting to acquire mutex..."
-          if gh variable set "${{ env.MUTEX_KEY }}" --body "true" 2>/dev/null; then
-            # Successfully acquired the mutex
-            echo "✅ Mutex acquired with key '${{ env.MUTEX_KEY }}'"
-            break
+          if gh variable set "${{ env.MUTEX_KEY }}" --body "$ACQUISITION_ID" 2>/dev/null; then
+            RESULT=$(gh variable get '${{ env.MUTEX_KEY }}' --json value --jq '.value' 2>/dev/null || echo '')
+            if [ -n "$RESULT" && "$RESULT" == "$ACQUISITION_ID" ]; then
+              # Successfully acquired the mutex
+              echo "✅ Mutex acquired with key '${{ env.MUTEX_KEY }}'"
+              break
+            fi
+            continue
           else
             # Failed to acquire, another job got it first
             echo "⚠️ Failed to acquire mutex, retrying..."
