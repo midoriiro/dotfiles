@@ -34,7 +34,6 @@ runs:
         echo "🔍 Getting mutex with key '${{ env.MUTEX_KEY }}'"
         START_TIME=$(date +%s)
         ELAPSED_TIME=0
-        ACQUISITION_ID=$RANDOM
         
         # Try to acquire the mutex with retry logic
         while true; do
@@ -55,6 +54,8 @@ runs:
             echo "🔍 Mutex is locked, waiting... (${ELAPSED_TIME}s elapsed)"
             continue
           fi
+
+          ACQUISITION_ID=$RANDOM
           
           # Try to acquire the mutex
           echo "🔒 Attempting to acquire mutex with id '$ACQUISITION_ID'..."
