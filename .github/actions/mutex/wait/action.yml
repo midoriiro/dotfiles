@@ -24,6 +24,8 @@ runs:
         LOCK_KEY: ${{ inputs.key }}
       shell: python
       run: |
+        import os
+
         lock_key = "${{ env.LOCK_KEY }}"
 
         for char in lock_key:
