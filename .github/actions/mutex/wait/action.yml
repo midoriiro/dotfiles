@@ -19,7 +19,7 @@ runs:
       env:
         LOCK_KEY: ${{ inputs.key }}
         TIMEOUT: ${{ inputs.timeout }}
-        GH_TOKEN: ${{ env.PAT_TOKEN }}
+        GH_TOKEN: ${{ secrets.PAT_TOKEN }}
       shell: bash
       run: |
         CURRENT_LOCK='gh api /repos/${{ github.repository }}/actions/variables/$LOCK_KEY \

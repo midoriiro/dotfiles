@@ -40,6 +40,7 @@ env:
   # - actions: write  
   # - metadata: read
   # - repository: write
+  # - variables: write
   PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
 
 jobs:
@@ -167,10 +168,6 @@ jobs:
     name: Build
     runs-on: ${{ inputs.os }}
     needs: [setup-environment]
-
-    permissions:
-      contents: read
-      actions: write # required for delete cache with gh cli extension
 
     steps:
       - name: Checkout Code
