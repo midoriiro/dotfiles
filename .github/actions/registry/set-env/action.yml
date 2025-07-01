@@ -51,6 +51,7 @@ runs:
         # Set environment variables
         echo "path=$REGISTRY_PATH" >> $GITHUB_OUTPUT
         echo "key=$REGISTRY_KEY" >> $GITHUB_OUTPUT
+        echo "locks-path=$REGISTRY_LOCKS_PATH" >> $GITHUB_OUTPUT
         echo "lock=$REGISTRY_LOCK_FILE" >> $GITHUB_OUTPUT
 
         # Debug output

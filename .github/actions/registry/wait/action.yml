@@ -19,12 +19,19 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Set environment variables
+    - name: Set Environment Variables
       id: registry
       uses: ./.github/actions/registry/set-env
       with:
         path: ${{ inputs.path }}
         key: ${{ inputs.key }}
+
+    - name: Restore Locks Cache
+      id: registry-locks
+      uses: actions/cache/restore@v4
+      with:
+        path: ${{ steps.registry.outputs.locks-path }}
+        key: registry-locks
 
     - name: Wait for Lock File
       id: wait-for-lock-file
@@ -50,4 +57,10 @@ runs:
         fi
         touch "$LOCK_FILE"
         echo "✅ Lock file acquired at $LOCK_FILE"
+    
+    - name: Save Locks Cache
+      uses: actions/cache/save@v4
+      with:
+        path: ${{ steps.registry.outputs.locks-path }}
+        key: ${{ steps.registry-locks.outputs.cache-primary-key }}
         

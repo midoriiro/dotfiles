@@ -21,6 +21,13 @@ runs:
         path: ${{ inputs.path }}
         key: ${{ inputs.key }}
 
+    - name: Restore Locks Cache
+      id: registry-locks
+      uses: actions/cache/restore@v4
+      with:
+        path: ${{ steps.registry.outputs.locks-path }}
+        key: registry-locks
+
     - name: Release Lock File
       id: release-lock-file
       env:
@@ -29,3 +36,9 @@ runs:
       run: |
         rm -f "$LOCK_FILE"
         echo "✅ Lock file released at $LOCK_FILE"
+
+    - name: Save Locks Cache
+      uses: actions/cache/save@v4
+      with:
+        path: ${{ steps.registry.outputs.locks-path }}
+        key: ${{ steps.registry-locks.outputs.cache-primary-key }}
