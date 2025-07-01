@@ -41,7 +41,6 @@ runs:
         
         # Create directories if they don't exist
         mkdir --parents "$REGISTRY_PATH"
-        mkdir --parents "$REGISTRY_LOCKS_PATH"
         
         # Set environment variables
         echo "path=$REGISTRY_PATH" >> $GITHUB_OUTPUT
