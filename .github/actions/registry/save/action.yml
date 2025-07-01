@@ -20,9 +20,10 @@ inputs:
     required: false
     type: boolean
     default: false
-  access-token:
-    description: 'GitHub personal access token to access GitHub API'
+  database-connection-uri:
+    description: 'Database connection URI for mutex'
     required: true
+    type: string
 
 outputs:
   path:
@@ -47,7 +48,7 @@ runs:
       with:
         key: ${{ inputs.key }}
         timeout: 60
-        access-token: ${{ inputs.access-token }}
+        database-connection-uri: ${{ inputs.database-connection-uri }}
 
     - name: Delete Previous Registry
       if: ${{ inputs.delete-previous-registry == 'true' }}
@@ -76,7 +77,7 @@ runs:
       with:
         key: ${{ steps.registry.outputs.self-key }}
         timeout: 60
-        access-token: ${{ inputs.access-token }}
+        database-connection-uri: ${{ inputs.database-connection-uri }}
 
     - name: Restore Self Registry
       if: ${{ inputs.clean == 'true' }}
@@ -125,11 +126,11 @@ runs:
       uses: ./.github/actions/mutex/release
       with:
         key: ${{ steps.registry.outputs.self-key }}
-        access-token: ${{ inputs.access-token }}
+        database-connection-uri: ${{ inputs.database-connection-uri }}
 
     - name: Release Registry Mutex
       if: always()
       uses: ./.github/actions/mutex/release
       with:
         key: ${{ inputs.key }}
-        access-token: ${{ inputs.access-token }}
+        database-connection-uri: ${{ inputs.database-connection-uri }}

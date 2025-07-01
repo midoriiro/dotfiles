@@ -28,15 +28,8 @@ on:
         required: true
         type: string
     secrets:
-      access-token:
-        # PAT token is used for gh cli to access github api
-        # PAT token need permissions to read and write for:
-        # - contents: write
-        # - actions: write  
-        # - metadata: read
-        # - repository: write
-        # - variables: write
-        description: 'GitHub personal access token to access GitHub API'
+      database-connection-uri:
+        description: 'Database connection URI for mutex'
         required: true
 
 env:
@@ -190,14 +183,14 @@ jobs:
         uses: ./.github/actions/python/poetry/build
         with:
           # build-script: build
-          access-token: ${{ secrets.access-token }}
+          database-connection-uri: ${{ secrets.database-connection-uri }}
 
       - name: Wait for Build Mutex Release
         uses: ./.github/actions/mutex/wait
         with:
           key: ${{ inputs.builds-registry-key }}
           timeout: 60
-          access-token: ${{ secrets.access-token }}
+          database-connection-uri: ${{ secrets.database-connection-uri }}
 
       - name: Restore Build Registry
         id: build-registry
@@ -205,6 +198,7 @@ jobs:
         with:
           path: ${{ inputs.builds-registry-path }}
           key: ${{ inputs.builds-registry-key }}
+          database-connection-uri: ${{ secrets.database-connection-uri }}
 
       - name: Add Build Artifacts to Build Registry
         env: 
@@ -224,12 +218,12 @@ jobs:
         uses: ./.github/actions/mutex/release
         with:
           key: ${{ inputs.builds-registry-key }}
-          access-token: ${{ secrets.access-token }}
+          database-connection-uri: ${{ secrets.database-connection-uri }}
 
       - name: Save Build Registry
         uses: ./.github/actions/registry/save
         with:
           path: ${{ inputs.builds-registry-path }}
           key: ${{ inputs.builds-registry-key }}
-          access-token: ${{ secrets.access-token }}
+          database-connection-uri: ${{ secrets.database-connection-uri }}
           clean: true

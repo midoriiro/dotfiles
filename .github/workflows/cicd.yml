@@ -102,7 +102,7 @@ jobs:
         builds-registry-path: ${{ matrix.poetry-projects.builds-registry-path }}
         builds-registry-key: ${{ matrix.poetry-projects.builds-registry-key }}
     secrets:
-      access-token: ${{ secrets.PAT_TOKEN }}
+      database-connection-uri: ${{ secrets.POSTGRESQL_CONNECTION_URI }}
 
   cd:
     name: CD - ${{ matrix.projects.package-name }}
@@ -130,11 +130,11 @@ jobs:
         if: always()
         uses: ./.github/actions/mutex/clean
         with:
-          access-token: ${{ secrets.PAT_TOKEN }}
+          database-connection-uri: ${{ secrets.POSTGRESQL_CONNECTION_URI }}
 
       - name: Clean Registries
         if: always()
         uses: ./.github/actions/registry/clean
         with:
-          access-token: ${{ secrets.PAT_TOKEN }}
+          database-connection-uri: ${{ secrets.POSTGRESQL_CONNECTION_URI }}
       
