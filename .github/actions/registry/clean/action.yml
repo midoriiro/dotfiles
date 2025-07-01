@@ -2,9 +2,10 @@ name: 'Clean Registries'
 description: 'Clean registries'
 
 inputs:
-  access-token:
-    description: 'GitHub personal access token to access GitHub API'
+  database-connection-uri:
+    description: 'Database connection URI for mutex'
     required: true
+    type: string
 
 runs:
   using: composite
@@ -18,7 +19,7 @@ runs:
       with:
         key: ${{ steps.registry.outputs.self-key }}
         timeout: 60
-        access-token: ${{ inputs.access-token }}
+        database-connection-uri: ${{ inputs.database-connection-uri }}
 
     - name: Restore Self Registry
       id: self-registry
@@ -31,7 +32,7 @@ runs:
       if: ${{ steps.self-registry.outputs.cache-hit == 'true' }}
       env:
         CLEAN_DIR: ${{ steps.registry.outputs.self-path }}/clean
-        GH_TOKEN: ${{ inputs.access-token }}
+        GH_TOKEN: ${{ env.GITHUB_TOKEN }}
       shell: bash
       run: |
         # Get the list of files in the clean directory
@@ -62,7 +63,7 @@ runs:
       if: ${{ steps.self-registry.outputs.cache-hit == 'true' }}
       env:
         CACHE_KEY: ${{ steps.registry.outputs.self-key }}
-        GH_TOKEN: ${{ inputs.access-token }}
+        GH_TOKEN: ${{ env.GITHUB_TOKEN }}
       shell: bash
       run: |
         gh cache delete "${{ env.CACHE_KEY }}"
@@ -73,4 +74,4 @@ runs:
       uses: ./.github/actions/mutex/release
       with:
         key: ${{ steps.registry.outputs.self-key }}
-        access-token: ${{ inputs.access-token }}
+        database-connection-uri: ${{ inputs.database-connection-uri }}

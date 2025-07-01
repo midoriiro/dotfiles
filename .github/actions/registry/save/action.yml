@@ -54,7 +54,7 @@ runs:
       if: ${{ inputs.delete-previous-registry == 'true' }}
       env:
         CACHE_KEY: ${{ steps.registry.outputs.key }}
-        GH_TOKEN: ${{ inputs.access-token }}
+        GH_TOKEN: ${{ env.GITHUB_TOKEN }}
       shell: bash
       run: |
         gh cache delete "${{ env.CACHE_KEY }}" || exit 0
@@ -102,7 +102,7 @@ runs:
       if: ${{ inputs.clean == 'true' && steps.self-registry.outputs.cache-hit == 'true' }}
       env:
         CACHE_KEY: ${{ steps.registry.outputs.self-key }}
-        GH_TOKEN: ${{ inputs.access-token }}
+        GH_TOKEN: ${{ env.GITHUB_TOKEN }}
       shell: bash
       run: |
         gh cache delete "${{ env.CACHE_KEY }}"
