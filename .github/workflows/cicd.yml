@@ -7,6 +7,15 @@ on:
     branches: [ main, ci-cd-pipeline ]
 
 jobs:
+  init-mutex:
+    name: Init Mutex
+    runs-on: ubuntu-latest
+    steps:
+      - name: Init Mutex
+        uses: ./.github/actions/mutex/init
+        with:
+          database-connection-uri: ${{ secrets.DATABASE_CONNECTION_URI }}
+
   matrix:
     name: Matrix Definitions
     runs-on: ubuntu-latest

@@ -1,0 +1,48 @@
+name: 'Init Mutex'
+description: 'Init Mutex'
+
+inputs:
+  database-connection-uri:
+    description: 'Database connection URI'
+    required: true
+    type: string
+
+runs:
+  using: composite
+  steps:
+
+    - name: Install AsyncPG
+      shell: bash
+      run: |
+        pip install asyncpg
+
+    - name: Init Mutex Table
+      env:
+        DATABASE_CONNECTION_URI: ${{ inputs.database-connection-uri }}
+      shell: python
+      run: |
+        import os
+        import asyncio
+        import asyncpg
+
+        async def main():
+            connection_uri = os.getenv('DATABASE_CONNECTION_URI')
+
+            if not connection_uri:
+                raise ValueError('DATABASE_CONNECTION_URI environment variable is not set')
+
+            connection = await asyncpg.connect(connection_uri)
+
+            try:
+              await connection.execute("""
+                  CREATE TABLE IF NOT EXISTS locks (
+                    name VARCHAR(255) PRIMARY KEY,
+                    holder VARCHAR(255),
+                    created_at TIMESTAMP DEFAULT now()
+                  );
+                """)
+            finally:
+                await connection.close()
+
+        if __name__ == "__main__":
+            asyncio.run(main())
