@@ -11,6 +11,9 @@ inputs:
     required: false
     type: number
     default: 60 
+  access-token:
+    description: 'GitHub personal access token to access GitHub API'
+    required: true
 
 runs:
   using: composite
@@ -19,7 +22,7 @@ runs:
       env:
         LOCK_KEY: ${{ inputs.key }}
         TIMEOUT: ${{ inputs.timeout }}
-        GH_TOKEN: ${{ secrets.access-token }}
+        GH_TOKEN: ${{ inputs.access-token }}
       shell: bash
       run: |
         CURRENT_LOCK='gh api /repos/${{ github.repository }}/actions/variables/$LOCK_KEY \

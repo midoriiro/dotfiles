@@ -6,10 +6,8 @@ inputs:
     description: 'Poetry build script to use'
     required: false
     type: string
-
-secrets:
-  access-token: 
-    description: 'A token passed from the caller'
+  access-token:
+    description: 'GitHub personal access token to access GitHub API'
     required: true
 
 outputs:

@@ -29,7 +29,7 @@ on:
         type: string
     secrets:
       access-token:
-        description: 'A token passed from the caller workflow'
+        description: 'GitHub personal access token to access GitHub API'
         required: true
 
 env:
