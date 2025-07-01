@@ -1,0 +1,30 @@
+name: 'Clean Mutex'
+description: 'Clean Mutex'
+
+inputs:
+  access-token:
+    description: 'GitHub personal access token to access GitHub API'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: List Mutexes
+      id: mutexes
+      env:
+        GH_TOKEN: ${{ inputs.access-token }}
+      shell: bash
+      run: |
+        VARIABLES=$(gh variable list --jq '.variables[] | select(.name | startswith("mutex_")) | .name')
+        echo "variables=$VARIABLES" >> $GITHUB_OUTPUT
+
+    - name: Clean Mutexes
+      env:
+        MUTEX_KEYS: ${{ steps.mutexes.outputs.variables }}
+        GH_TOKEN: ${{ inputs.access-token }}
+      shell: bash
+      run: |
+        for MUTEX_KEY in $MUTEX_KEYS; do
+          gh variable delete "$MUTEX_KEY"
+          echo "✅ Mutex released with key '$MUTEX_KEY'"
+        done

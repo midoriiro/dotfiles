@@ -48,6 +48,7 @@ runs:
         path: ${{ env.POETRY_PROJECT_PATH }}/dist
         key: artifacts-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ steps.poetry-info.outputs.project-name }}-${{ steps.poetry-info.outputs.project-version }}
         access-token: ${{ inputs.access-token }}
+        clean: true
 
     - name: Finalize
       shell: bash

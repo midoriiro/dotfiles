@@ -28,6 +28,8 @@ runs:
         for char in mutex_key:
           if char.isalnum() == False and char != '_':
             mutex_key = mutex_key.replace(char, '_')
+
+        mutex_key = f'mutex_{mutex_key}'
         
         with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
           f.write(f'key={mutex_key}\n')

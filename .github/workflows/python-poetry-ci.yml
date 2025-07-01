@@ -219,4 +219,4 @@ jobs:
           path: ${{ inputs.builds-registry-path }}
           key: ${{ inputs.builds-registry-key }}
           access-token: ${{ secrets.access-token }}
-          
+          clean: true

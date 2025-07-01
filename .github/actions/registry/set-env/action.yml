@@ -37,16 +37,23 @@ runs:
         # Set paths
         REGISTRY_HOME="$HOME_DIR/.local/registry"
         REGISTRY_PATH="$REGISTRY_HOME/${{ env.REGISTRY_PATH }}"
-        REGISTRY_KEY="registry-${{ env.REGISTRY_KEY }}-${{ github.workflow_sha }}"
+        REGISTRY_KEY="registry-${{ github.workflow_sha }}-${{ env.REGISTRY_KEY }}"
+        SELF_REGISTRY_PATH="$REGISTRY_HOME/self"
+        SELF_REGISTRY_KEY="registry-${{ github.workflow_sha }}-self"
         
         # Create directories if they don't exist
         mkdir --parents "$REGISTRY_PATH"
-        
+        mkdir --parents "$SELF_REGISTRY_PATH"
+
         # Set environment variables
         echo "path=$REGISTRY_PATH" >> $GITHUB_OUTPUT
         echo "key=$REGISTRY_KEY" >> $GITHUB_OUTPUT
+        echo "self-path=$SELF_REGISTRY_PATH" >> $GITHUB_OUTPUT
+        echo "self-key=$SELF_REGISTRY_KEY" >> $GITHUB_OUTPUT
 
         # Debug output
         echo "✅ REGISTRY_HOME: $REGISTRY_HOME"
         echo "✅ REGISTRY_PATH: $REGISTRY_PATH"
         echo "✅ REGISTRY_KEY: $REGISTRY_KEY"
+        echo "✅ SELF_REGISTRY_PATH: $SELF_REGISTRY_PATH"
+        echo "✅ SELF_REGISTRY_KEY: $SELF_REGISTRY_KEY"

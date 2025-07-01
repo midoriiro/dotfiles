@@ -10,11 +10,16 @@ inputs:
     description: 'Key to the registry'
     required: true
     type: string
-  delete-previous-cache:
-    description: 'Whether to delete the previous cache'
+  delete-previous-registry:
+    description: 'Whether to delete the previous registry'
     required: false
     type: boolean
     default: true
+  clean:
+    description: 'Whether to clean the registry after workflow finish to run'
+    required: false
+    type: boolean
+    default: false
   access-token:
     description: 'GitHub personal access token to access GitHub API'
     required: true
@@ -30,7 +35,7 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Set environment variables
+    - name: Set Environment Variables
       id: registry
       uses: ./.github/actions/registry/set-env
       with:
@@ -44,8 +49,8 @@ runs:
         timeout: 60
         access-token: ${{ inputs.access-token }}
 
-    - name: Delete Previous Cache
-      if: ${{ inputs.delete-previous-cache == 'true' }}
+    - name: Delete Previous Registry
+      if: ${{ inputs.delete-previous-registry == 'true' }}
       env:
         CACHE_KEY: ${{ steps.registry.outputs.key }}
         GH_TOKEN: ${{ inputs.access-token }}
@@ -53,11 +58,32 @@ runs:
       run: |
         gh cache delete "${{ env.CACHE_KEY }}" || exit 0
 
-    - name: Save cache
+    - name: Save Registry
       uses: actions/cache/save@v4
       with:
         path: ${{ steps.registry.outputs.path }}
         key: ${{ steps.registry.outputs.key }}
+
+    - name: Restore Self Registry
+      uses: actions/cache/restore@v4
+      with:
+        path: ${{ steps.registry.outputs.self-path }}
+        key: ${{ steps.registry.outputs.self-key }}
+
+    - name: Add Registry to Clean Operation List
+      if: ${{ inputs.clean == 'true' }}
+      working-directory: ${{ steps.registry.outputs.self-path }}/clean
+      env:
+        REGISTRY_KEY: ${{ steps.registry.outputs.key }}
+      shell: bash
+      run: |
+        touch ${{ env.REGISTRY_KEY }}
+
+    - name: Save Self Registry
+      uses: actions/cache/save@v4
+      with:
+        path: ${{ steps.registry.outputs.self-path }}
+        key: ${{ steps.registry.outputs.self-key }}
 
     - name: Release Mutex
       if: always()
