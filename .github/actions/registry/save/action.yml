@@ -57,12 +57,18 @@ runs:
       shell: bash
       run: |
         gh cache delete "${{ env.CACHE_KEY }}" || exit 0
+        echo "✅ Deleted previous registry with key: ${{ env.CACHE_KEY }}"
 
     - name: Save Registry
       uses: actions/cache/save@v4
       with:
         path: ${{ steps.registry.outputs.path }}
         key: ${{ steps.registry.outputs.key }}
+
+    - name: After Save Registry
+      shell: bash
+      run: |
+        echo "✅ Saved registry with key: ${{ steps.registry.outputs.key }}"
 
     - name: Restore Self Registry
       if: ${{ inputs.clean == 'true' }}
@@ -81,6 +87,7 @@ runs:
       run: |
         mkdir --parents ${{ env.REGISTRY_PATH }}
         touch ${{ env.REGISTRY_PATH }}/$({{ env.REGISTRY_KEY }})
+        echo "✅ Added registry to clean operation list with key: ${{ env.REGISTRY_KEY }}"
 
     - name: Delete Previous Self Registry
       if: ${{ inputs.clean == 'true' && steps.self-registry.outputs.cache-hit == 'true' }}
@@ -90,6 +97,7 @@ runs:
       shell: bash
       run: |
         gh cache delete "${{ env.CACHE_KEY }}"
+        echo "✅ Deleted previous self registry with key: ${{ env.CACHE_KEY }}"
 
     - name: Save Self Registry
       if: ${{ inputs.clean == 'true' }}
@@ -97,6 +105,12 @@ runs:
       with:
         path: ${{ steps.registry.outputs.self-path }}
         key: ${{ steps.registry.outputs.self-key }}
+
+    - name: After Save Self Registry
+      if: ${{ inputs.clean == 'true' }}
+      shell: bash
+      run: |
+        echo "✅ Saved self registry with key: ${{ steps.registry.outputs.self-key }}"
 
     - name: Release Mutex
       if: always()
