@@ -25,7 +25,7 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-        
+
       - name: Detect Changes
         id: filter
         uses: dorny/paths-filter@v3
@@ -43,7 +43,7 @@ jobs:
           import json
           import os
           poetry_projects = {}
-          if os.environ['IGNITE_PROJECT_CHANGED'] == 'true':
+          if ${{ env.IGNITE_PROJECT_CHANGED }} == 'true':
             poetry_projects['ignite'] = {
               'path': 'tools/ignite',
               'package-name': 'ignite'
