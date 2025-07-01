@@ -22,11 +22,11 @@ runs:
         GH_TOKEN: ${{ env.GITHUB_TOKEN }}
       shell: bash
       run: |
-        CURRENT_LOCK=$(gh api /repos/${{ github.repository }}/actions/variables/$LOCK_KEY \
-          --jq ".name" 2>/dev/null || echo "")
+        CURRENT_LOCK='gh api /repos/${{ github.repository }}/actions/variables/$LOCK_KEY \
+          --jq ".name" 2>/dev/null || echo ""'
 
         START_TIME=$(date +%s)
-        while [ -n "$CURRENT_LOCK" ]; do
+        while [ -n "$(CURRENT_LOCK)" ]; do
           sleep 1
           CURRENT_TIME=$(date +%s)
           ELAPSED_TIME=$((CURRENT_TIME - START_TIME))
