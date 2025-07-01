@@ -3,12 +3,12 @@ name: CI/CD Pipeline
 on:
   push:
     branches: [ main, ci-cd-pipeline ]
-    paths:
-      - 'tools/ignite/**'
+    # paths:
+    #   - 'tools/ignite/**'
   pull_request:
     branches: [ main, ci-cd-pipeline ]
-    paths:
-      - 'tools/ignite/**'
+    # paths:
+    #   - 'tools/ignite/**'
 
 jobs:
   matrix:
