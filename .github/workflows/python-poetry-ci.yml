@@ -199,7 +199,6 @@ jobs:
         with:
           path: ${{ inputs.builds-registry-path }}
           key: ${{ inputs.builds-registry-key }}
-          database-connection-uri: ${{ secrets.database-connection-uri }}
 
       - name: Add Build Artifacts to Build Registry
         env: 

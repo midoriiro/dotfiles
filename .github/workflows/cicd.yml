@@ -133,6 +133,7 @@ jobs:
       - name: Clean Mutexes
         if: always()
         uses: ./.github/actions/mutex/clean
+        continue-on-error: true
         with:
           database-connection-uri: ${{ secrets.POSTGRESQL_CONNECTION_URI }}
 
@@ -140,6 +141,7 @@ jobs:
         if: always()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
         uses: ./.github/actions/registry/clean
         with:
           database-connection-uri: ${{ secrets.POSTGRESQL_CONNECTION_URI }}
