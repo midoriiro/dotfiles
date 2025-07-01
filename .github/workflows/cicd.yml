@@ -47,7 +47,7 @@ jobs:
             poetry_projects.append({
               'path': 'tools/ignite',
               'package-name': 'ignite'
-            }
+            })
           matrix = {
             "poetry-projects": poetry_projects,
           }
@@ -57,12 +57,12 @@ jobs:
             f.write(f"result={matrix_data}\n")
 
   cicd:
-    name: CI/CD Poetry Projects (${{ matrix.poetry-projects.path }})
+    name: CI/CD Poetry Projects (${{ matrix.path }})
     needs: [matrix]
     strategy:
       matrix: ${{ fromJSON(needs.matrix.outputs.result.poetry-projects) }}
     uses: ./.github/workflows/python-poetry-cicd.yml
     with:
-        poetry-project-path: ${{ matrix.poetry-projects.path }}
-        poetry-package-name: ${{ matrix.poetry-projects.package-name }}
+        poetry-project-path: ${{ matrix.path }}
+        poetry-package-name: ${{ matrix.package-name }}
       
