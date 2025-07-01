@@ -7,11 +7,6 @@ inputs:
     required: true
     type: string 
 
-secrets:
-  access-token:
-    description: 'A token passed from the caller'
-    required: true
-
 runs:
   using: composite
   steps:

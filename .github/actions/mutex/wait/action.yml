@@ -12,11 +12,6 @@ inputs:
     type: number
     default: 60 
 
-secrets:
-  access-token:
-    description: 'A token passed from the caller'
-    required: true
-
 runs:
   using: composite
   steps:

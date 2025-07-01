@@ -45,7 +45,7 @@ env:
   # - metadata: read
   # - repository: write
   # - variables: write
-  PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+  access-token: ${{ secrets.access-token }}
 
 jobs:
   setup-environment:

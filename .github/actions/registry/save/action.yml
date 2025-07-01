@@ -16,11 +16,6 @@ inputs:
     type: boolean
     default: true
 
-secrets:
-  access-token:
-    description: 'A token passed from the caller'
-    required: true
-
 outputs:
   path:
     description: 'Path to the registry'
@@ -44,8 +39,6 @@ runs:
       with:
         key: ${{ inputs.key }}
         timeout: 60
-      secrets:
-        access-token: ${{ secrets.access-token }}
 
     - name: Delete Previous Cache
       if: ${{ inputs.delete-previous-cache == 'true' }}
@@ -67,5 +60,3 @@ runs:
       uses: ./.github/actions/mutex/release
       with:
         key: ${{ inputs.key }}
-      secrets:
-        access-token: ${{ secrets.access-token }}
