@@ -2,6 +2,10 @@ name: 'Wait Registry Lock Release'
 description: 'Wait Registry Lock Release'
 
 inputs:
+  path:
+    description: 'Path to the registry'
+    required: true
+    type: string
   key:
     description: 'Key to the registry'
     required: true

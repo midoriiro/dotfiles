@@ -37,6 +37,7 @@ runs:
     - name: Wait for Lock Release
       uses: ./.github/actions/registry/wait
       with:
+        path: ${{ inputs.path }}
         key: ${{ inputs.key }}
         timeout: 60
 

@@ -2,6 +2,10 @@ name: 'Release Registry Lock'
 description: 'Release Registry Lock'
 
 inputs:
+  path:
+    description: 'Path to the registry'
+    required: true
+    type: string
   key:
     description: 'Key to the registry'
     required: true
