@@ -189,7 +189,7 @@ jobs:
         id: build-artifacts
         uses: ./.github/actions/python/poetry/build
         with:
-          build-script: build
+          # build-script: build
           access-token: ${{ secrets.access-token }}
 
       - name: Restore Build Registry

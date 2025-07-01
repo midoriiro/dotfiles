@@ -31,7 +31,8 @@ runs:
         GH_TOKEN: ${{ inputs.access-token }}
       shell: bash
       run: |
-        GET_MUTEX_COMMAND='gh variable get "${{ env.MUTEX_KEY }}" --json name --jq ".name" || echo ""'
+        GET_MUTEX_COMMAND='gh variable get "${{ env.MUTEX_KEY }}" --jq ".name" || echo ""'
+        echo "🔍 Getting mutex with key '${{ env.MUTEX_KEY }}'"
         RESULT=$($GET_MUTEX_COMMAND)
 
         START_TIME=$(date +%s)
@@ -43,6 +44,7 @@ runs:
             echo "❌ Timeout waiting for mutex to be released"
             exit 1
           fi
+          echo "🔍 Getting mutex with key '${{ env.MUTEX_KEY }}' again after $ELAPSED_TIME seconds"
           RESULT=$($GET_MUTEX_COMMAND)
         done
 
