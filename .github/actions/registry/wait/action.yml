@@ -48,11 +48,6 @@ runs:
         else
           echo "✅ Lock file was released after $ELAPSED_TIME seconds"
         fi
-
-    - name: Acquire Lock
-      env:
-        LOCK_FILE: ${{ steps.registry.outputs.lock }}
-      shell: bash
-      run: |
         touch "$LOCK_FILE"
-        echo "Lock file acquired at $LOCK_FILE"
+        echo "✅ Lock file acquired at $LOCK_FILE"
+        
