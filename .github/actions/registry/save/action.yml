@@ -16,6 +16,14 @@ inputs:
     type: boolean
     default: true
 
+outputs:
+  path:
+    description: 'Path to the registry'
+    value: ${{ steps.registry.outputs.path }}
+  key:
+    description: 'Key to the registry'
+    value: ${{ steps.registry.outputs.key }}  
+
 runs:
   using: composite
   steps:
