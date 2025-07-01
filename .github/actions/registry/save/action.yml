@@ -28,6 +28,7 @@ runs:
 
     - name: Delete Previous Cache
       if: ${{ inputs.delete-previous-cache == 'true' }}
+      continue-on-error: true
       env:
         CACHE_KEY: ${{ steps.registry.outputs.key }}
         GH_TOKEN: ${{ env.GITHUB_TOKEN }}
