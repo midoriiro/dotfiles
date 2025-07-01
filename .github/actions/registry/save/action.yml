@@ -78,6 +78,13 @@ runs:
         timeout: 60
         access-token: ${{ inputs.access-token }}
 
+    - name: Release Registry Mutex
+      if: always()
+      uses: ./.github/actions/mutex/release
+      with:
+        key: ${{ inputs.key }}
+        access-token: ${{ inputs.access-token }}
+
     - name: Restore Self Registry
       if: ${{ inputs.clean == 'true' }}
       id: self-registry
@@ -125,11 +132,4 @@ runs:
       uses: ./.github/actions/mutex/release
       with:
         key: ${{ steps.registry.outputs.self-key }}
-        access-token: ${{ inputs.access-token }}
-
-    - name: Release Registry Mutex
-      if: always()
-      uses: ./.github/actions/mutex/release
-      with:
-        key: ${{ inputs.key }}
         access-token: ${{ inputs.access-token }}
