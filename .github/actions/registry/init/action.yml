@@ -21,6 +21,12 @@ runs:
         path: ${{ inputs.path }}
         key: ${{ inputs.key }}
 
+    - name: Init Files
+      shell: bash
+      run: |
+        touch ${{ steps.registry.outputs.path }}/.init
+        touch ${{ steps.registry.outputs.locks-path }}/.init
+
     - name: Init Registry Locks Cache
       id: registry-locks
       uses: actions/cache/save@v4
