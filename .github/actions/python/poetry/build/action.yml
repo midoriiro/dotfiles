@@ -7,6 +7,11 @@ inputs:
     required: false
     type: string
 
+secrets:
+  access-token: 
+    description: 'A token passed from the caller'
+    required: true
+
 outputs:
   artifacts-registry-key:
     description: 'Registry key where artifacts are saved'
