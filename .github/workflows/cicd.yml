@@ -93,7 +93,7 @@ jobs:
             f.write(f"result={matrix_data}\n")
 
   ci:
-    name: CI - Python (${{ matrix.poetry-projects.package-name }}) - (${{ matrix.os }} - ${{ matrix.python-version }})
+    name: CI - Python (${{ matrix.poetry-projects.package-name }}-${{ matrix.os }}-${{ matrix.python-version }})
     needs: [python-matrix]
     strategy:
       matrix: ${{ fromJSON(needs.python-matrix.outputs.result) }}
@@ -103,8 +103,8 @@ jobs:
         python-version: ${{ matrix.python-version }}
         poetry-project-path: ${{ matrix.poetry-projects.path }}
         poetry-package-name: ${{ matrix.poetry-projects.package-name }}
-        builds-registry-path: ${{ matrix.poetry-projects.builds-registry-path }}
-        builds-registry-key: ${{ matrix.poetry-projects.builds-registry-key }}
+        builds-registry-path: ${{ inputs.builds-registry-path }}
+        builds-registry-key: ${{ inputs.builds-registry-key }}
 
   cd:
     name: CD - Python (${{ matrix.poetry-projects.package-name }})
@@ -115,6 +115,6 @@ jobs:
     with:
       python-version: ${{ matrix.python-version }}
       poetry-project-path: ${{ matrix.poetry-projects.path }}
-      builds-registry-path: ${{ matrix.poetry-projects.builds-registry-path }}
-      builds-registry-key: ${{ matrix.poetry-projects.builds-registry-key }}
+      builds-registry-path: ${{ inputs.builds-registry-path }}
+      builds-registry-key: ${{ inputs.builds-registry-key }}
       
