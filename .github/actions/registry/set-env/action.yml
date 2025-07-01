@@ -28,16 +28,16 @@ runs:
 
     - name: Generate environment variables
       id: registry
-      shell: bash
       env:
         HOME_DIR: ${{ steps.home-directory.outputs.path }}
-        KEY: ${{ inputs.key }}
-        PATH: ${{ inputs.path }}
+        REGISTRY_KEY: ${{ inputs.key }}
+        REGISTRY_PATH: ${{ inputs.path }}
+      shell: bash
       run: |        
         # Set paths
         REGISTRY_HOME="$HOME_DIR/.local/registry"
-        REGISTRY_PATH="$REGISTRY_HOME/${{ env.PATH }}"
-        REGISTRY_KEY="registry-${{ env.KEY }}-${{ github.workflow_sha }}"
+        REGISTRY_PATH="$REGISTRY_HOME/${{ env.REGISTRY_PATH }}"
+        REGISTRY_KEY="registry-${{ env.REGISTRY_KEY }}-${{ github.workflow_sha }}"
         REGISTRY_LOCKS_PATH="$REGISTRY_HOME/locks"
         
         # Create directories if they don't exist
@@ -47,7 +47,7 @@ runs:
         # Set environment variables
         echo "path=$REGISTRY_PATH" >> $GITHUB_OUTPUT
         echo "key=$REGISTRY_KEY" >> $GITHUB_OUTPUT
-        echo "lock=$REGISTRY_LOCKS_PATH/${{ env.KEY }}.lock" >> $GITHUB_OUTPUT
+        echo "lock=$REGISTRY_LOCKS_PATH/${{ env.REGISTRY_KEY }}.lock" >> $GITHUB_OUTPUT
 
         # Debug output
         echo "✅ REGISTRY_HOME: $REGISTRY_HOME"
