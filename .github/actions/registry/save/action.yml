@@ -44,6 +44,8 @@ runs:
       with:
         key: ${{ inputs.key }}
         timeout: 60
+      secrets:
+        access-token: ${{ secrets.access-token }}
 
     - name: Delete Previous Cache
       if: ${{ inputs.delete-previous-cache == 'true' }}
@@ -65,3 +67,5 @@ runs:
       uses: ./.github/actions/mutex/release
       with:
         key: ${{ inputs.key }}
+      secrets:
+        access-token: ${{ secrets.access-token }}
