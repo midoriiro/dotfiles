@@ -31,7 +31,7 @@ runs:
         GH_TOKEN: ${{ inputs.access-token }}
       shell: bash
       run: |
-        GET_MUTEX_COMMAND="gh variable get '${{ env.MUTEX_KEY }}' --jq '.name' 2>/dev/null || echo ''"
+        GET_MUTEX_COMMAND="gh variable get '${{ env.MUTEX_KEY }}' --json name --jq '.name' 2>/dev/null || echo ''"
         echo "🔍 Getting mutex with key '${{ env.MUTEX_KEY }}'"
         echo "🔍 Command: $GET_MUTEX_COMMAND"
         RESULT=$(eval "$GET_MUTEX_COMMAND")
