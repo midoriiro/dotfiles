@@ -30,19 +30,20 @@ runs:
         START_TIME=$(date +%s)
         while [ -n "$($GET_LOCK_COMMAND)" ]; do
           sleep 1
-          CURRENT_TIME=$(date +%s
+          CURRENT_TIME=$(date +%s)
           ELAPSED_TIME=$((CURRENT_TIME - START_TIME))
           if [ "$ELAPSED_TIME" -gt "$TIMEOUT" ]; then
             echo "❌ Timeout waiting for lock file to be released"
             exit 1
           fi
         done
+
         if [ -n "$($GET_LOCK_COMMAND)" ]; then
           echo "✅ Mutex was not locked"
         else
           echo "✅ Mutex was released after $ELAPSED_TIME seconds"
         fi
 
-        gh variable set $LOCK_KEY
+        gh variable set "$LOCK_KEY"
 
         echo "✅ Mutex acquired with key '$LOCK_KEY'"
