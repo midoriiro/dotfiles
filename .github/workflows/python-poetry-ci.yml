@@ -29,6 +29,13 @@ on:
         type: string
     secrets:
       access-token:
+        # PAT token is used for gh cli to access github api
+        # PAT token need permissions to read and write for:
+        # - contents: write
+        # - actions: write  
+        # - metadata: read
+        # - repository: write
+        # - variables: write
         description: 'GitHub personal access token to access GitHub API'
         required: true
 
@@ -38,14 +45,6 @@ env:
   # but to simplify access to them, Poetry project path need to be set via an
   # environment variable defined globally.
   POETRY_PROJECT_PATH: ${{ inputs.poetry-project-path }}
-  # PAT token is used for gh cli to access github api
-  # PAT token need permissions to read and write for:
-  # - contents: write
-  # - actions: write  
-  # - metadata: read
-  # - repository: write
-  # - variables: write
-  access-token: ${{ secrets.access-token }}
 
 jobs:
   setup-environment:
