@@ -34,7 +34,13 @@ env:
   # but to simplify access to them, Poetry project path need to be set via an
   # environment variable defined globally.
   POETRY_PROJECT_PATH: ${{ inputs.poetry-project-path }}
-  GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+  # PAT token is used for gh cli to access github api
+  # PAT token need permissions to read and write for:
+  # - contents: write
+  # - actions: write  
+  # - metadata: read
+  # - repository: write
+  PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
 
 jobs:
   setup-environment:
