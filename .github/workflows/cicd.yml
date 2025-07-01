@@ -138,6 +138,8 @@ jobs:
 
       - name: Clean Registries
         if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         uses: ./.github/actions/registry/clean
         with:
           database-connection-uri: ${{ secrets.POSTGRESQL_CONNECTION_URI }}
