@@ -184,12 +184,10 @@ jobs:
         uses: ./.github/actions/python/poetry/build
         with:
           build-script: build
-          additional-artifact-paths: |
-            ${{ env.POETRY_PROJECT_PATH }}/dist/${{ inputs.poetry-package-name }}
 
       - name: Restore Build Registry
         id: build-registry
-        uses: ./.github/actions/package-registry/restore
+        uses: ./.github/actions/registry/restore
         with:
           path: ${{ inputs.builds-registry-path }}
           key: ${{ inputs.builds-registry-key }}
