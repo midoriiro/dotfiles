@@ -24,12 +24,6 @@ runs:
       run: |
         pip install asyncpg
 
-    - name: Format Mutex Key
-      id: format-mutex-key
-      uses: ./.github/actions/mutex/format-key
-      with:
-        key: ${{ inputs.key }}
-
     - name: Wait for Mutex Key
       env:
         MUTEX_KEY: ${{ steps.format-mutex-key.outputs.key }}
