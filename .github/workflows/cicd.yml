@@ -64,10 +64,10 @@ jobs:
               # 'macos-latest'
             ],
             "python-version": [
-              # '3.9', 
-              # '3.10', 
-              # '3.11', 
-              # '3.12', 
+              '3.9', 
+              '3.10', 
+              '3.11', 
+              '3.12', 
               '3.13'
             ]
           }
@@ -113,7 +113,7 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-        
+
       - name: Clean Mutexes
         uses: ./.github/actions/mutex/clean
         with:

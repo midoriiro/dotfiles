@@ -87,7 +87,6 @@ runs:
       run: |
         mkdir --parents ${{ env.REGISTRY_PATH }}
         touch ${{ env.REGISTRY_PATH }}/${{ env.REGISTRY_KEY }}
-        ls -la ${{ env.REGISTRY_PATH }}
         echo "✅ Added registry to clean operation list with key: ${{ env.REGISTRY_KEY }}"
 
     - name: Delete Previous Self Registry
