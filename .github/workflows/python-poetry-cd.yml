@@ -28,8 +28,24 @@ env:
   POETRY_PROJECT_PATH: ${{ inputs.poetry-project-path }}
 
 jobs:
+  package:
+    name: Package
+    runs-on: ubuntu-latest
+    # if: github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.base_ref == 'main'
+
+    steps:
+      - name: Restore Build Registry
+        id: build-registry
+        uses: ./.github/actions/registry/restore
+        with:
+          path: ${{ inputs.builds-registry-path }}
+          key: ${{ inputs.builds-registry-key }}
+
+      - name: List Build Registry
+        run: |
+          ls -la ${{ steps.build-registry.outputs.path }}
   release:
-    name: Release Package
+    name: Release
     runs-on: ubuntu-latest
     # if: github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.base_ref == 'main'
 
@@ -44,24 +60,12 @@ jobs:
           pipx-tools: '["poetry"]'
           poetry-dependency-groups: '["main", "dev"]'
 
-
       - name: Bump Version
         uses: ./.github/actions/python/poetry/version  
 
       - name: Get Version
         id: info
         uses: ./.github/actions/python/poetry/info
-
-      - name: Restore Build Registry
-        id: build-registry
-        uses: ./.github/actions/registry/restore
-        with:
-          path: ${{ inputs.builds-registry-path }}
-          key: ${{ inputs.builds-registry-key }}
-
-      - name: List Build Registry
-        run: |
-          ls -la ${{ steps.build-registry.outputs.path }}
 
       - name: Commit Version Changes
         run: |

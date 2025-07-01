@@ -192,7 +192,7 @@ jobs:
           path: ${{ inputs.builds-registry-path }}
           key: ${{ inputs.builds-registry-key }}
 
-      - name: Add Build Artifacts to Registry
+      - name: Add Build Artifacts to Build Registry
         env: 
           REGISTRY_PATH: ${{ steps.build-registry.outputs.path }}
           BUILD_ARTIFACTS_REGISTRY_KEY: ${{ steps.build-artifacts.outputs.artifacts-registry-key }}
@@ -206,7 +206,7 @@ jobs:
             exit 1
           fi
 
-      - name: Save Build Artifacts to Registry
+      - name: Save Build Registry
         uses: ./.github/actions/registry/save
         with:
           path: ${{ inputs.builds-registry-path }}
