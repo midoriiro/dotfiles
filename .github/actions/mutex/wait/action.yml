@@ -32,30 +32,42 @@ runs:
       shell: bash
       run: |
         echo "🔍 Getting mutex with key '${{ env.MUTEX_KEY }}'"
-        RESULT=$(gh variable get '${{ env.MUTEX_KEY }}' --json name --jq '.name' 2>/dev/null || echo '')
         START_TIME=$(date +%s)
         ELAPSED_TIME=0
-        while [ -n "$RESULT" ]; do
-          sleep 1
-          CURRENT_TIME=$(date +%s)
-          ELAPSED_TIME=$((CURRENT_TIME - START_TIME))
-          if [ "$ELAPSED_TIME" -gt "$TIMEOUT" ]; then
-            echo "❌ Timeout waiting for mutex to be released"
-            exit 1
-          fi
-          echo "🔍 Getting mutex with key '${{ env.MUTEX_KEY }}' again after $ELAPSED_TIME seconds"
+        
+        # Try to acquire the mutex with retry logic
+        while true; do
+          # Check if mutex is already locked
           RESULT=$(gh variable get '${{ env.MUTEX_KEY }}' --json name --jq '.name' 2>/dev/null || echo '')
+          
+          if [ -n "$RESULT" ]; then
+            # Mutex is locked, wait and retry
+            sleep 1
+            CURRENT_TIME=$(date +%s)
+            ELAPSED_TIME=$((CURRENT_TIME - START_TIME))
+            if [ "$ELAPSED_TIME" -gt "$TIMEOUT" ]; then
+              echo "❌ Timeout waiting for mutex to be released"
+              exit 1
+            fi
+            echo "🔍 Mutex is locked, waiting... (${ELAPSED_TIME}s elapsed)"
+            continue
+          fi
+          
+          # Try to acquire the mutex
+          echo "🔒 Attempting to acquire mutex..."
+          if gh variable set "${{ env.MUTEX_KEY }}" --body "true" 2>/dev/null; then
+            # Successfully acquired the mutex
+            echo "✅ Mutex acquired with key '${{ env.MUTEX_KEY }}'"
+            break
+          else
+            # Failed to acquire, another job got it first
+            echo "⚠️ Failed to acquire mutex, retrying..."
+            sleep 1
+            CURRENT_TIME=$(date +%s)
+            ELAPSED_TIME=$((CURRENT_TIME - START_TIME))
+            if [ "$ELAPSED_TIME" -gt "$TIMEOUT" ]; then
+              echo "❌ Timeout waiting for mutex to be released"
+              exit 1
+            fi
+          fi
         done
-
-        if [ "$ELAPSED_TIME" -eq 0 ]; then
-          echo "✅ Mutex was not locked"
-        else
-          echo "✅ Mutex was released after $ELAPSED_TIME seconds"
-        fi
-
-        gh variable set "${{ env.MUTEX_KEY }}" --body "true"
-
-        RESULT=$(gh variable get '${{ env.MUTEX_KEY }}' --json name --jq '.name' 2>/dev/null || echo '')
-        echo "🔍 Result: $RESULT"
-
-        echo "✅ Mutex acquired with key '${{ env.MUTEX_KEY }}'"
