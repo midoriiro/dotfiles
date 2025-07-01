@@ -34,10 +34,9 @@ runs:
         path: ${{ inputs.path }}
         key: ${{ inputs.key }}
 
-    - name: Wait for Lock Release
-      uses: ./.github/actions/registry/wait
+    - name: Wait for Mutex Release
+      uses: ./.github/actions/mutex/wait
       with:
-        path: ${{ inputs.path }}
         key: ${{ inputs.key }}
         timeout: 60
 
@@ -56,8 +55,8 @@ runs:
         path: ${{ steps.registry.outputs.path }}
         key: ${{ steps.registry.outputs.key }}
 
-    - name: Release Lock
+    - name: Release Mutex
       if: always()
-      uses: ./.github/actions/registry/release
+      uses: ./.github/actions/mutex/release
       with:
         key: ${{ inputs.key }}

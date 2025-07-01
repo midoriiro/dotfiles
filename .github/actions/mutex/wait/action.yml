@@ -1,0 +1,49 @@
+name: 'Wait Mutex Lock Release'
+description: 'Wait Mutex Lock Release'
+
+inputs:
+  key:
+    description: 'Key of the mutex'
+    required: true
+    type: string
+  timeout:
+    description: 'Timeout in seconds'
+    required: false
+    type: number
+    default: 60 
+
+runs:
+  using: composite
+  steps:
+    - name: Wait for Lock Key
+      env:
+        LOCK_KEY: ${{ inputs.key }}
+        TIMEOUT: ${{ inputs.timeout }}
+        GH_TOKEN: ${{ env.GITHUB_TOKEN }}
+      shell: bash
+      run: |
+        CURRENT_LOCK=$(gh api /repos/${{ github.repository }}/actions/variables/$LOCK_KEY \
+          --jq ".name" 2>/dev/null || echo "")
+
+        START_TIME=$(date +%s)
+        while [ -n "$CURRENT_LOCK" ]; do
+          sleep 1
+          CURRENT_TIME=$(date +%s)
+          ELAPSED_TIME=$((CURRENT_TIME - START_TIME))
+          if [ "$ELAPSED_TIME" -gt "$TIMEOUT" ]; then
+            echo "❌ Timeout waiting for lock file to be released"
+            exit 1
+          fi
+        done
+        if [ -n "$CURRENT_LOCK" ]; then
+          echo "✅ Mutex was not locked"
+        else
+          echo "✅ Mutex was released after $ELAPSED_TIME seconds"
+        fi
+
+        gh api /repos/${{ github.repository }}/actions/variables \
+          --method POST \
+          --field name="$LOCK_KEY" \
+          --field value="true"
+
+        echo "✅ Mutex acquired with key '$LOCK_KEY'"

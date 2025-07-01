@@ -82,26 +82,9 @@ jobs:
           with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
             f.write(f"result={matrix_data}\n")
 
-  init-registries:
-    name: Init Registries - ${{ matrix.projects.package-name }}
-    needs: [matrix]
-    runs-on: ubuntu-latest
-    strategy:
-      matrix: 
-        projects: ${{ fromJSON(needs.matrix.outputs.project-result) }}
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Init Registries
-        uses: ./.github/actions/registry/init
-        with:
-          path: ${{ matrix.projects.builds-registry-path }}
-          key: ${{ matrix.projects.builds-registry-key }}
-
   ci:
     name: CI - ${{ matrix.poetry-projects.package-name }} (${{ matrix.os }}-${{ matrix.python-version }})
-    needs: [matrix, init-registries]
+    needs: matrix
     strategy:
       matrix: ${{ fromJSON(needs.matrix.outputs.result) }}
     uses: ./.github/workflows/python-poetry-ci.yml

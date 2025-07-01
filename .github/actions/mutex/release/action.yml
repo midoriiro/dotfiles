@@ -1,0 +1,21 @@
+name: 'Release Mutex Lock'
+description: 'Release Mutex Lock'
+
+inputs:
+  key:
+    description: 'Key of the mutex'
+    required: true
+    type: string 
+
+runs:
+  using: composite
+  steps:
+    - name: Release Mutex
+      env:
+        LOCK_KEY: ${{ inputs.key }}
+        GH_TOKEN: ${{ env.GITHUB_TOKEN }}
+      shell: bash
+      run: |
+        gh api /repos/${{ github.repository }}/actions/variables/$LOCK_KEY \
+          --method DELETE
+        echo "✅ Mutex released with key '$LOCK_KEY'"
