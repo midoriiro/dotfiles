@@ -27,8 +27,8 @@ runs:
         lock_key = ${{ env.LOCK_KEY }}
 
         for char in lock_key:
-          if char.isalnum() == False or char != '_':
-            char = '_'
+          if char.isalnum() == False and char != '_':
+            lock_key = lock_key.replace(char, '_')
         
         with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
           f.write(f'key={lock_key}\n')
