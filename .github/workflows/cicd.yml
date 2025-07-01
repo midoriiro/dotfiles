@@ -7,14 +7,14 @@ on:
     branches: [ main, ci-cd-pipeline ]
 
 jobs:
-  init-mutex:
-    name: Init Mutex
+  mutex:
+    name: Initialize Mutex
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Init Mutex
+      - name: Initialize Mutex
         uses: ./.github/actions/mutex/init
         with:
           database-connection-uri: ${{ secrets.POSTGRESQL_CONNECTION_URI }}
@@ -90,7 +90,7 @@ jobs:
 
   ci:
     name: CI - ${{ matrix.poetry-projects.package-name }} (${{ matrix.os }}-${{ matrix.python-version }})
-    needs: matrix
+    needs: [mutex, matrix]
     strategy:
       matrix: ${{ fromJSON(needs.matrix.outputs.result) }}
     uses: ./.github/workflows/python-poetry-ci.yml

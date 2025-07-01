@@ -46,7 +46,7 @@ runs:
     - name: Wait for Registry Mutex Release
       uses: ./.github/actions/mutex/wait
       with:
-        key: ${{ inputs.key }}
+        key: ${{ steps.registry.outputs.key }}
         timeout: 60
         database-connection-uri: ${{ inputs.database-connection-uri }}
 
@@ -132,5 +132,5 @@ runs:
       if: always()
       uses: ./.github/actions/mutex/release
       with:
-        key: ${{ inputs.key }}
+        key: ${{ steps.registry.outputs.key }}
         database-connection-uri: ${{ inputs.database-connection-uri }}

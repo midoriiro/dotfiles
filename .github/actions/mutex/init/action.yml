@@ -1,5 +1,5 @@
-name: 'Init Mutex'
-description: 'Init Mutex'
+name: 'Initialize Mutex'
+description: 'Initialize Mutex'
 
 inputs:
   database-connection-uri:
