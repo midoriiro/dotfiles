@@ -89,6 +89,8 @@ jobs:
         poetry-package-name: ${{ matrix.poetry-projects.package-name }}
         builds-registry-path: ${{ matrix.poetry-projects.builds-registry-path }}
         builds-registry-key: ${{ matrix.poetry-projects.builds-registry-key }}
+    secrets:
+      access-token: ${{ secrets.PAT_TOKEN }}
 
   cd:
     name: CD - ${{ matrix.projects.package-name }}

@@ -16,6 +16,11 @@ inputs:
     type: boolean
     default: true
 
+secrets:
+  access-token:
+    description: 'A token passed from the caller'
+    required: true
+
 outputs:
   path:
     description: 'Path to the registry'
@@ -44,7 +49,7 @@ runs:
       if: ${{ inputs.delete-previous-cache == 'true' }}
       env:
         CACHE_KEY: ${{ steps.registry.outputs.key }}
-        GH_TOKEN: ${{ env.PAT_TOKEN }}
+        GH_TOKEN: ${{ secrets.access-token }}
       shell: bash
       run: |
         gh cache delete "${{ env.CACHE_KEY }}" || exit 0

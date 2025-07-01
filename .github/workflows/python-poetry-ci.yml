@@ -27,6 +27,10 @@ on:
         description: 'Key to the builds registry'
         required: true
         type: string
+    secrets:
+      access-token:
+        description: 'A token passed from the caller workflow'
+        required: true
 
 env:
   PYTHON_VERSION: ${{ inputs.python-version }}
@@ -187,6 +191,7 @@ jobs:
         uses: ./.github/actions/python/poetry/build
         with:
           build-script: build
+          access-token: ${{ secrets.access-token }}
 
       - name: Restore Build Registry
         id: build-registry
@@ -214,4 +219,5 @@ jobs:
         with:
           path: ${{ inputs.builds-registry-path }}
           key: ${{ inputs.builds-registry-key }}
+          access-token: ${{ secrets.access-token }}
           

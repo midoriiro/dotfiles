@@ -7,13 +7,18 @@ inputs:
     required: true
     type: string 
 
+secrets:
+  access-token:
+    description: 'A token passed from the caller'
+    required: true
+
 runs:
   using: composite
   steps:
     - name: Release Mutex
       env:
         LOCK_KEY: ${{ inputs.key }}
-        GH_TOKEN: ${{ env.PAT_TOKEN }}
+        GH_TOKEN: ${{ secrets.access-token }}
       shell: bash
       run: |
         gh api /repos/${{ github.repository }}/actions/variables/$LOCK_KEY \
