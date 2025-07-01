@@ -111,6 +111,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ci, cd]
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
       - name: Clean Mutexes
         uses: ./.github/actions/mutex/clean
         with:
