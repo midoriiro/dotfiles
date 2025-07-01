@@ -60,7 +60,7 @@ jobs:
     name: CI/CD Poetry Projects (${{ matrix.path }})
     needs: [matrix]
     strategy:
-      matrix: ${{ fromJSON(needs.matrix.outputs.result.poetry-projects) }}
+      matrix: ${{ fromJSON(needs.matrix.outputs.result).poetry-projects }}
     uses: ./.github/workflows/python-poetry-cicd.yml
     with:
         poetry-project-path: ${{ matrix.path }}
