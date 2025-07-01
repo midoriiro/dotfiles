@@ -33,6 +33,7 @@ on:
         required: true
 
 env:
+  PYTHONIOENCODING: 'utf-8'
   PYTHON_VERSION: ${{ inputs.python-version }}
   # Some composite actions related to Poetry are sensitive to working-directory,
   # but to simplify access to them, Poetry project path need to be set via an
