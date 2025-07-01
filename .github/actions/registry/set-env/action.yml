@@ -33,9 +33,10 @@ runs:
         HOME_DIR: ${{ steps.home-directory.outputs.path }}
       run: |        
         # Set paths
-        REGISTRY_PATH="$HOME_DIR/.local/registry/${{ inputs.path }}"
+        REGISTRY_HOME="$HOME_DIR/.local/registry"
+        REGISTRY_PATH="$REGISTRY_HOME/${{ inputs.path }}"
         REGISTRY_KEY="registry-${{ inputs.key }}-${{ github.workflow_sha }}"
-        REGISTRY_LOCKS_PATH="$REGISTRY_PATH/locks"
+        REGISTRY_LOCKS_PATH="$REGISTRY_HOME/locks"
         
         # Create directories if they don't exist
         mkdir --parents "$REGISTRY_PATH"
@@ -47,6 +48,7 @@ runs:
         echo "lock=${REGISTRY_LOCKS_PATH}/${{ inputs.key }}.lock" >> $GITHUB_OUTPUT
 
         # Debug output
-        echo "REGISTRY_PATH: $REGISTRY_PATH"
-        echo "REGISTRY_KEY: $REGISTRY_KEY"
-        echo "REGISTRY_LOCKS_PATH: $REGISTRY_LOCKS_PATH"
+        echo "✅ REGISTRY_HOME: $REGISTRY_HOME"
+        echo "✅ REGISTRY_PATH: $REGISTRY_PATH"
+        echo "✅ REGISTRY_KEY: $REGISTRY_KEY"
+        echo "✅ REGISTRY_LOCKS_PATH: $REGISTRY_LOCKS_PATH"

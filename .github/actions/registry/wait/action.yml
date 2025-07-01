@@ -43,7 +43,11 @@ runs:
             exit 1
           fi
         done
-        echo "✅ Lock file was released after $ELAPSED_TIME seconds"
+        if [ ! -f "$LOCK_FILE" ]; then
+          echo "✅ Lock file was not locked"
+        else
+          echo "✅ Lock file was released after $ELAPSED_TIME seconds"
+        fi
 
     - name: Acquire Lock
       env:

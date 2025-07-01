@@ -33,6 +33,8 @@ runs:
       run: |
         if [[ "${{ runner.os }}" == "Windows" ]]; then
           echo "path=${{ steps.home-directory-windows.outputs.path }}" >> $GITHUB_OUTPUT
+          echo "✅ Windows home directory: ${{ steps.home-directory-windows.outputs.path }}"
         else
           echo "path=${{ steps.home-directory-unix.outputs.path }}" >> $GITHUB_OUTPUT
+          echo "✅ Unix home directory: ${{ steps.home-directory-unix.outputs.path }}"
         fi

@@ -20,7 +20,7 @@ runs:
       shell: bash
       run: |
         if [ -z "$TOOLS" ]; then
-          echo "Tools list is empty"
+          echo "❌ Tools list is empty"
           exit 1
         fi
 
@@ -49,9 +49,9 @@ runs:
         echo "$PIPX_BIN_DIR" >> $GITHUB_PATH
         
         # Debug output
-        echo "PIPX_HOME: $PIPX_HOME"
-        echo "PIPX_BIN_DIR: $PIPX_BIN_DIR"
-        echo "Github PATH:"
+        echo "✅ PIPX_HOME: $PIPX_HOME"
+        echo "✅ PIPX_BIN_DIR: $PIPX_BIN_DIR"
+        echo "✅ Github PATH:"
         cat $GITHUB_PATH
 
     - name: Restore Pipx cache
@@ -73,9 +73,11 @@ runs:
       env:
         PIPX_HOME: ${{ env.PIPX_HOME }}
         PIPX_BIN_DIR: ${{ env.PIPX_BIN_DIR }}
+        TOOLS: ${{ join( fromJSON(inputs.tools), ' ' ) }}
       shell: bash
       run: |
-        pipx install ${{ join( fromJSON(inputs.tools), ' ' ) }}
+        pipx install ${{ env.TOOLS }}
+        echo "✅ Installed tools: ${{ env.TOOLS }}"
 
     - name: Save Pipx cache
       if: ${{ steps.cached-pipx.outputs.cache-hit != 'true' }}

@@ -24,3 +24,10 @@ runs:
         PROJECT_VERSION=$(poetry version | awk {'print $2'})
         echo "project-name=${PROJECT_NAME}" >> $GITHUB_OUTPUT
         echo "project-version=${PROJECT_VERSION}" >> $GITHUB_OUTPUT
+
+    - name: Finalize
+      shell: bash
+      run: |
+        echo "✅ Poetry project info:"
+        echo "✅ Project name: ${{ steps.poetry-info.outputs.project-name }}"
+        echo "✅ Project version: ${{ steps.poetry-info.outputs.project-version }}"

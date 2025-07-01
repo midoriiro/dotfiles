@@ -28,4 +28,4 @@ runs:
       shell: bash
       run: |
         rm -f "$LOCK_FILE"
-        echo "Lock file released at $LOCK_FILE"
+        echo "✅ Lock file released at $LOCK_FILE"

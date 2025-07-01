@@ -46,8 +46,8 @@ runs:
         echo "POETRY_CACHE_DIR=$POETRY_CACHE_DIR" >> $GITHUB_ENV
 
         # Debug output
-        echo "POETRY_HOME: $POETRY_HOME"
-        echo "POETRY_CACHE_DIR: $POETRY_CACHE_DIR"
+        echo "✅ POETRY_HOME: $POETRY_HOME"
+        echo "✅ POETRY_CACHE_DIR: $POETRY_CACHE_DIR"
 
     - name: Get dependency groups hash
       id: dependency-groups-hash

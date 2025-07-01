@@ -38,5 +38,10 @@ runs:
           PYTEST_CMD="$PYTEST_CMD --numprocesses=auto"
         fi
         PYTEST_CMD="$PYTEST_CMD --verbose $ADDITIONAL_PYTEST_OPTIONS"
-        echo "Running pytest command: $PYTEST_CMD"
+        echo "✅ Running pytest command: $PYTEST_CMD"
         $PYTEST_CMD
+
+    - name: Finalize
+      shell: bash
+      run: |
+        echo "✅ Pytest completed"

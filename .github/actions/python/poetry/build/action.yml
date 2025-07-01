@@ -44,3 +44,8 @@ runs:
       with:
         path: ${{ env.POETRY_PROJECT_PATH }}/dist
         key: artifacts-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ steps.poetry-info.outputs.project-name }}-${{ steps.poetry-info.outputs.project-version }}
+
+    - name: Finalize
+      shell: bash
+      run: |
+        echo "✅ Build artifacts to registry key: ${{ steps.save-artifacts.outputs.key }}"
