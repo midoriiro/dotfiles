@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ main, ci-cd-pipeline ]
 
+permissions:
+  contents: write
+  actions: write
+
 jobs:
   mutex:
     name: Mutex Definitions
