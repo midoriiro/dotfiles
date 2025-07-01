@@ -42,9 +42,9 @@ jobs:
         run: |
           import json
           import os
-          poetry_projects = {}
+          poetry_projects = []
           if '${{ env.IGNITE_PROJECT_CHANGED }}' == 'true':
-            poetry_projects['ignite'] = {
+            poetry_projects.append({
               'path': 'tools/ignite',
               'package-name': 'ignite'
             }
