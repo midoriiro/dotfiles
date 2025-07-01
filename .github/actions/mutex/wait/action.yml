@@ -34,12 +34,14 @@ runs:
         GET_MUTEX_COMMAND='gh variable get "${{ env.MUTEX_KEY }}" --jq ".name" || echo ""'
         echo "🔍 Getting mutex with key '${{ env.MUTEX_KEY }}'"
         RESULT=$($GET_MUTEX_COMMAND)
-
+        echo "🔍 Result: $RESULT"
         START_TIME=$(date +%s)
+        echo "🔍 Start time: $START_TIME"
         while [ -n "$RESULT" ]; do
           sleep 1
           CURRENT_TIME=$(date +%s)
           ELAPSED_TIME=$((CURRENT_TIME - START_TIME))
+          echo "🔍 Elapsed time: $ELAPSED_TIME"
           if [ "$ELAPSED_TIME" -gt "$TIMEOUT" ]; then
             echo "❌ Timeout waiting for mutex to be released"
             exit 1
