@@ -31,7 +31,7 @@ runs:
         GH_TOKEN: ${{ inputs.access-token }}
       shell: bash
       run: |
-        GET_MUTEX_COMMAND='gh variable get "${{ env.MUTEX_KEY }}" --jq ".name" || echo ""'
+        GET_MUTEX_COMMAND='gh variable get ${{ env.MUTEX_KEY }} --jq ".name" || echo ""'
         RESULT=$($GET_MUTEX_COMMAND)
 
         START_TIME=$(date +%s)
