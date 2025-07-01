@@ -107,7 +107,7 @@ runs:
                 raise ValueError('RUN_ID environment variable is not set')
             
             # Create unique holder ID
-            holder_id = f"{job_id}-{run_id}-{uuid.uuid4().hex[:8]}"
+            holder_id = f"{job_id}-{run_id}"
             
             print(f"🔍 Getting mutex with key '{mutex_key}'")
             
