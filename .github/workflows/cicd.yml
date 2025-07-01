@@ -13,8 +13,8 @@ permissions:
   actions: write
 
 jobs:
-  python-matrix:
-    name: (Python) Matrix Definition
+  matrix:
+    name: Matrix Definitions
     runs-on: ubuntu-latest
     outputs:
       project-result: ${{ steps.set-project-matrix.outputs.result }}
@@ -84,9 +84,9 @@ jobs:
 
   ci:
     name: CI - Python (${{ matrix.poetry-projects.package-name }}-${{ matrix.os }}-${{ matrix.python-version }})
-    needs: [python-matrix]
+    needs: [matrix]
     strategy:
-      matrix: ${{ fromJSON(needs.python-matrix.outputs.result) }}
+      matrix: ${{ fromJSON(needs.matrix.outputs.result) }}
     uses: ./.github/workflows/python-poetry-ci.yml
     with:
         os: ${{ matrix.os }}
@@ -98,10 +98,10 @@ jobs:
 
   cd:
     name: CD - Python (${{ matrix.projects.package-name }})
-    needs: [ci, python-matrix]
+    needs: [ci, matrix]
     strategy:
       matrix: 
-        projects: ${{ fromJSON(needs.python-matrix.outputs.project-result) }}
+        projects: ${{ fromJSON(needs.matrix.outputs.project-result) }}
     uses: ./.github/workflows/python-poetry-cd.yml
     with:
       python-version: '3.13'
