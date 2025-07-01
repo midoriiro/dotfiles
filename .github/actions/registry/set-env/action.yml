@@ -18,6 +18,9 @@ outputs:
   key:
     description: 'The cache key for the registry'
     value: ${{ steps.registry.outputs.key }}
+  locks-path:
+    description: 'The path to the locks cache'
+    value: ${{ steps.registry.outputs.locks-path }}
   lock:
     description: 'The lock file for the registry'
     value: ${{ steps.registry.outputs.lock }}
