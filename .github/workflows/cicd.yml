@@ -1,0 +1,59 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, ci-cd-pipeline ]
+    paths:
+      - 'tools/ignite/**'
+  pull_request:
+    branches: [ main, ci-cd-pipeline ]
+    paths:
+      - 'tools/ignite/**'
+
+jobs:
+  matrix:
+    name: Matrix Definition
+    runs-on: ubuntu-latest
+    outputs:
+      result: ${{ steps.set-matrix.outputs.result }}
+    steps:
+      - name: Detect Changes
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            ignite:
+              - 'tools/ignite/**'
+
+      - name: Set Matrix
+        id: set-matrix
+        env:
+          IGNITE_PROJECT_CHANGED: ${{ steps.filter.outputs.ignite }}
+        shell: python
+        run: |
+          import json
+          import os
+          poetry_projects = {}
+          if os.environ['IGNITE_PROJECT_CHANGED'] == 'true':
+            poetry_projects['ignite'] = {
+              'path': 'tools/ignite',
+              'package-name': 'ignite'
+            }
+          matrix = {
+            "poetry-projects": poetry_projects,
+          }
+          matrix_data = json.dumps(matrix)
+          print(matrix_data)
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+            f.write(f"result={matrix_data}\n")
+
+  cicd:
+    name: CI/CD Poetry Projects (${{ matrix.poetry-projects.path }})
+    needs: [matrix]
+    strategy:
+      matrix: ${{ fromJSON(needs.matrix.outputs.result) }}
+    uses: ./.github/workflows/python-poetry-cicd.yml
+    with:
+        poetry-project-path: ${{ matrix.poetry-projects.path }}
+        poetry-package-name: ${{ matrix.poetry-projects.package-name }}
+      

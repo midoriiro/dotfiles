@@ -1,12 +1,6 @@
 name: Python Poetry CI/CD Pipeline
 
 on:
-  push:
-    branches: [ main, ci-cd-pipeline ]
-    tags:
-      - v*.*.*
-  pull_request:
-    branches: [ main, ci-cd-pipeline ]
   workflow_call:
     inputs:
       python-version:
