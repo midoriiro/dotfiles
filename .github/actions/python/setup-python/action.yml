@@ -1,0 +1,26 @@
+name: 'Setup Python Environment'
+description: 'Setup Python, Pipx and Poetry dependencies'
+
+runs:
+  using: composite
+  steps:
+    - name: Check Python Version
+      uses: ./.github/actions/python/check
+
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Check Installed Python Version
+      shell: bash
+      run: |
+        INSTALLED_PYTHON_VERSION=$(python --version)
+        echo "✅ Installed Python Version: $INSTALLED_PYTHON_VERSION"
+        if [[ $INSTALLED_PYTHON_VERSION == *"${{ env.PYTHON_VERSION }}"* ]]; then
+          echo "✅ Installed Python Version matches PYTHON_VERSION"
+        else
+          echo "❌ Error: Installed Python Version does not match PYTHON_VERSION"
+          echo "Installed python version:"
+          exit 1
+        fi
