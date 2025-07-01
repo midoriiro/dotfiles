@@ -18,31 +18,20 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Format Lock Key
-      id: format-lock-key
+    - name: Format Mutex Key
+      id: format-mutex-key
+      uses: ./.github/actions/mutex/format-key
+      with:
+        key: ${{ inputs.key }}
+
+    - name: Wait for Mutex Key
       env:
-        LOCK_KEY: ${{ inputs.key }}
-      shell: python
-      run: |
-        import os
-
-        lock_key = "${{ env.LOCK_KEY }}"
-
-        for char in lock_key:
-          if char.isalnum() == False and char != '_':
-            lock_key = lock_key.replace(char, '_')
-        
-        with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
-          f.write(f'key={lock_key}\n')
-
-    - name: Wait for Lock Key
-      env:
-        LOCK_KEY: ${{ steps.format-lock-key.outputs.key }}
+        MUTEX_KEY: ${{ steps.format-mutex-key.outputs.key }}
         TIMEOUT: ${{ inputs.timeout }}
         GH_TOKEN: ${{ inputs.access-token }}
       shell: bash
       run: |
-        GET_LOCK_COMMAND='gh variable get $LOCK_KEY --jq ".name" 2>/dev/null || echo ""'
+        GET_LOCK_COMMAND='gh variable get $MUTEX_KEY --jq ".name" 2>/dev/null || echo ""'
 
         START_TIME=$(date +%s)
         while [ -n "$($GET_LOCK_COMMAND)" ]; do
@@ -50,7 +39,7 @@ runs:
           CURRENT_TIME=$(date +%s)
           ELAPSED_TIME=$((CURRENT_TIME - START_TIME))
           if [ "$ELAPSED_TIME" -gt "$TIMEOUT" ]; then
-            echo "❌ Timeout waiting for lock file to be released"
+            echo "❌ Timeout waiting for mutex to be released"
             exit 1
           fi
         done
@@ -61,6 +50,6 @@ runs:
           echo "✅ Mutex was released after $ELAPSED_TIME seconds"
         fi
 
-        gh variable set "$LOCK_KEY" --body "true"
+        gh variable set "$MUTEX_KEY" --body "true"
 
-        echo "✅ Mutex acquired with key '$LOCK_KEY'"
+        echo "✅ Mutex acquired with key '$MUTEX_KEY'"

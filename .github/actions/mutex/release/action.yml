@@ -13,11 +13,17 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Format Mutex Key
+      id: format-mutex-key
+      uses: ./.github/actions/mutex/format-key
+      with:
+        key: ${{ inputs.key }}
+
     - name: Release Mutex
       env:
-        LOCK_KEY: ${{ inputs.key }}
+        MUTEX_KEY: ${{ steps.format-mutex-key.outputs.key }}
         GH_TOKEN: ${{ inputs.access-token }}
       shell: bash
       run: |
-        gh variable delete "$LOCK_KEY"
-        echo "✅ Mutex released with key '$LOCK_KEY'"
+        gh variable delete "$MUTEX_KEY"
+        echo "✅ Mutex released with key '$MUTEX_KEY'"
