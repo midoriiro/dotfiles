@@ -12,7 +12,7 @@ runs:
   using: composite
   steps:
     - name: Check Python Version
-      uses: ./.github/actions/python/version/check
+      uses: ./.github/actions/python/check
 
     - name: Check tools is not empty list
       env:
