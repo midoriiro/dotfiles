@@ -22,13 +22,13 @@ runs:
 
     - name: Restore Self Registry
       id: self-registry
-      uses: actions/cache/save@v4
+      uses: actions/cache/restore@v4
       with:
         path: ${{ steps.registry.outputs.self-path }}
         key: ${{ steps.registry.outputs.self-key }}
 
     - name: Delete Registries
-      if: steps.self-registry.outputs.cache-hit == 'true'
+      if: ${{ steps.self-registry.outputs.cache-hit == 'true' }}
       env:
         CLEAN_DIR: ${{ steps.registry.outputs.self-path }}/clean
         GH_TOKEN: ${{ inputs.access-token }}
@@ -59,7 +59,7 @@ runs:
         fi
 
     - name: Delete Self Registry
-      if: steps.self-registry.outputs.cache-hit == 'true'
+      if: ${{ steps.self-registry.outputs.cache-hit == 'true' }}
       env:
         CACHE_KEY: ${{ steps.registry.outputs.self-key }}
         GH_TOKEN: ${{ inputs.access-token }}
