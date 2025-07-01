@@ -220,6 +220,12 @@ jobs:
             exit 1
           fi
 
+      - name: Release Build Mutex
+        uses: ./.github/actions/mutex/release
+        with:
+          key: ${{ inputs.builds-registry-key }}
+          access-token: ${{ secrets.access-token }}
+
       - name: Save Build Registry
         uses: ./.github/actions/registry/save
         with:
@@ -227,9 +233,3 @@ jobs:
           key: ${{ inputs.builds-registry-key }}
           access-token: ${{ secrets.access-token }}
           clean: true
-
-      - name: Release Build Mutex
-        uses: ./.github/actions/mutex/release
-        with:
-          key: ${{ inputs.builds-registry-key }}
-          access-token: ${{ secrets.access-token }}
