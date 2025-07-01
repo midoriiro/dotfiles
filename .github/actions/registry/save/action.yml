@@ -44,7 +44,7 @@ runs:
       if: ${{ inputs.delete-previous-cache == 'true' }}
       env:
         CACHE_KEY: ${{ steps.registry.outputs.key }}
-        GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+        GH_TOKEN: ${{ env.PAT_TOKEN }}
       shell: bash
       run: |
         gh cache delete "${{ env.CACHE_KEY }}" || exit 0
