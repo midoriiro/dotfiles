@@ -9,7 +9,7 @@ on:
 permissions:
   # required for github cli cache command
   # required for registry actions
-  contents: read
+  contents: write
   actions: write
 
 jobs:
