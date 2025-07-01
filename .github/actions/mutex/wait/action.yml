@@ -44,6 +44,6 @@ runs:
           echo "✅ Mutex was released after $ELAPSED_TIME seconds"
         fi
 
-        gh variable set "$LOCK_KEY"
+        gh variable set "$LOCK_KEY" --body "true"
 
         echo "✅ Mutex acquired with key '$LOCK_KEY'"
