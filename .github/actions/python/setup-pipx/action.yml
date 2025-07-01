@@ -1,0 +1,122 @@
+name: 'Setup Python Pipx Environment'
+description: 'Setup Python, Pipx and tools'
+
+inputs:
+  tools:
+    description: 'Tools to install'
+    required: true
+    type: string
+
+runs:
+  using: composite
+  steps:
+    - name: Check Python Version
+      uses: ./.github/actions/python/check
+
+    - name: Check tools is not empty list
+      env:
+        TOOLS: ${{ inputs.tools }}
+      shell: bash
+      run: |
+        if [ -z "$TOOLS" ]; then
+          echo "❌ Tools list is empty"
+          exit 1
+        fi
+
+    - name: Get Tools
+      id: tools
+      shell: python
+      run: |
+        import os
+        tools = "${{ inputs.tools }}"
+        tools = tools.split(',')
+        tools = [tool.strip() for tool in tools]
+        with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+          f.write(f"with-dashes={'-'.join(tools)}\n")
+          f.write(f"with-spaces={' '.join(tools)}\n")
+
+    - name: Generate Pipx Registry Environment Variables
+      id: pipx-registry-env
+      env:
+        TOOLS_DASHES: ${{ steps.tools.outputs.with-dashes }}
+      shell: bash
+      run: |        
+        # Set pipx
+        REGISTRY_PATH="pipx"
+        REGISTRY_KEY="python-pipx"
+        REGISTRY_KEY="$REGISTRY_KEY-${{ runner.os }}-${{ env.PYTHON_VERSION }}"
+        REGISTRY_KEY="$REGISTRY_KEY-with-$TOOLS_DASHES"
+        
+        # Set pipx environment variables
+        echo "path=$REGISTRY_PATH" >> $GITHUB_OUTPUT
+        echo "key=$REGISTRY_KEY" >> $GITHUB_OUTPUT
+        
+        # Debug output
+        echo "✅ REGISTRY_PATH: $REGISTRY_PATH"
+        echo "✅ REGISTRY_KEY: $REGISTRY_KEY"
+
+    - name: Restore Pipx Cache
+      id: pipx-cache
+      uses: ./.github/actions/registry/restore
+      with:
+        path: ${{ steps.pipx-registry-env.outputs.path }}
+        key: ${{ steps.pipx-registry-env.outputs.key }}
+
+    - name: Generate Pipx Environment Variables
+      id: pipx-env
+      shell: bash
+      env:
+        PIPX_HOME: ${{ steps.pipx-cache.outputs.path }}
+        TOOLS_DASHES: ${{ steps.tools.outputs.with-dashes }}
+        TOOLS_SPACES: ${{ steps.tools.outputs.with-spaces }}
+      run: |        
+        # Set pipx paths
+        PIPX_BIN_DIR="$PIPX_HOME/bin"
+        PIPX_TOOLS="$TOOLS_SPACES"
+
+        mkdir --parents $PIPX_HOME/bin
+        
+        # Set pipx environment variables
+        echo "PIPX_HOME=$PIPX_HOME" >> $GITHUB_ENV
+        echo "PIPX_BIN_DIR=$PIPX_BIN_DIR" >> $GITHUB_ENV
+        echo "PIPX_TOOLS=$PIPX_TOOLS" >> $GITHUB_ENV
+        
+        # Add pipx bin directory to PATH
+        echo "$PIPX_BIN_DIR" >> $GITHUB_PATH
+        
+        # Debug output
+        echo "✅ PIPX_HOME: $PIPX_HOME"
+        echo "✅ PIPX_BIN_DIR: $PIPX_BIN_DIR"
+        echo "✅ PIPX_TOOLS: $PIPX_TOOLS"
+        echo "✅ Github PATH:"
+        cat $GITHUB_PATH
+
+    - name: Install Pipx
+      if: ${{ steps.pipx-cache.outputs.cache-hit != 'true' }}
+      working-directory: ${{ steps.pipx-cache.outputs.path }}
+      shell: bash
+      run: |
+        python -m pip install --user pipx
+        python -m pipx ensurepath
+
+    - name: Install Tools
+      if: ${{ steps.pipx-cache.outputs.cache-hit != 'true' }}
+      working-directory: ${{ steps.pipx-cache.outputs.path }}
+      env:
+        TOOLS: ${{ env.PIPX_TOOLS }}
+      shell: bash
+      run: |
+        pipx install ${{ env.TOOLS }}
+        echo "✅ Installed tools: ${{ env.TOOLS }}"
+
+    - name: List Installed Tools
+      shell: bash
+      run: |
+        pipx list
+
+    - name: Save Pipx Cache
+      if: ${{ steps.pipx-cache.outputs.cache-hit != 'true' }}
+      uses: ./.github/actions/registry/save
+      with:
+        path: ${{ steps.pipx-registry-env.outputs.path }}
+        key: ${{ steps.pipx-registry-env.outputs.key }}
