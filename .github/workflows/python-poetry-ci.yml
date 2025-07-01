@@ -1,4 +1,4 @@
-name: Python Poetry CI/CD Pipeline
+name: Python Poetry CI Pipeline
 
 on:
   workflow_call:
