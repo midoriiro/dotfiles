@@ -61,9 +61,9 @@ runs:
           if gh variable set "${{ env.MUTEX_KEY }}" --body "$ACQUISITION_ID" 2>/dev/null; then
             RESULT=$(gh variable get '${{ env.MUTEX_KEY }}' --json value --jq '.value' 2>/dev/null || echo '')
             echo "🔍 Mutex value: $RESULT"
-            if [ -n "$RESULT" && "$RESULT" -eq "$ACQUISITION_ID" ]; then
+            if [[ -n "$RESULT" && "$RESULT" -eq "$ACQUISITION_ID" ]]; then
               # Successfully acquired the mutex
-              echo "✅ Mutex acquired with key '${{ env.MUTEX_KEY }}'"
+              echo "✅ Mutex acquired with key '${{ env.MUTEX_KEY }}' and value '$ACQUISITION_ID'"
               break
             fi
             continue
