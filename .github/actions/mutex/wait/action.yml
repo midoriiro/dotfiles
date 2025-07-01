@@ -31,10 +31,10 @@ runs:
         GH_TOKEN: ${{ inputs.access-token }}
       shell: bash
       run: |
-        GET_MUTEX_COMMAND="gh variable get '${{ env.MUTEX_KEY }}' --json name --jq '.name' 2>/dev/null || echo ''"
+        GET_MUTEX_COMMAND=""
         echo "🔍 Getting mutex with key '${{ env.MUTEX_KEY }}'"
         echo "🔍 Command: $GET_MUTEX_COMMAND"
-        RESULT=$(eval "$GET_MUTEX_COMMAND")
+        RESULT=$(gh variable get '${{ env.MUTEX_KEY }}' --json name --jq '.name' 2>/dev/null || echo '')
         echo "🔍 Result: $RESULT"
         START_TIME=$(date +%s)
         echo "🔍 Start time: $START_TIME"
@@ -48,7 +48,7 @@ runs:
             exit 1
           fi
           echo "🔍 Getting mutex with key '${{ env.MUTEX_KEY }}' again after $ELAPSED_TIME seconds"
-          RESULT=$(eval "$GET_MUTEX_COMMAND")
+          RESULT=$(gh variable get '${{ env.MUTEX_KEY }}' --json name --jq '.name' 2>/dev/null || echo '')
         done
 
         if [ -n "$RESULT" ]; then
