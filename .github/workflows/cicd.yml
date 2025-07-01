@@ -9,8 +9,9 @@ on:
 permissions:
   # required for github cli cache command
   # required for registry actions
-  contents: write
+  contents: read
   actions: write
+  metadata: read
 
 jobs:
   matrix:
