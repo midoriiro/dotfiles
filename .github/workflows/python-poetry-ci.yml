@@ -192,6 +192,13 @@ jobs:
           # build-script: build
           access-token: ${{ secrets.access-token }}
 
+      - name: Wait for Build Mutex Release
+        uses: ./.github/actions/mutex/wait
+        with:
+          key: ${{ inputs.builds-registry-key }}
+          timeout: 60
+          access-token: ${{ secrets.access-token }}
+
       - name: Restore Build Registry
         id: build-registry
         uses: ./.github/actions/registry/restore
@@ -220,3 +227,9 @@ jobs:
           key: ${{ inputs.builds-registry-key }}
           access-token: ${{ secrets.access-token }}
           clean: true
+
+      - name: Release Build Mutex
+        uses: ./.github/actions/mutex/release
+        with:
+          key: ${{ inputs.builds-registry-key }}
+          access-token: ${{ secrets.access-token }}

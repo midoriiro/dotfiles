@@ -115,11 +115,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Clean Mutexes
+        if: always()
         uses: ./.github/actions/mutex/clean
         with:
           access-token: ${{ secrets.PAT_TOKEN }}
 
       - name: Clean Registries
+        if: always()
         uses: ./.github/actions/registry/clean
         with:
           access-token: ${{ secrets.PAT_TOKEN }}
