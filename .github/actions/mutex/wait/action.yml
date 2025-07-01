@@ -39,6 +39,8 @@ runs:
         while true; do
           # Check if mutex is already locked
           RESULT=$(gh variable get '${{ env.MUTEX_KEY }}' --json value --jq '.value' 2>/dev/null || echo '')
+
+          echo "🔍 Mutex value: $RESULT"
           
           if [ -n "$RESULT" ]; then
             # Mutex is locked, wait and retry
@@ -59,6 +61,7 @@ runs:
           echo "🔒 Attempting to acquire mutex..."
           if gh variable set "${{ env.MUTEX_KEY }}" --body "$ACQUISITION_ID" 2>/dev/null; then
             RESULT=$(gh variable get '${{ env.MUTEX_KEY }}' --json value --jq '.value' 2>/dev/null || echo '')
+            echo "🔍 Mutex value: $RESULT"
             if [ -n "$RESULT" && "$RESULT" == "$ACQUISITION_ID" ]; then
               # Successfully acquired the mutex
               echo "✅ Mutex acquired with key '${{ env.MUTEX_KEY }}'"
