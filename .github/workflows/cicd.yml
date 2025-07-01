@@ -3,12 +3,8 @@ name: CI/CD Pipeline
 on:
   push:
     branches: [ main, ci-cd-pipeline ]
-    # paths:
-    #   - 'tools/ignite/**'
   pull_request:
     branches: [ main, ci-cd-pipeline ]
-    # paths:
-    #   - 'tools/ignite/**'
 
 permissions:
   # required for github cli cache command
@@ -17,8 +13,8 @@ permissions:
   actions: write
 
 jobs:
-  matrix:
-    name: Matrix Definition
+  python-matrix:
+    name: (Python) Matrix Definition
     runs-on: ubuntu-latest
     outputs:
       result: ${{ steps.set-matrix.outputs.result }}
@@ -34,35 +30,24 @@ jobs:
             ignite:
               - 'tools/ignite/**'
 
-      - name: Set Matrix
-        id: set-matrix
-        env:
-          IGNITE_PROJECT_CHANGED: ${{ steps.filter.outputs.ignite }}
-        shell: python
-        run: |
-          import json
-          import os
-          poetry_projects = []
-          if '${{ env.IGNITE_PROJECT_CHANGED }}' == 'true':
-            poetry_projects.append({
-              'path': 'tools/ignite',
-              'package-name': 'ignite'
-            })
-          matrix = {
-            "poetry-projects": poetry_projects,
-          }
-          matrix_data = json.dumps(matrix)
-          print(matrix_data)
-          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
-            f.write(f"result={matrix_data}\n")
-
   cicd:
-    name: CI/CD Poetry Projects (${{ matrix.poetry-projects.path }})
-    needs: [matrix]
-    strategy:
-      matrix: ${{ fromJSON(needs.matrix.outputs.result) }}
-    uses: ./.github/workflows/python-poetry-cicd.yml
-    with:
-        poetry-project-path: ${{ matrix.poetry-projects.path }}
-        poetry-package-name: ${{ matrix.poetry-projects.package-name }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Detect Changes
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            ignite:
+              - 'tools/ignite/**'
+
+      - name: CI/CD (Ignite))
+        if: ${{ steps.filter.outputs.ignite }} == 'true'
+        uses: ./.github/workflows/python-poetry-cicd.yml
+        with:
+            poetry-project-path: 'tools/ignite'
+            poetry-package-name: 'ignite'
       
