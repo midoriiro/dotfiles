@@ -33,6 +33,7 @@ runs:
       run: |
         GET_MUTEX_COMMAND='gh variable get "${{ env.MUTEX_KEY }}" --jq ".name" || echo ""'
         echo "🔍 Getting mutex with key '${{ env.MUTEX_KEY }}'"
+        echo "🔍 Command: $GET_MUTEX_COMMAND"
         RESULT=$($GET_MUTEX_COMMAND)
         echo "🔍 Result: $RESULT"
         START_TIME=$(date +%s)
