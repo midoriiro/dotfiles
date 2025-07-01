@@ -43,9 +43,9 @@ runs:
         mkdir --parents "$REGISTRY_LOCKS_PATH"
         
         # Set environment variables
-        echo "path=${REGISTRY_PATH}" >> $GITHUB_OUTPUT
-        echo "key=${REGISTRY_KEY}" >> $GITHUB_OUTPUT
-        echo "lock=${REGISTRY_LOCKS_PATH}/${{ inputs.key }}.lock" >> $GITHUB_OUTPUT
+        echo "path=$REGISTRY_PATH" >> $GITHUB_OUTPUT
+        echo "key=$REGISTRY_KEY" >> $GITHUB_OUTPUT
+        echo "lock=$REGISTRY_LOCKS_PATH/${{ inputs.key }}.lock" >> $GITHUB_OUTPUT
 
         # Debug output
         echo "✅ REGISTRY_HOME: $REGISTRY_HOME"
