@@ -18,9 +18,24 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Wait for Lock Key
+    - name: Format Lock Key
+      id: format-lock-key
       env:
         LOCK_KEY: ${{ inputs.key }}
+      shell: python
+      run: |
+        lock_key = ${{ env.LOCK_KEY }}
+
+        for char in lock_key:
+          if char.isalnum() == False or char != '_':
+            char = '_'
+        
+        with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+          f.write(f'key={lock_key}\n')
+
+    - name: Wait for Lock Key
+      env:
+        LOCK_KEY: ${{ steps.format-lock-key.outputs.key }}
         TIMEOUT: ${{ inputs.timeout }}
         GH_TOKEN: ${{ inputs.access-token }}
       shell: bash
