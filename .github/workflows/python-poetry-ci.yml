@@ -1,7 +1,7 @@
 name: Python Poetry CI Pipeline
 
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
       os:
         description: 'Operating system to run on'
