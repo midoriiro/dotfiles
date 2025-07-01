@@ -41,7 +41,7 @@ runs:
         GH_TOKEN: ${{ env.GITHUB_TOKEN }}
       shell: bash
       run: |
-        gh actions-cache delete "${{ env.CACHE_KEY }}" --confirm --succeed-on-no-caches
+        gh cache delete "${{ env.CACHE_KEY }}" --confirm --succeed-on-no-caches
 
     - name: Save cache
       uses: actions/cache/save@v4
