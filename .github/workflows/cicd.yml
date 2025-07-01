@@ -11,6 +11,9 @@ jobs:
     name: Init Mutex
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
       - name: Init Mutex
         uses: ./.github/actions/mutex/init
         with:
