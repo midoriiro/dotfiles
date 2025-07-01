@@ -9,12 +9,12 @@ on:
     inputs:
       builds-registry-path:
         description: 'Path to the builds registry'
-        required: false
+        required: true
         type: string
         default: 'builds/'
       builds-registry-key:
         description: 'Key to the builds registry'
-        required: false
+        required: true
         type: string
         default: 'builds-registry'
 
@@ -107,8 +107,8 @@ jobs:
         builds-registry-key: ${{ inputs.builds-registry-key }}
 
   cd:
-    name: CD - Python (${{ matrix.poetry-projects.package-name }})
-    needs: [ci]
+    name: CD - Python (${{ matrix.package-name }})
+    needs: [ci, python-matrix]
     strategy:
       matrix: ${{ fromJSON(needs.python-matrix.outputs.project-result) }}
     uses: ./.github/workflows/python-poetry-cd.yml
