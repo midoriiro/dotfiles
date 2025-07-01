@@ -51,7 +51,7 @@ runs:
           echo "✅ Mutex was not locked"
         else
           echo "✅ Mutex was released after $ELAPSED_TIME seconds"
-        fiS
+        fi
 
         gh variable set "${{ env.MUTEX_KEY }}" --body "true"
 
