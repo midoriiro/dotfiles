@@ -10,6 +10,12 @@ on:
     # paths:
     #   - 'tools/ignite/**'
 
+permissions:
+  # required for github cli cache command
+  # required for registry actions
+  contents: read
+  actions: write
+
 jobs:
   matrix:
     name: Matrix Definition
