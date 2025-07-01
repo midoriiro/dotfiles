@@ -21,8 +21,7 @@ runs:
 
     - name: Release Mutex
       env:
-        MUTEX_KEY: ${{ steps.format-mutex-key.outputs.key }}
-        GH_TOKEN: ${{ inputs.access-token }}
+        MUTEX_KEY: ${{ inputs.key }}
         DATABASE_CONNECTION_URI: ${{ inputs.database-connection-uri }}
         JOB_ID: ${{ github.job }}
         RUN_ID: ${{ github.run_id }}

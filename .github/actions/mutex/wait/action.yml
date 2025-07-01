@@ -26,7 +26,7 @@ runs:
 
     - name: Wait for Mutex Key
       env:
-        MUTEX_KEY: ${{ steps.format-mutex-key.outputs.key }}
+        MUTEX_KEY: ${{ inputs.key }}
         TIMEOUT: ${{ inputs.timeout }}
         DATABASE_CONNECTION_URI: ${{ inputs.database-connection-uri }}
         JOB_ID: ${{ github.job }}

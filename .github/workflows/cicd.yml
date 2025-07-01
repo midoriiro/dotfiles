@@ -8,7 +8,7 @@ on:
 
 jobs:
   mutex:
-    name: Initialize Mutex
+    name: Mutex Definitions
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
