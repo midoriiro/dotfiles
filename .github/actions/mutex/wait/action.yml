@@ -31,10 +31,11 @@ runs:
         GH_TOKEN: ${{ inputs.access-token }}
       shell: bash
       run: |
-        GET_LOCK_COMMAND='gh variable get $MUTEX_KEY --jq ".name" 2>/dev/null || echo ""'
+        GET_MUTEX_COMMAND='gh variable get "$MUTEX_KEY" --jq ".name" 2>/dev/null || echo ""'
+        RESULT=$($GET_MUTEX_COMMAND)
 
         START_TIME=$(date +%s)
-        while [ -n "$($GET_LOCK_COMMAND)" ]; do
+        while [ -n "$RESULT" ]; do
           sleep 1
           CURRENT_TIME=$(date +%s)
           ELAPSED_TIME=$((CURRENT_TIME - START_TIME))
@@ -42,9 +43,10 @@ runs:
             echo "❌ Timeout waiting for mutex to be released"
             exit 1
           fi
+          RESULT=$($GET_MUTEX_COMMAND)
         done
 
-        if [ -n "$($GET_LOCK_COMMAND)" ]; then
+        if [ -n "$RESULT" ]; then
           echo "✅ Mutex was not locked"
         else
           echo "✅ Mutex was released after $ELAPSED_TIME seconds"
