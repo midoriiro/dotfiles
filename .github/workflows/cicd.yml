@@ -90,6 +90,9 @@ jobs:
       matrix: 
         projects: ${{ fromJSON(needs.matrix.outputs.project-result) }}
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
       - name: Init Registries
         uses: ./.github/actions/registry/init
         with:
