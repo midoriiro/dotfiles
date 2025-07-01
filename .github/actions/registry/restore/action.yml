@@ -38,4 +38,3 @@ runs:
       with:
         path: ${{ steps.registry.outputs.path }}
         key: ${{ steps.registry.outputs.key }}
-        fail-on-cache-miss: true
