@@ -16,6 +16,11 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Check Poetry Environment
+      uses: ./.github/actions/python/poetry/check
+      with:
+        available-commands: 'flake8'
+
     - name: Check if paths is not empty
       env:
         PATHS: ${{ inputs.paths }}
@@ -23,25 +28,6 @@ runs:
       run: |
         if [ -z "$PATHS" ]; then
           echo "❌ Error: Paths is empty"
-          exit 1
-        fi
-
-    - name: Check if poetry is installed
-      shell: bash
-      run: |
-        if ! command -v poetry &> /dev/null; then
-          echo "❌ Error: Poetry is not installed"
-          exit 1
-        fi
-
-    - name: Check if flake8 is installed
-      working-directory: ${{ env.POETRY_PROJECT_PATH }}
-      shell: bash
-      run: |
-        poetry run flake8 --version
-        last_exit_code=$?
-        if [ $last_exit_code -ne 0 ]; then
-          echo "❌ Error: Flake8 is not installed"
           exit 1
         fi
 

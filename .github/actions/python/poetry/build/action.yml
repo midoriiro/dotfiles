@@ -6,63 +6,21 @@ inputs:
     description: 'Poetry build script to use'
     required: false
     type: string
-  additional-artifact-paths:
-    description: 'Additional artifact paths to include in upload'
-    required: false
-    type: string
-
 
 outputs:
-  artifacts:
-    description: 'Built artifacts in JSON format: { "os": "...", "python-version": "...", "source": "...", "wheel": "...", "[additional]": "..." }'
-    value: ${{ steps.prepare-artifacts.outputs.artifacts }}
+  artifacts-registry-key:
+    description: 'Registry key where artifacts are saved'
+    value: ${{ steps.save-artifacts.outputs.key }}
 
 runs:
   using: composite
   steps:
-    - name: Check Python Version
-      env:
-        PYTHON_VERSION: ${{ env.PYTHON_VERSION }}
-      shell: bash
-      run: |
-        if [ -z "$PYTHON_VERSION" ]; then
-          echo "PYTHON_VERSION is not set"
-          exit 1
-        fi
-
-    - name: Check if we are in a Poetry project
-      working-directory: ${{ env.POETRY_PROJECT_PATH }}
-      shell: bash
-      run: |
-        if [ ! -f "pyproject.toml" ]; then
-          echo "❌ Error: Not in a Poetry project"
-          exit 1
-        fi
-
-    - name: Check if poetry is installed
-      shell: bash
-      run: |
-        if ! command -v poetry &> /dev/null; then
-          echo "❌ Error: Poetry is not installed"
-          exit 1
-        fi
+    - name: Check Poetry Environment
+      uses: ./.github/actions/python/poetry/check
 
     - name: Poetry Info
       id: poetry-info
       uses: ./.github/actions/python/poetry/info
-
-    - name: Artifact Info
-      id: artifact-info
-      env:
-        PROJECT_NAME: ${{ steps.poetry-info.outputs.project-name }}
-        PROJECT_VERSION: ${{ steps.poetry-info.outputs.project-version }}
-      shell: bash
-      run: |
-        ARTIFACT=${PROJECT_NAME}-${PROJECT_VERSION}
-        ARTIFACT_NAME=poetry-build-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${ARTIFACT}
-        echo "wheel-artifact-name=${ARTIFACT_NAME}-wheel" >> $GITHUB_OUTPUT
-        echo "source-artifact-name=${ARTIFACT_NAME}-source" >> $GITHUB_OUTPUT
-        echo "additional-artifacts-name=${ARTIFACT_NAME}-additional" >> $GITHUB_OUTPUT
 
     - name: Run Build
       working-directory: ${{ env.POETRY_PROJECT_PATH }}
@@ -80,76 +38,9 @@ runs:
         fi
         $POETRY_CMD
 
-    - name: Upload source artifact
-      id: upload-source-artifacts
-      uses: actions/upload-artifact@v4
+    - name: Save Artifacts
+      id: save-artifacts
+      uses: ./.github/actions/registry/save
       with:
-        name: ${{ steps.artifact-info.outputs.source-artifact-name }}
-        path: ${{ env.POETRY_PROJECT_PATH }}/dist/*.tar.gz
-        if-no-files-found: error
-
-    - name: Upload wheel artifact
-      id: upload-wheel-artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{ steps.artifact-info.outputs.wheel-artifact-name }}
-        path: ${{ env.POETRY_PROJECT_PATH }}/dist/*.whl
-        if-no-files-found: error
-
-    - name: Check if additional artifacts are provided
-      id: check-additional-artifacts
-      shell: bash
-      run: |
-        if [ -z "${{ inputs.additional-artifact-paths }}" ]; then
-          echo "✅ No additional artifacts provided"
-          echo "provided=false" >> $GITHUB_OUTPUT
-        else
-          echo "✅ Additional artifacts provided"
-          echo "provided=true" >> $GITHUB_OUTPUT
-        fi
-
-    - name: Upload additional artifacts
-      if: ${{ steps.check-additional-artifacts.outputs.provided == 'true' }}
-      id: upload-additional-artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{ steps.artifact-info.outputs.additional-artifacts-name }}
-        path: ${{ inputs.additional-artifact-paths }}
-        if-no-files-found: error
-
-    - name: Prepare Artifacts output
-      id: prepare-artifacts
-      env:
-        PYTHON_VERSION: ${{ env.PYTHON_VERSION }}
-        ADDITIONAL_ARTIFACTS_PROVIDED: ${{ steps.check-additional-artifacts.outputs.provided }}
-      shell: python
-      run: |
-        import json
-        import os
-
-        additional_artifacts_provided = os.environ['ADDITIONAL_ARTIFACTS_PROVIDED']
-
-        if additional_artifacts_provided == 'true':
-          artifacts = {
-            "source": "${{ steps.artifact-info.outputs.source-artifact-name }}",
-            "wheel": "${{ steps.artifact-info.outputs.wheel-artifact-name }}",
-            "additional": "${{ steps.artifact-info.outputs.additional-artifacts-name }}"
-          }
-        else:
-          artifacts = {
-            "source": "${{ steps.artifact-info.outputs.source-artifact-name }}",
-            "wheel": "${{ steps.artifact-info.outputs.wheel-artifact-name }}",
-          }
-
-        runner_os = os.environ['RUNNER_OS']
-        runner_os = runner_os.lower()
-        python_version = os.environ['PYTHON_VERSION']
-        python_version = python_version.lower()
-
-        artifacts["os"] = runner_os
-        artifacts["python-version"] = python_version
-
-        artifacts_data = json.dumps(artifacts)
-
-        with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
-          f.write(f"artifacts={artifacts_data}\n")
+        path: ${{ env.POETRY_PROJECT_PATH }}/dist
+        key: artifacts-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ steps.poetry-info.outputs.project-name }}-${{ steps.poetry-info.outputs.project-version }}

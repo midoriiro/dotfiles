@@ -15,20 +15,6 @@ permissions:
   actions: write
 
 jobs:
-  init-package-registry:
-    name: Init Package Registry
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          sparse-checkout: |
-            .github  
-
-      - name: Init Package Registry
-        uses: ./.github/actions/package-registry/init
-
   matrix:
     name: Matrix Definition
     runs-on: ubuntu-latest
@@ -60,7 +46,7 @@ jobs:
             f.write(f"result={matrix_data}\n")
   ci:
     name: CI (${{ matrix.os }} - Python ${{ matrix.python-version }})
-    needs: [matrix, init-package-registry]
+    needs: [matrix]
     strategy:
       matrix: ${{ fromJSON(needs.matrix.outputs.result) }}
     uses: ./.github/workflows/python-poetry-ci.yml
@@ -69,25 +55,8 @@ jobs:
         python-version: ${{ matrix.python-version }}
         poetry-project-path: 'tools/ignite'
         poetry-package-name: 'ignite'
-  
-  restore-package-registry:
-    name: Restore Package Registry
-    needs: ci
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          sparse-checkout: |
-            .github  
-      
-      - name: Restore Package Registry
-        id: package-registry
-        uses: ./.github/actions/package-registry/restore
-
-      - name: Show Package Registry
-        run: cat ${{ steps.package-registry.outputs.file }}
+        builds-registry-path: 'builds/'
+        builds-registry-key: 'builds-registry'
 
   cd:
     name: CD

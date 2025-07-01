@@ -1,0 +1,47 @@
+name: 'Set Registry Environment Variables'
+description: 'Set registry environment variables'
+
+inputs:
+  path:
+    description: 'Path to the registry'
+    required: true
+    type: string
+  key:
+    description: 'Key to the registry'
+    required: true
+    type: string
+
+outputs:
+  path:
+    description: 'The path to the registry'
+    value: ${{ steps.registry-output.outputs.path }}
+  key:
+    description: 'The cache key for the registry'
+    value: ${{ steps.registry-output.outputs.key }}
+
+runs:
+  using: composite
+  steps:
+    - name: Get home directory path
+      uses: ./.github/actions/core/get-home-directory
+      id: home-directory
+
+    - name: Generate environment variables
+      shell: bash
+      env:
+        HOME_DIR: ${{ steps.home-directory.outputs.path }}
+      run: |        
+        # Set paths
+        REGISTRY_PATH="$HOME_DIR/.local/registry/${{ inputs.path }}"
+        REGISTRY_KEY="registry-${{ inputs.key }}-${{ github.workflow_sha }}"
+        
+        # Create directories if they don't exist
+        mkdir --parents "$REGISTRY_PATH"
+        
+        # Set environment variables
+        echo "path=${REGISTRY_PATH}" >> $GITHUB_OUTPUT
+        echo "key=${REGISTRY_KEY}" >> $GITHUB_OUTPUT
+
+        # Debug output
+        echo "REGISTRY_PATH: $REGISTRY_PATH"
+        echo "REGISTRY_KEY: $REGISTRY_KEY"

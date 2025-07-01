@@ -15,8 +15,12 @@ on:
         description: 'Path to the Poetry project'
         required: true
         type: string
-      package-artifact-name:
-        description: 'Name of the package artifact'
+      builds-registry-path:
+        description: 'Path to the builds registry'
+        required: true
+        type: string
+      builds-registry-key:
+        description: 'Key to the builds registry'
         required: true
         type: string
 

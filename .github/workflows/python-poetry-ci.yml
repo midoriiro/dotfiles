@@ -19,6 +19,14 @@ on:
         description: 'Name of the Poetry package'
         required: true
         type: string
+      builds-registry-path:
+        description: 'Path to the builds registry'
+        required: true
+        type: string
+      builds-registry-key:
+        description: 'Key to the builds registry'
+        required: true
+        type: string
 
 env:
   PYTHON_VERSION: ${{ inputs.python-version }}
@@ -179,35 +187,30 @@ jobs:
           additional-artifact-paths: |
             ${{ env.POETRY_PROJECT_PATH }}/dist/${{ inputs.poetry-package-name }}
 
-      - name: Restore Package Registry
-        id: package-registry
+      - name: Restore Build Registry
+        id: build-registry
         uses: ./.github/actions/package-registry/restore
+        with:
+          path: ${{ inputs.builds-registry-path }}
+          key: ${{ inputs.builds-registry-key }}
 
-      - name: Add Package Artifacts to Registry
-        env:
-          REGISTRY_FILE: ${{ steps.package-registry.outputs.file }}
-          ARTIFACTS: ${{ steps.build-artifacts.outputs.artifacts }}
-        shell: python
+      - name: Add Build Artifacts to Registry
+        env: 
+          REGISTRY_PATH: ${{ steps.build-registry.outputs.path }}
+          BUILD_ARTIFACTS_REGISTRY_KEY: ${{ steps.build-artifacts.outputs.artifacts-registry-key }}
+        shell: bash
         run: |
-          import json
-          import os
-          import sys
+          touch "$REGISTRY_PATH/$BUILD_ARTIFACTS_REGISTRY_KEY"
+          if [ -f "$REGISTRY_PATH/$BUILD_ARTIFACTS_REGISTRY_KEY" ]; then
+            echo "✅ Build artifacts added to registry"
+          else
+            echo "❌ Failed to add build artifacts to registry"
+            exit 1
+          fi
 
-          # Get the package artifacts from the build step
-          artifacts = json.loads(os.environ['ARTIFACTS'])
-          
-          # Load the registry file
-          registry_file = os.environ['REGISTRY_FILE']
-          with open(registry_file, 'r') as f:
-            registry = json.load(f)
-
-          # Add the package artifacts to the registry
-          registry.append(artifacts)
-
-          # Save the registry file
-          with open(registry_file, 'w') as f:
-            json.dump(registry, f)
-
-      - name: Save Package Registry
-        uses: ./.github/actions/package-registry/save
+      - name: Save Build Artifacts to Registry
+        uses: ./.github/actions/registry/save
+        with:
+          path: ${{ inputs.builds-registry-path }}
+          key: ${{ inputs.builds-registry-key }}
           

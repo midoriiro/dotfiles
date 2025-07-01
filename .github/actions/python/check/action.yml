@@ -1,0 +1,15 @@
+name: 'Check Python Environment'
+description: 'Check Python Environment'
+
+runs:
+  using: composite
+  steps:
+    - name: Check if Python Version is set
+      env:
+        PYTHON_VERSION: ${{ env.PYTHON_VERSION }}
+      shell: bash
+      run: |
+        if [ -z "$PYTHON_VERSION" ]; then
+          echo "❌ Error: PYTHON_VERSION is not set"
+          exit 1
+        fi

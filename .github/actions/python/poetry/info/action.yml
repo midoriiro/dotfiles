@@ -12,22 +12,8 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Check if we are in a Poetry project
-      working-directory: ${{ env.POETRY_PROJECT_PATH }}
-      shell: bash
-      run: |
-        if [ ! -f "pyproject.toml" ]; then
-          echo "❌ Error: Not in a Poetry project"
-          exit 1
-        fi
-
-    - name: Check if poetry is installed
-      shell: bash
-      run: |
-        if ! command -v poetry &> /dev/null; then
-          echo "❌ Error: Poetry is not installed"
-          exit 1
-        fi
+    - name: Check Poetry Environment
+      uses: ./.github/actions/python/poetry/check
 
     - name: Run Poetry Info
       id: poetry-info
