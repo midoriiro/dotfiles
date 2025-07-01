@@ -13,24 +13,8 @@ permissions:
   actions: write
 
 jobs:
-  python-matrix:
-    name: (Python) Matrix Definition
-    runs-on: ubuntu-latest
-    outputs:
-      result: ${{ steps.set-matrix.outputs.result }}
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Detect Changes
-        id: filter
-        uses: dorny/paths-filter@v3
-        with:
-          filters: |
-            ignite:
-              - 'tools/ignite/**'
-
   cicd:
+    name: CI/CD
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -44,7 +28,7 @@ jobs:
             ignite:
               - 'tools/ignite/**'
 
-      - name: CI/CD (Ignite))
+      - name: CI/CD (Ignite)
         if: ${{ steps.filter.outputs.ignite }} == 'true'
         uses: ./.github/workflows/python-poetry-cicd.yml
         with:
