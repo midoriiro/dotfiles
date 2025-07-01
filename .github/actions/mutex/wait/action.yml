@@ -55,4 +55,7 @@ runs:
 
         gh variable set "${{ env.MUTEX_KEY }}" --body "true"
 
+        RESULT=$(gh variable get '${{ env.MUTEX_KEY }}' --json name --jq '.name' 2>/dev/null || echo '')
+        echo "🔍 Result: $RESULT"
+
         echo "✅ Mutex acquired with key '${{ env.MUTEX_KEY }}'"
