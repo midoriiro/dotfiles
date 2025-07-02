@@ -9,7 +9,7 @@ def run_command(cmd: list[str], description: str) -> None:
     safe_print(f"🔄 {description}...")
     safe_print(f"Running: {' '.join(cmd)}")
     
-    result = safe_subprocess_run(cmd, capture_output=True, text=True)
+    result = safe_subprocess_run(cmd, capture_output=True, text=True, encoding='utf-8')
     
     if result.returncode != 0:
         error_msg = safe_stdout_text(result.stderr)
