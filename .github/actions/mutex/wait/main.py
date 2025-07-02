@@ -6,7 +6,7 @@ import asyncpg
 import time
 
 current_dir = Path(__file__).parent
-utils_path = current_dir.parent.parent.parent / "scripts" / "python"
+utils_path = current_dir.parent.parent.parent.parent.parent / "scripts" / "python" / "utils.py"
 sys.path.insert(0, str(utils_path))
 
 # Import functions from utils.py
