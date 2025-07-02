@@ -1,0 +1,51 @@
+name: 'Poetry Publish'
+description: 'Publish Python packages with Poetry'
+
+inputs:
+  dry-run:
+    description: 'Dry run publish'
+    required: false
+    type: boolean
+    default: true
+  skip-existing:
+    description: 'Skip existing packages'
+    required: false
+    type: boolean
+    default: false
+  dist-dir:
+    description: 'Distribution directory'
+    required: false
+    type: string
+    default: 'dist'
+
+runs:
+  using: composite
+  steps:
+    - name: Check Poetry Environment
+      uses: ./.github/actions/python/poetry/check
+
+    - name: Poetry Info
+      id: poetry-info
+      uses: ./.github/actions/python/poetry/info
+
+    - name: Run Publish
+      working-directory: ${{ env.POETRY_PROJECT_PATH }}
+      env:
+        DRY_RUN: ${{ inputs.dry-run }}
+        SKIP_EXISTING: ${{ inputs.skip-existing }}
+        DIST_DIR: ${{ inputs.dist-dir }}
+      shell: bash
+      run: |
+        POETRY_CMD="poetry"
+        POETRY_CMD="$POETRY_CMD publish"
+        if [[ "$DRY_RUN" == "true" ]]; then
+          POETRY_CMD="$POETRY_CMD --dry-run"
+        fi
+        if [[ "$SKIP_EXISTING" == "true" ]]; then
+          POETRY_CMD="$POETRY_CMD --skip-existing"
+        fi
+        if [[ "$DIST_DIR" != "" ]]; then
+          POETRY_CMD="$POETRY_CMD --dist-dir $DIST_DIR"
+        fi
+        echo "✅ Using default publish command: $POETRY_CMD"
+        $POETRY_CMD
