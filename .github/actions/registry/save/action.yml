@@ -1,0 +1,103 @@
+name: 'Save Registry'
+description: 'Save registry to cache'
+
+inputs:
+  path:
+    description: 'Path to the registry'
+    required: true
+    type: string
+  key:
+    description: 'Key to the registry'
+    required: true
+    type: string
+  delete-previous-registry:
+    description: 'Whether to delete the previous registry'
+    required: false
+    type: boolean
+    default: true
+  clean:
+    description: 'Whether to clean the registry after workflow finish to run'
+    required: false
+    type: boolean
+    default: false
+
+outputs:
+  path:
+    description: 'Path to the registry'
+    value: ${{ steps.registry.outputs.path }}
+  key:
+    description: 'Key to the registry'
+    value: ${{ steps.registry.outputs.key }}  
+
+runs:
+  using: composite
+  steps:
+    - name: Set Environment Variables
+      id: registry
+      uses: ./.github/actions/registry/set-env
+      with:
+        path: ${{ inputs.path }}
+        key: ${{ inputs.key }}
+
+    - name: Delete Previous Registry
+      if: ${{ inputs.delete-previous-registry == 'true' }}
+      env:
+        CACHE_KEY: ${{ steps.registry.outputs.key }}
+        GH_TOKEN: ${{ env.GITHUB_TOKEN }}
+      shell: bash
+      run: |
+        gh cache delete "${{ env.CACHE_KEY }}" || exit 0
+        echo "✅ Deleted previous registry with key: ${{ env.CACHE_KEY }}"
+
+    - name: Save Registry
+      uses: actions/cache/save@v4
+      with:
+        path: ${{ steps.registry.outputs.path }}
+        key: ${{ steps.registry.outputs.key }}
+
+    - name: After Save Registry
+      shell: bash
+      run: |
+        echo "✅ Saved registry with key: ${{ steps.registry.outputs.key }}"
+
+    - name: Restore Self Registry
+      if: ${{ inputs.clean == 'true' }}
+      id: self-registry
+      uses: actions/cache/restore@v4
+      with:
+        path: ${{ steps.registry.outputs.self-path }}
+        key: ${{ steps.registry.outputs.self-key }}
+
+    - name: Add Registry to Clean Operation List
+      if: ${{ inputs.clean == 'true' }}
+      env:
+        REGISTRY_PATH: ${{ steps.registry.outputs.self-path }}/clean
+        REGISTRY_KEY: ${{ steps.registry.outputs.key }}
+      shell: bash
+      run: |
+        mkdir --parents ${{ env.REGISTRY_PATH }}
+        touch ${{ env.REGISTRY_PATH }}/${{ env.REGISTRY_KEY }}
+        echo "✅ Added registry to clean operation list with key: ${{ env.REGISTRY_KEY }}"
+
+    - name: Delete Previous Self Registry
+      if: ${{ inputs.clean == 'true' && steps.self-registry.outputs.cache-hit == 'true' }}
+      env:
+        CACHE_KEY: ${{ steps.registry.outputs.self-key }}
+        GH_TOKEN: ${{ env.GITHUB_TOKEN }}
+      shell: bash
+      run: |
+        gh cache delete "${{ env.CACHE_KEY }}"
+        echo "✅ Deleted previous self registry with key: ${{ env.CACHE_KEY }}"
+
+    - name: Save Self Registry
+      if: ${{ inputs.clean == 'true' }}
+      uses: actions/cache/save@v4
+      with:
+        path: ${{ steps.registry.outputs.self-path }}
+        key: ${{ steps.registry.outputs.self-key }}
+
+    - name: After Save Self Registry
+      if: ${{ inputs.clean == 'true' }}
+      shell: bash
+      run: |
+        echo "✅ Saved self registry with key: ${{ steps.registry.outputs.self-key }}"

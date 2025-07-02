@@ -1,0 +1,46 @@
+name: 'Restore Registry'
+description: 'Restore registry from cache'
+
+inputs:
+  path:
+    description: 'Path to the registry'
+    required: true
+    type: string
+  key:
+    description: 'Key to the registry'
+    required: true
+    type: string
+  fail-on-cache-miss:
+    description: 'Fail on cache miss'
+    required: false
+    type: boolean
+    default: false
+
+outputs:
+  path:
+    description: 'The path to the registry'
+    value: ${{ steps.registry.outputs.path }}
+  key:
+    description: 'The cache key for the registry'
+    value: ${{ steps.registry.outputs.key }}
+  cache-hit:
+    description: 'Whether the cache was hit'
+    value: ${{ steps.registry-restore.outputs.cache-hit }}
+
+runs:
+  using: composite
+  steps:
+    - name: Set Environment Variables
+      id: registry
+      uses: ./.github/actions/registry/set-env
+      with:
+        path: ${{ inputs.path }}
+        key: ${{ inputs.key }}
+
+    - name: Restore Cache
+      id: registry-restore
+      uses: actions/cache/restore@v4
+      with:
+        path: ${{ steps.registry.outputs.path }}
+        key: ${{ steps.registry.outputs.key }}
+        fail-on-cache-miss: ${{ inputs.fail-on-cache-miss }}
