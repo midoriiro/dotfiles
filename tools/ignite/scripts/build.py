@@ -1,32 +1,7 @@
 import subprocess
 import sys
-import os
 from pathlib import Path
-
-# Force UTF-8 encoding for Windows compatibility
-os.environ['PYTHONIOENCODING'] = 'utf-8'
-if sys.platform == 'win32':
-    # Reconfigure stdout and stderr to use UTF-8
-    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
-
-
-def safe_print(text: str) -> None:
-    """Print text with emoji fallback for Windows compatibility."""
-    try:
-        print(text)
-    except UnicodeEncodeError:
-        # Fallback to ASCII if emoji encoding fails
-        fallback_map = {
-            "🔄": "[INFO]",
-            "❌": "[ERROR]",
-            "✅": "[SUCCESS]",
-            "🚀": "[START]",
-            "🎉": "[SUCCESS]"
-        }
-        for emoji, replacement in fallback_map.items():
-            text = text.replace(emoji, replacement)
-        print(text)
+from .utils import safe_print, safe_subprocess_run, safe_stdout_text
 
 
 def run_command(cmd: list[str], description: str) -> None:
@@ -34,15 +9,17 @@ def run_command(cmd: list[str], description: str) -> None:
     safe_print(f"🔄 {description}...")
     safe_print(f"Running: {' '.join(cmd)}")
     
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = safe_subprocess_run(cmd, capture_output=True, text=True)
     
     if result.returncode != 0:
-        safe_print(f"❌ Error: {result.stderr}")
+        error_msg = safe_stdout_text(result.stderr)
+        safe_print(f"❌ Error: {error_msg}")
         sys.exit(1)
     
     safe_print(f"✅ {description} completed")
-    if result.stdout.strip():
-        safe_print(result.stdout)
+    stdout_text = safe_stdout_text(result.stdout)
+    if stdout_text.strip():
+        safe_print(stdout_text)
 
 
 def run():

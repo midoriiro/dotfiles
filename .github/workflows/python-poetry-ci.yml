@@ -33,10 +33,9 @@ on:
         required: true
 
 env:
-  PYTHONIOENCODING: 'utf-8'
   PYTHON_VERSION: ${{ inputs.python-version }}
   # Some composite actions related to Poetry are sensitive to working-directory,
-  # but to simplify access to them, Poetry project path need to be set via an
+  # to simplify access to them, Poetry project path need to be set via an
   # environment variable defined globally.
   POETRY_PROJECT_PATH: ${{ inputs.poetry-project-path }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
