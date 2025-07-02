@@ -1,0 +1,36 @@
+name: 'Poetry Build'
+description: 'Build Python packages with Poetry'
+
+outputs:
+  artifacts-registry-path:
+    description: 'Registry path where artifacts are saved'
+    value: ${{ steps.artifacts-registry-path.outputs.path }}
+  artifacts-registry-key:
+    description: 'Registry key where artifacts are saved'
+    value: ${{ steps.artifacts-registry-key.outputs.key }}
+
+runs:
+  using: composite
+  steps:
+    - name: Check Poetry Environment
+      uses: ./.github/actions/python/poetry/check
+
+    - name: Poetry Info
+      id: poetry-info
+      uses: ./.github/actions/python/poetry/info
+
+    - name: Run Build
+      working-directory: ${{ env.POETRY_PROJECT_PATH }}
+      shell: bash
+      run: |
+        POETRY_CMD="poetry"
+        POETRY_CMD="$POETRY_CMD build"
+        echo "✅ Using default build command: $POETRY_CMD"
+        $POETRY_CMD
+
+    - name: Copy Artifacts
+      uses: ./.github/actions/artifacts-registry/poetry/copy-artifacts
+      with:
+        project-path: ${{ env.POETRY_PROJECT_PATH }}
+        project-name: ${{ steps.poetry-info.outputs.project-name }}
+        project-version: ${{ steps.poetry-info.outputs.project-version }}

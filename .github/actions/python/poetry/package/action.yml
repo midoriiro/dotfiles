@@ -1,0 +1,108 @@
+name: 'Poetry Package'
+description: 'Package Python packages with Poetry'
+
+inputs:
+  additional-artifact-paths:
+    description: 'Additional artifact paths to include in upload'
+    required: false
+    type: string
+
+
+outputs:
+  artifacts:
+    description: 'Built artifacts in JSON format: { "os": "...", "python-version": "...", "source": "...", "wheel": "...", "[additional]": "..." }'
+    value: ${{ steps.prepare-artifacts.outputs.artifacts }}
+
+runs:
+  using: composite
+  steps:
+    - name: Check Poetry Environment
+      uses: ./.github/actions/python/poetry/check
+
+    - name: Poetry Info
+      id: poetry-info
+      uses: ./.github/actions/python/poetry/info
+
+    - name: Artifact Info
+      id: artifact-info
+      env:
+        PROJECT_NAME: ${{ steps.poetry-info.outputs.project-name }}
+        PROJECT_VERSION: ${{ steps.poetry-info.outputs.project-version }}
+      shell: bash
+      run: |
+        ARTIFACT=${PROJECT_NAME}-${PROJECT_VERSION}
+        ARTIFACT_NAME=poetry-build-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${ARTIFACT}
+        echo "wheel-artifact-name=arttifact-${ARTIFACT_NAME}-wheel" >> $GITHUB_OUTPUT
+        echo "source-artifact-name=arttifact-${ARTIFACT_NAME}-source" >> $GITHUB_OUTPUT
+        echo "additional-artifacts-name=arttifact-${ARTIFACT_NAME}-additional" >> $GITHUB_OUTPUT
+
+    - name: Save Source Artifact
+      id: save-source-artifact
+      uses: ./.github/actions/registry/save
+      with:
+        path: ${{ env.POETRY_PROJECT_PATH }}/dist/*.tar.gz
+        key: ${{ steps.artifact-info.outputs.source-artifact-name }}
+
+    - name: Save Wheel Artifact
+      id: save-wheel-artifact
+      uses: ./.github/actions/registry/save
+      with:
+        path: ${{ env.POETRY_PROJECT_PATH }}/dist/*.whl
+        key: ${{ steps.artifact-info.outputs.wheel-artifact-name }}
+
+    - name: Check if additional artifacts is provided
+      id: check-additional-artifacts
+      shell: bash
+      run: |
+        if [ -z "${{ inputs.additional-artifact-paths }}" ]; then
+          echo "✅ No additional artifacts provided"
+          echo "provided=false" >> $GITHUB_OUTPUT
+        else
+          echo "✅ Additional artifacts provided"
+          echo "provided=true" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Save additional artifacts
+      if: ${{ steps.check-additional-artifacts.outputs.provided == 'true' }}
+      id: save-additional-artifacts
+      uses: ./.github/actions/registry/save
+      with:
+        path: ${{ inputs.additional-artifact-paths }}
+        key: ${{ steps.artifact-info.outputs.additional-artifacts-name }}
+
+    - name: Save Artifacts output
+      id: save-artifacts-registry
+      env:
+        PYTHON_VERSION: ${{ env.PYTHON_VERSION }}
+        ADDITIONAL_ARTIFACTS_PROVIDED: ${{ steps.check-additional-artifacts.outputs.provided }}
+      shell: python
+      run: |
+        import json
+        import os
+
+        additional_artifacts_provided = os.environ['ADDITIONAL_ARTIFACTS_PROVIDED']
+
+        if additional_artifacts_provided == 'true':
+          artifacts = {
+            "source": "${{ steps.artifact-info.outputs.source-artifact-name }}",
+            "wheel": "${{ steps.artifact-info.outputs.wheel-artifact-name }}",
+            "additional": "${{ steps.artifact-info.outputs.additional-artifacts-name }}"
+          }
+        else:
+          artifacts = {
+            "source": "${{ steps.artifact-info.outputs.source-artifact-name }}",
+            "wheel": "${{ steps.artifact-info.outputs.wheel-artifact-name }}",
+          }
+
+        runner_os = os.environ['RUNNER_OS']
+        runner_os = runner_os.lower()
+        python_version = os.environ['PYTHON_VERSION']
+        python_version = python_version.lower()
+
+        artifacts["os"] = runner_os
+        artifacts["python-version"] = python_version
+
+        artifacts_data = json.dumps(artifacts)
+
+        with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+          f.write(f"artifacts={artifacts_data}\n")
