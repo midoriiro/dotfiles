@@ -1,0 +1,33 @@
+name: 'Poetry Info'
+description: 'Get information about the Poetry project'
+
+outputs:
+  project-name:
+    description: 'Name of the Poetry project'
+    value: ${{ steps.poetry-info.outputs.project-name }}
+  project-version:
+    description: 'Version of the Poetry project'
+    value: ${{ steps.poetry-info.outputs.project-version }}
+
+runs:
+  using: composite
+  steps:
+    - name: Check Poetry Environment
+      uses: ./.github/actions/python/poetry/check
+
+    - name: Run Poetry Info
+      id: poetry-info
+      working-directory: ${{ env.POETRY_PROJECT_PATH }}
+      shell: bash
+      run: |
+        PROJECT_NAME=$(poetry version | awk {'print $1'})
+        PROJECT_VERSION=$(poetry version | awk {'print $2'})
+        echo "project-name=${PROJECT_NAME}" >> $GITHUB_OUTPUT
+        echo "project-version=${PROJECT_VERSION}" >> $GITHUB_OUTPUT
+
+    - name: Finalize
+      shell: bash
+      run: |
+        echo "✅ Poetry project info:"
+        echo "✅ Project name: ${{ steps.poetry-info.outputs.project-name }}"
+        echo "✅ Project version: ${{ steps.poetry-info.outputs.project-version }}"

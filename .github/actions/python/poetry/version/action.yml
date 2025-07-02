@@ -1,0 +1,46 @@
+name: 'Poetry Version'
+description: 'Bump and set the version of the Poetry project'
+
+runs:
+  using: composite
+  steps:
+    - name: Check if we are in a Poetry project
+      working-directory: ${{ env.POETRY_PROJECT_PATH }}
+      shell: bash
+      run: |
+        if [ ! -f "pyproject.toml" ]; then
+          echo "❌ Error: Not in a Poetry project"
+          exit 1
+        fi
+
+    - name: Check if poetry is installed
+      shell: bash
+      run: |
+        if ! command -v poetry &> /dev/null; then
+          echo "❌ Error: Poetry is not installed"
+          exit 1
+        fi
+
+    - name: Run Poetry Version
+      id: poetry-version
+      working-directory: ${{ env.POETRY_PROJECT_PATH }}
+      shell: bash
+      run: |
+        PROJECT_VERSION=$(poetry version | awk {'print $2'})
+        echo "version=${PROJECT_VERSION}" >> $GITHUB_OUTPUT
+        echo "✅ Poetry project version: $PROJECT_VERSION"
+
+    - name: Bump Version
+      id: bump-version
+      uses: ./.github/actions/core/bump-version
+      with:
+        version: ${{ steps.poetry-version.outputs.version }}
+
+    - name: Set Version
+      working-directory: ${{ env.POETRY_PROJECT_PATH }}
+      env:
+        VERSION: ${{ steps.bump-version.outputs.version }}
+      shell: bash
+      run: |
+        poetry version -- $VERSION
+        echo "✅ Poetry project version set to $VERSION"
