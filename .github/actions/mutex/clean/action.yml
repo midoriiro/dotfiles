@@ -20,7 +20,6 @@ runs:
       id: holder-id
       with:
         job-id: false
-        run-id: false
         short-sha: false
         timestamp: false
 
