@@ -2,9 +2,9 @@ import os
 import asyncio
 import asyncpg
 
-async def release_mutex(connection, mutex_key, job_id, run_id):
+async def release_mutex(connection, mutex_key, holder_id):
     try:
-        expected_prefix = f"{job_id}-{run_id}"
+        expected_prefix = f"{holder_id}"
         
         # Try to release the lock atomically
         result = await connection.execute("""
@@ -39,8 +39,7 @@ async def release_mutex(connection, mutex_key, job_id, run_id):
 async def main():
     mutex_key = os.getenv('MUTEX_KEY', None)
     connection_uri = os.getenv('DATABASE_CONNECTION_URI', None)
-    job_id = os.getenv('JOB_ID', None)
-    run_id = os.getenv('RUN_ID', None)
+    holder_id = os.getenv('HOLDER_ID', None)
 
     if not mutex_key:
         raise ValueError('MUTEX_KEY environment variable is not set')
@@ -48,16 +47,13 @@ async def main():
     if not connection_uri:
         raise ValueError('DATABASE_CONNECTION_URI environment variable is not set')
 
-    if not job_id:
-        raise ValueError('JOB_ID environment variable is not set')
-
-    if not run_id:
-        raise ValueError('RUN_ID environment variable is not set')
+    if not holder_id:
+        raise ValueError('HOLDER_ID environment variable is not set')
     
     connection = await asyncpg.connect(connection_uri)
     
     try:
-        success = await release_mutex(connection, mutex_key, job_id, run_id)
+        success = await release_mutex(connection, mutex_key, holder_id)
         if not success:
             exit(1)
     finally:

@@ -1,7 +1,23 @@
 import os
 import asyncio
+from pathlib import Path
 import asyncpg
 import time
+
+current_dir = Path(__file__).parent
+utils_path = current_dir.parent.parent.parent / "scripts" / "python"
+sys.path.insert(0, str(utils_path))
+
+# Import functions from utils.py
+from utils import (
+    safe_print, 
+    safe_subprocess_run, 
+    safe_print_info, 
+    safe_print_error, 
+    safe_print_success, 
+    safe_print_start, 
+    safe_print_done
+)
 
 async def acquire_mutex(connection, mutex_key, holder_id, timeout):
     start_time = time.time()
@@ -9,7 +25,7 @@ async def acquire_mutex(connection, mutex_key, holder_id, timeout):
     while True:
         try:
             # Try to acquire the mutex atomically
-            print(f"🔒 Attempting to acquire mutex with holder '{holder_id}'...")
+            safe_print_info(f"🔒 Attempting to acquire mutex with holder '{holder_id}'...")
             
             # Use INSERT ... ON CONFLICT for atomic acquisition
             result = await connection.execute("""
@@ -20,7 +36,7 @@ async def acquire_mutex(connection, mutex_key, holder_id, timeout):
             
             if result == "INSERT 0 1":
                 # Successfully acquired the mutex
-                print(f"✅ Mutex acquired with key '{mutex_key}' and holder '{holder_id}'")
+                safe_print_success(f"✅ Mutex acquired with key '{mutex_key}' and holder '{holder_id}'")
                 return True
             else:
                 # Failed to acquire, check if it's stale
@@ -32,19 +48,19 @@ async def acquire_mutex(connection, mutex_key, holder_id, timeout):
                 elapsed_time = time.time() - start_time
                 
                 if row:
-                    print(f"🔍 Mutex is locked by {row['holder']}, waiting again {elapsed_time:.1f}s...")
+                    safe_print_info(f"🔍 Mutex is locked by {row['holder']}, waiting again {elapsed_time:.1f}s...")
                     await asyncio.sleep(1)
                         
                     if elapsed_time > timeout:
-                        print("❌ Timeout waiting for mutex to be released")
+                        safe_print_error("❌ Timeout waiting for mutex to be released")
                         return False
                 else:
                     # Race condition: lock was released between our attempts
-                    print("🔄 Lock was released, retrying...")
+                    safe_print_info("🔄 Lock was released, retrying...")
                     await asyncio.sleep(0.1)
                     continue
         except Exception as e:
-            print(f"⚠️ Error during mutex acquisition: {e}")
+            safe_print_error(f"⚠️ Error during mutex acquisition: {e}")
             await asyncio.sleep(1)
             continue
 
@@ -52,8 +68,7 @@ async def main():
     mutex_key = os.getenv('MUTEX_KEY', None)
     timeout = int(os.getenv('TIMEOUT', None))
     connection_uri = os.getenv('DATABASE_CONNECTION_URI', None)
-    job_id = os.getenv('JOB_ID', None)
-    run_id = os.getenv('RUN_ID', None)
+    holder_id = os.getenv('HOLDER_ID', None)
 
     if not mutex_key:
         raise ValueError('MUTEX_KEY environment variable is not set')
@@ -64,16 +79,10 @@ async def main():
     if not connection_uri:
         raise ValueError('DATABASE_CONNECTION_URI environment variable is not set')
 
-    if not job_id:
-        raise ValueError('JOB_ID environment variable is not set')
-
-    if not run_id:
-        raise ValueError('RUN_ID environment variable is not set')
+    if not holder_id:
+        raise ValueError('HOLDER_ID environment variable is not set')
     
-    # Create unique holder ID
-    holder_id = f"{job_id}-{run_id}"
-    
-    print(f"🔍 Getting mutex with key '{mutex_key}'")
+    safe_print_info(f"🔍 Getting mutex with key '{mutex_key}' and holder '{holder_id}'")
     
     connection = await asyncpg.connect(connection_uri)
     

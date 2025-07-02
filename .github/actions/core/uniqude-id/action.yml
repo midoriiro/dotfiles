@@ -1,0 +1,50 @@
+name: 'Unique ID'
+description: 'Unique ID'
+
+inputs:
+  job-id:
+    description: 'Include Job ID'
+    type: boolean
+    default: true
+  run-id:
+    description: 'Include Run ID'
+    type: boolean
+    default: true
+  short-sha:
+    description: 'Include Commit Short SHA'
+    type: boolean
+    default: true
+  timestamp:
+    description: 'Include Timestamp'
+    type: boolean
+    default: true
+
+outputs:
+  id:
+    description: 'Unique ID'
+    type: string
+
+runs:
+  using: composite
+  steps:
+    - name: Format Unique ID
+      shell: bash
+      run: |
+        ID="${{ github.workflow }}"
+        if [[ "${{ inputs.job-id }}" == "true" ]]; then
+          JOB_ID="${{ github.job }}"
+          ID="${ID}-${JOB_ID}"
+        fi
+        if [[ "${{ inputs.run-id }}" == "true" ]]; then
+          RUN_ID="${{ github.run_id }}-${{ github.run_number }}-${{ github.run_attempt }}"
+          ID="${ID}-${RUN_ID}"
+        fi
+        if [[ "${{ inputs.short-sha }}" == "true" ]]; then
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-8)
+          ID="${ID}-${SHORT_SHA}"
+        fi
+        if [[ "${{ inputs.timestamp }}" == "true" ]]; then
+          TIMESTAMP=$(date +%s)
+          ID="${ID}-${TIMESTAMP}"
+        fi
+        echo "id=${ID}" >> $GITHUB_OUTPUT

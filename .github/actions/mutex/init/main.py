@@ -13,9 +13,10 @@ async def main():
     try:
         await connection.execute("""
             CREATE TABLE IF NOT EXISTS locks (
-            name VARCHAR(255) PRIMARY KEY,
+            name VARCHAR(255),
             holder VARCHAR(255),
-            created_at TIMESTAMP DEFAULT now()
+            created_at TIMESTAMP DEFAULT now(),
+            PRIMARY KEY (name, holder)
             );
         """)
     finally:

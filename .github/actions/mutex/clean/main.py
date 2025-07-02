@@ -2,9 +2,9 @@ import os
 import asyncio
 import asyncpg
 
-async def clean_workflow_mutexes(connection, job_id, run_id):
+async def clean_workflow_mutexes(connection, holder_id):
     try:
-        expected_prefix = f"{job_id}-{run_id}"
+        expected_prefix = f"{holder_id}"
         
         # Get locks for this workflow atomically
         rows = await connection.fetch("""
@@ -15,10 +15,10 @@ async def clean_workflow_mutexes(connection, job_id, run_id):
         """, f"{expected_prefix}%")
         
         if not rows:
-            print(f"✅ No locks found for workflow {job_id}-{run_id}")
+            print(f"✅ No locks found for workflow {holder_id}")
             return True
         
-        print(f"🔍 Found {len(rows)} locks to clean for workflow {job_id}-{run_id}:")
+        print(f"🔍 Found {len(rows)} locks to clean for workflow {holder_id}:")
         for row in rows:
             elapsed = asyncio.get_event_loop().time() - row['created_at'].timestamp()
             print(f"  - {row['name']} (held by {row['holder']}, age: {elapsed:.1f}s)")
@@ -30,7 +30,7 @@ async def clean_workflow_mutexes(connection, job_id, run_id):
         """, f"{expected_prefix}%")
         
         deleted_count = int(result.split()[1]) if result.startswith("DELETE") else 0
-        print(f"✅ Successfully deleted {deleted_count} locks for workflow {job_id}-{run_id}")
+        print(f"✅ Successfully deleted {deleted_count} locks for workflow {holder_id}")
         
         return True
         
@@ -40,24 +40,20 @@ async def clean_workflow_mutexes(connection, job_id, run_id):
 
 async def main():
     connection_uri = os.getenv('DATABASE_CONNECTION_URI', None)
-    job_id = os.getenv('JOB_ID', None)
-    run_id = os.getenv('RUN_ID', None)
+    holder_id = os.getenv('HOLDER_ID', None)
     
     if not connection_uri:
         raise ValueError('DATABASE_CONNECTION_URI environment variable is not set')
     
-    if not job_id:
-        raise ValueError('JOB_ID environment variable is not set')
+    if not holder_id:
+        raise ValueError('HOLDER_ID environment variable is not set')
     
-    if not run_id:
-        raise ValueError('RUN_ID environment variable is not set')
-    
-    print(f"🧹 Starting mutex cleanup for workflow {job_id}-{run_id}...")
+    print(f"🧹 Starting mutex cleanup for workflow {holder_id}...")
     
     connection = await asyncpg.connect(connection_uri)
     
     try:
-        success = await clean_workflow_mutexes(connection, job_id, run_id)
+        success = await clean_workflow_mutexes(connection, holder_id)
         if not success:
             exit(1)
     finally:
