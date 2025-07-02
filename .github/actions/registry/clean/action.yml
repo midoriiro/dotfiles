@@ -1,0 +1,57 @@
+name: 'Clean Registries'
+description: 'Clean registries'
+
+runs:
+  using: composite
+  steps:
+    - name: Set environment variables
+      id: registry
+      uses: ./.github/actions/registry/set-env
+
+    - name: Restore Self Registry
+      id: self-registry
+      uses: actions/cache/restore@v4
+      with:
+        path: ${{ steps.registry.outputs.self-path }}
+        key: ${{ steps.registry.outputs.self-key }}
+
+    - name: Delete Registries
+      if: ${{ steps.self-registry.outputs.cache-hit == 'true' }}
+      env:
+        CLEAN_DIR: ${{ steps.registry.outputs.self-path }}/clean
+        GH_TOKEN: ${{ env.GITHUB_TOKEN }}
+      shell: bash
+      run: |
+        # Get the list of files in the clean directory
+        # Check if clean directory exists
+        if [ -d "$CLEAN_DIR" ]; then
+          echo "📁 Found clean directory: $CLEAN_DIR"
+          
+          # Iterate through all files in the clean directory
+          for CACHE_FILE in "$CLEAN_DIR"/*; do
+            if [ -f "$CACHE_FILE" ]; then
+              # Extract the cache key from the filename
+              CACHE_KEY=$(basename "$CACHE_FILE")
+              echo "🗑️  Deleting cache with key: $CACHE_KEY"
+              
+              # Delete the cache using GitHub CLI
+              gh cache delete "$CACHE_KEY" || echo "⚠️  Failed to delete cache: $CACHE_KEY"
+              
+              # Remove the file from the clean directory
+              rm "$CACHE_FILE"
+              echo "✅ Removed clean file: $CACHE_FILE"
+            fi
+          done
+        else
+          echo "📁 Clean directory not found: $CLEAN_DIR"
+        fi
+
+    - name: Delete Self Registry
+      if: ${{ steps.self-registry.outputs.cache-hit == 'true' }}
+      env:
+        CACHE_KEY: ${{ steps.registry.outputs.self-key }}
+        GH_TOKEN: ${{ env.GITHUB_TOKEN }}
+      shell: bash
+      run: |
+        gh cache delete "${{ env.CACHE_KEY }}"
+        echo "✅ Self registry deleted with key: ${{ env.CACHE_KEY }}"
