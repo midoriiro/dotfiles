@@ -20,72 +20,7 @@ runs:
         DATABASE_CONNECTION_URI: ${{ inputs.database-connection-uri }}
         JOB_ID: ${{ github.job }}
         RUN_ID: ${{ github.run_id }}
-      shell: python
+      working-directory: ${{ github.action_path }}
+      shell: bash
       run: |
-        import os
-        import asyncio
-        import asyncpg
-
-        async def clean_workflow_mutexes(connection, job_id, run_id):
-            try:
-                expected_prefix = f"{job_id}-{run_id}"
-                
-                # Get locks for this workflow atomically
-                rows = await connection.fetch("""
-                    SELECT name, holder, created_at 
-                    FROM locks 
-                    WHERE holder LIKE $1
-                    ORDER BY created_at
-                """, f"{expected_prefix}%")
-                
-                if not rows:
-                    print(f"✅ No locks found for workflow {job_id}-{run_id}")
-                    return True
-                
-                print(f"🔍 Found {len(rows)} locks to clean for workflow {job_id}-{run_id}:")
-                for row in rows:
-                    elapsed = asyncio.get_event_loop().time() - row['created_at'].timestamp()
-                    print(f"  - {row['name']} (held by {row['holder']}, age: {elapsed:.1f}s)")
-                
-                # Delete locks for this workflow atomically
-                result = await connection.execute("""
-                    DELETE FROM locks 
-                    WHERE holder LIKE $1
-                """, f"{expected_prefix}%")
-                
-                deleted_count = int(result.split()[1]) if result.startswith("DELETE") else 0
-                print(f"✅ Successfully deleted {deleted_count} locks for workflow {job_id}-{run_id}")
-                
-                return True
-                
-            except Exception as e:
-                print(f"⚠️ Error during mutex cleanup: {e}")
-                return False
-
-        async def main():
-            connection_uri = os.getenv('DATABASE_CONNECTION_URI', None)
-            job_id = os.getenv('JOB_ID', None)
-            run_id = os.getenv('RUN_ID', None)
-            
-            if not connection_uri:
-                raise ValueError('DATABASE_CONNECTION_URI environment variable is not set')
-            
-            if not job_id:
-                raise ValueError('JOB_ID environment variable is not set')
-            
-            if not run_id:
-                raise ValueError('RUN_ID environment variable is not set')
-            
-            print(f"🧹 Starting mutex cleanup for workflow {job_id}-{run_id}...")
-            
-            connection = await asyncpg.connect(connection_uri)
-            
-            try:
-                success = await clean_workflow_mutexes(connection, job_id, run_id)
-                if not success:
-                    exit(1)
-            finally:
-                await connection.close()
-
-        if __name__ == "__main__":
-            asyncio.run(main())
+        python main.py

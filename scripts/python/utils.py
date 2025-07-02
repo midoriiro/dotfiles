@@ -27,8 +27,27 @@ def safe_print(text: str) -> None:
             text = text.replace(emoji, replacement)
         print(text)
 
+def safe_print_info(text: str) -> None:
+    """Print text with emoji fallback for Windows compatibility."""
+    safe_print(f"🔄 {text}")
 
-def safe_subprocess_run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess:
+def safe_print_error(text: str) -> None:
+    """Print text with emoji fallback for Windows compatibility."""
+    safe_print(f"❌ {text}")
+
+def safe_print_success(text: str) -> None:
+    """Print text with emoji fallback for Windows compatibility."""
+    safe_print(f"✅ {text}")
+
+def safe_print_start(text: str) -> None:
+    """Print text with emoji fallback for Windows compatibility."""
+    safe_print(f"🚀 {text}")
+
+def safe_print_done(text: str) -> None:
+    """Print text with emoji fallback for Windows compatibility."""
+    safe_print(f"🎉 {text}")
+
+def safe_subprocess_run(cmd: list[str]) -> int:
     """Run subprocess with proper encoding for Windows compatibility."""
     # Force UTF-8 encoding for subprocess
     env = os.environ.copy()
@@ -37,8 +56,26 @@ def safe_subprocess_run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess
     # On Windows, set additional encoding environment variables
     if sys.platform == 'win32':
         env['PYTHONLEGACYWINDOWSSTDIO'] = 'utf-8'
-    
-    return subprocess.run(cmd, env=env, **kwargs)
+
+    arguments_to_append = {
+        'stdout': subprocess.PIPE, 
+        'shell': False,
+        'text': True,
+        'encoding': 'utf-8'
+    }
+
+    process = subprocess.Popen(cmd, env=env, **arguments_to_append)
+
+
+    while True:
+        output = process.stdout.readline()
+        if output:
+            safe_stdout_text(output.strip())
+        if process.poll() is not None:
+            break
+
+    exit_code = process.poll()
+    return exit_code
 
 
 def safe_stdout_text(text: str) -> str:

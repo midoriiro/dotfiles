@@ -1,34 +1,44 @@
-import subprocess
 import sys
 from pathlib import Path
-from .utils import safe_print, safe_subprocess_run, safe_stdout_text
+
+# Add the utils.py directory to the Python path
+current_dir = Path(__file__).parent
+utils_path = current_dir.parent.parent.parent / "scripts" / "python"
+sys.path.insert(0, str(utils_path))
+
+# Import functions from utils.py
+from utils import (
+    safe_print, 
+    safe_subprocess_run, 
+    safe_print_info, 
+    safe_print_error, 
+    safe_print_success, 
+    safe_print_start, 
+    safe_print_done
+)
 
 
 def run_command(cmd: list[str], description: str) -> None:
     """Run a command and handle errors."""
-    safe_print(f"🔄 {description}...")
+    safe_print_info(f"{description}...")
     safe_print(f"Running: {' '.join(cmd)}")
     
-    result = safe_subprocess_run(cmd, capture_output=True, text=True, encoding='utf-8')
+    exit_code = safe_subprocess_run(cmd)
     
-    if result.returncode != 0:
-        error_msg = safe_stdout_text(result.stderr)
-        safe_print(f"❌ Error: {error_msg}")
+    if exit_code != 0:
+        safe_print_error(f"Error: {description}")
         sys.exit(1)
     
-    safe_print(f"✅ {description} completed")
-    stdout_text = safe_stdout_text(result.stdout)
-    if stdout_text.strip():
-        safe_print(stdout_text)
+    safe_print_success(f"{description} completed")
 
 
 def run():
     """Build the complete package."""
-    safe_print("🚀 Starting Ignite build process...")
+    safe_print_start("Starting Ignite build process...")
     
     # Ensure we're in the right directory
     if not Path("pyproject.toml").exists():
-        safe_print("❌ Error: pyproject.toml not found. Run this script from the project root.")
+        safe_print_error("pyproject.toml not found. Run this script from the project root.")
         sys.exit(1)
     
     try:
@@ -50,11 +60,11 @@ def run():
             "Adding executable to packages"
         )
         
-        safe_print("\n🎉 Build completed successfully!")
+        safe_print_done("Build completed successfully!")
             
     except KeyboardInterrupt:
-        safe_print("\n❌ Build interrupted by user")
+        safe_print_error("Build interrupted by user")
         sys.exit(1)
     except Exception as e:
-        safe_print(f"\n❌ Unexpected error: {e}")
+        safe_print_error(f"Unexpected error: {e}")
         sys.exit(1)
