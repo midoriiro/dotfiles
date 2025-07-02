@@ -75,8 +75,8 @@ jobs:
           matrix = {
             "poetry-projects": poetry_projects,
             "os": [
-              # 'ubuntu-latest', 
-              'windows-latest', 
+              'ubuntu-latest', 
+              # 'windows-latest', 
               # 'macos-latest'
             ],
             "python-version": [
