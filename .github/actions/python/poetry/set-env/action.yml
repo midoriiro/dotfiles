@@ -1,0 +1,103 @@
+name: 'Poetry Set Environment'
+description: 'Set environment variables for Poetry'
+
+inputs:
+  dependency-groups:
+    description: 'Dependency groups to install separated by comma'
+    required: true
+    type: string
+
+outputs:
+  home:
+    description: 'Poetry home directory'
+    value: ${{ steps.poetry.outputs.home }}
+  cache-dir:
+    description: 'Poetry cache directory'
+    value: ${{ steps.poetry.outputs.cache-dir }}
+  dependency-groups:
+    description: 'Poetry dependency groups'
+    value: ${{ steps.poetry.outputs.dependency-groups }}
+  registry-key:
+    description: 'Poetry registry key'
+    value: ${{ steps.poetry.outputs.registry-key }}
+  install-poexy-core:
+    description: 'Whether to install poexy-core'
+    value: ${{ steps.poetry.outputs.install-poexy-core }}
+
+runs:
+  using: composite
+  steps:
+    - name: Check Poetry Environment
+      uses: ./.github/actions/python/poetry/check
+
+    - name: Check dependency groups is not empty
+      env:
+        DEPENDENCY_GROUPS: ${{ inputs.dependency-groups }}
+      shell: bash
+      run: |
+        if [ -z "$DEPENDENCY_GROUPS" ]; then
+          echo "❌ Dependency groups is empty"
+          exit 1
+        fi
+
+    - name: Get pyproject.toml hash
+      id: pyproject-toml-hash
+      working-directory: ${{ env.POETRY_PROJECT_PATH }}
+      shell: bash
+      run: |
+        PYPROJECT_TOML_HASH=$(cat pyproject.toml | sha256sum | awk '{print $1}')
+        echo "hash=$PYPROJECT_TOML_HASH" >> $GITHUB_OUTPUT
+
+    - name: Get dependency groups
+      id: dependency-groups
+      shell: python
+      run: |
+        import os
+        dependency_groups = "${{ inputs.dependency-groups }}"
+        dependency_groups = dependency_groups.split(',')
+        dependency_groups = [group.strip() for group in dependency_groups]
+        with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+          f.write(f"with-dashes={'-'.join(dependency_groups)}\n")
+          f.write(f"with-commas={','.join(dependency_groups)}\n")
+
+    - name: Generate poetry environment variables
+      id: poetry
+      shell: bash
+      env:
+        DEPENDENCY_GROUPS_DASHES: ${{ steps.dependency-groups.outputs.with-dashes }}
+        DEPENDENCY_GROUPS_COMMAS: ${{ steps.dependency-groups.outputs.with-commas }}
+        PYPROJECT_TOML_HASH: ${{ steps.pyproject-toml-hash.outputs.hash }}
+        USE_POEXY_CORE: ${{ env.USE_POEXY_CORE }}
+      run: |  
+        # Set poetry paths
+        POETRY_HOME="poetry"
+        POETRY_CACHE_DIR="$POETRY_HOME/cache"
+        POETRY_DEPENDENCY_GROUPS="$DEPENDENCY_GROUPS_DASHES"
+        POETRY_PYPROJECT_TOML_HASH="$PYPROJECT_TOML_HASH"
+        POETRY_REGISTRY_KEY="python-poetry-${{ runner.os }}-${{ env.PYTHON_VERSION }}"
+        POETRY_REGISTRY_KEY="$POETRY_REGISTRY_KEY-${POETRY_PYPROJECT_TOML_HASH}"
+        POETRY_REGISTRY_KEY="$POETRY_REGISTRY_KEY-with-${POETRY_DEPENDENCY_GROUPS}"
+
+        if [ -z "${{ env.USE_POEXY_CORE }}" ]; then
+          USE_POEXY_CORE="false"
+        else
+          if [ "${{ env.USE_POEXY_CORE }}" == "true" ]; then
+            USE_POEXY_CORE="true"
+          else
+            USE_POEXY_CORE="false"
+          fi
+        fi
+        
+        # Set poetry environment variables
+        echo "home=$POETRY_HOME" >> $GITHUB_OUTPUT
+        echo "cache-dir=$POETRY_CACHE_DIR" >> $GITHUB_OUTPUT
+        echo "dependency-groups=$DEPENDENCY_GROUPS_COMMAS" >> $GITHUB_OUTPUT
+        echo "registry-key=$POETRY_REGISTRY_KEY" >> $GITHUB_OUTPUT
+        echo "install-poexy-core=$USE_POEXY_CORE" >> $GITHUB_OUTPUT
+
+        # Debug output
+        echo "✅ POETRY_HOME: $POETRY_HOME"
+        echo "✅ POETRY_CACHE_DIR: $POETRY_CACHE_DIR"
+        echo "✅ POETRY_DEPENDENCY_GROUPS: $DEPENDENCY_GROUPS_COMMAS"
+        echo "✅ POETRY_REGISTRY_KEY: $POETRY_REGISTRY_KEY"
+        echo "✅ USE_POEXY_CORE: $USE_POEXY_CORE"

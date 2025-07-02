@@ -1,0 +1,99 @@
+name: 'Check Poetry Environment'
+description: 'Check Poetry Environment'
+
+inputs:
+  available-commands:
+    description: 'Available commands to check separated by comma'
+    required: false
+    default: ''
+    type: string
+
+runs:
+  using: composite
+  steps:
+    - name: Check Python Environment
+      uses: ./.github/actions/python/check
+
+    - name: Check if Poetry Environment is set
+      shell: bash
+      run: |
+        if [ -z "$POETRY_PROJECT_PATH" ]; then
+          echo "❌ Error: POETRY_PROJECT_PATH is not set"
+          exit 1
+        fi
+
+    - name: Check if we are in a Poetry project
+      working-directory: ${{ env.POETRY_PROJECT_PATH }}
+      shell: bash
+      run: |
+        if [ ! -f "pyproject.toml" ]; then
+          echo "❌ Error: Not in a Poetry project"
+          exit 1
+        fi
+
+    - name: Check if Poetry is installed
+      shell: bash
+      run: |
+        if ! command -v poetry &> /dev/null; then
+          echo "❌ Error: Poetry is not installed"
+          exit 1
+        fi
+
+    - name: Check if available commands is provided
+      id: check-available-commands
+      env:
+        AVAILABLE_COMMANDS: ${{ inputs.available-commands }}
+      shell: bash
+      run: |
+        if [ -z "$AVAILABLE_COMMANDS" ]; then
+          echo "✅ No available commands provided"
+          echo "provided=false" >> $GITHUB_OUTPUT
+        else
+          echo "✅ Available commands provided"
+          echo "provided=true" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Check if available commands
+      if: ${{ steps.check-available-commands.outputs.provided == 'true' }}
+      working-directory: ${{ env.POETRY_PROJECT_PATH }}
+      env:
+        AVAILABLE_COMMANDS: ${{ inputs.available-commands }}
+      shell: python
+      run: |
+        import os
+        import subprocess
+
+        poetry_base_command = ["poetry", "run"]
+        available_commands = os.environ.get("AVAILABLE_COMMANDS").split(',')
+        available_commands = [command.strip() for command in available_commands]
+
+        print(f"Available commands: {available_commands}")
+
+        def run_command(command: list[str]) -> subprocess.CompletedProcess[str]:
+          return subprocess.run(command, capture_output=True, text=True)
+
+        for command in available_commands:        
+          version_command = poetry_base_command + [command, "--version"]
+          long_help_argument_command = poetry_base_command + [command, "--help"]
+          short_help_argument_command = poetry_base_command + [command, "-h"]
+
+          print(f"Version command: {version_command}")
+          version_result = run_command(version_command)
+          if version_result.returncode == 0:
+            continue
+
+          print(f"Long help argument command: {long_help_argument_command}")
+          long_help_argument_result = run_command(long_help_argument_command)
+          if long_help_argument_result.returncode != 0:
+            continue
+
+          print(f"Short help argument command: {short_help_argument_command}")
+          short_help_argument_result = run_command(short_help_argument_command)
+          if short_help_argument_result.returncode != 0:
+            continue
+
+          if long_help_argument_result.returncode != 0 and short_help_argument_result.returncode != 0:
+            print(f"❌ Error: {command} is not installed")
+            exit(1)
+        
+        print("✅ All commands are installed")
