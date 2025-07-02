@@ -22,7 +22,6 @@ inputs:
 outputs:
   id:
     description: 'Unique ID'
-    type: string
 
 runs:
   using: composite
