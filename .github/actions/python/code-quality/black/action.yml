@@ -1,0 +1,71 @@
+name: 'Code Quality - Black Formatting'
+description: 'Code quality - Black formatting'
+
+inputs:
+  config-file:
+    description: 'Path to Black configuration file (e.g., pyproject.toml, .black)'
+    required: false
+    default: 'pyproject.toml'
+    type: string
+  paths:
+    description: 'Paths to format (space-separated)'
+    required: false
+    default: '.'
+    type: string
+
+runs:
+  using: composite
+  steps:
+    - name: Check Poetry Environment
+      uses: ./.github/actions/python/poetry/check
+      with:
+        available-commands: 'black'
+
+    - name: Check if paths is not empty
+      env:
+        PATHS: ${{ inputs.paths }}
+      shell: bash
+      run: |
+        if [ -z "$PATHS" ]; then
+          echo "❌ Error: Paths is empty"
+          exit 1
+        fi
+
+    - name: Check if config file exists
+      env:
+        CONFIG_FILE: ${{ inputs.config-file }}
+      shell: bash
+      run: |
+        if [ ! -f "$CONFIG_FILE" ]; then
+          echo "⚠️  Warning: Black config file not found: $CONFIG_FILE"
+          echo "Using default Black settings"
+        else
+          echo "✅ Using Black config: $CONFIG_FILE"
+        fi
+
+    - name: Run Black formatting
+      working-directory: ${{ env.POETRY_PROJECT_PATH }}
+      env:
+        CONFIG_FILE: ${{ inputs.config-file }}
+        PATHS: ${{ inputs.paths }}
+      shell: bash
+      run: |
+        echo "Running Black with config: $CONFIG_FILE"
+        echo "Formatting paths: $PATHS"
+        
+        # Build Black command
+        BLACK_CMD="poetry run black"
+        
+        # Add config file if it exists
+        if [ -f "$CONFIG_FILE" ]; then
+          BLACK_CMD="$BLACK_CMD --config=$CONFIG_FILE"
+        fi
+        
+        # Add check flag if check-only is true
+        BLACK_CMD="$BLACK_CMD --check"
+        
+        # Add paths
+        BLACK_CMD="$BLACK_CMD $PATHS"
+        
+        echo "Command: $BLACK_CMD"
+        eval $BLACK_CMD

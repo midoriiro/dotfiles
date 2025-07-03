@@ -1,0 +1,90 @@
+name: 'Code Quality - Coverage Guard'
+description: 'Code quality - Coverage Guard'
+
+inputs:
+  artifact-name:
+    description: 'Artifact name to download (report coverage file in XML format)'
+    required: true
+    type: string
+  artifact-path:
+    description: 'Path where to download the artifact'
+    required: true
+    type: string
+  artifact-id:
+    description: 'ID of the artifact'
+    required: true
+    type: string
+  threshold:
+    description: 'Coverage threshold in percentage (0-100)'
+    required: true
+    type: number
+
+runs:
+  using: composite
+  steps:
+    - name: Check threshold is a number
+      env:
+        THRESHOLD: ${{ inputs.threshold }}
+      shell: bash
+      run: |
+        if ! [[ $THRESHOLD =~ ^[0-9]+$ ]]; then
+          echo "❌ Error: Threshold must be a number"
+          exit 1
+        fi
+
+    - name: Check threshold is between 0 and 100
+      env:
+        THRESHOLD: ${{ inputs.threshold }}
+      shell: bash
+      run: |
+        if (( $(echo "$THRESHOLD < 0 || $THRESHOLD > 100" | bc -l) )); then
+          echo "❌ Error: Threshold must be between 0 and 100"
+          exit 1
+        fi
+
+    - name: Download Coverage Artifact
+      id: download-artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ inputs.artifact-name }}
+
+    - name: Delete Coverage Artifact
+      uses: actions/github-script@v7
+      with:
+        script: |
+          github.rest.actions.deleteArtifact({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            artifact_id: ${{ inputs.artifact-id }}
+          });
+
+    - name: Check coverage threshold
+      env:
+        ARTIFACT_PATH: ${{ steps.download-artifact.outputs.download-path }}/${{ inputs.artifact-path }}
+        THRESHOLD: ${{ inputs.threshold }}
+      shell: bash
+      run: |
+        # Check if file exists
+        if [ ! -f "$ARTIFACT_PATH" ]; then
+          echo "❌ Error: $ARTIFACT_PATH not found"
+          exit 1
+        fi
+        
+        # Extract total coverage percentage using Python
+        COVERAGE=$(python3 -c "
+        import xml.etree.ElementTree as ET
+        tree = ET.parse('$ARTIFACT_PATH')
+        root = tree.getroot()
+        total = float(root.get('line-rate', 0)) * 100
+        print(f'{total:.2f}')
+        ")
+        
+        echo "📊 Current coverage: ${COVERAGE}%"
+        
+        # Check if coverage meets threshold
+        if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
+          echo "❌ Coverage ${COVERAGE}% is below threshold of $THRESHOLD%"
+          exit 1
+        else
+          echo "✅ Coverage ${COVERAGE}% meets threshold of $THRESHOLD%"
+        fi 

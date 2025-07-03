@@ -1,0 +1,68 @@
+name: 'Code Quality - Flake8 Linting'
+description: 'Code quality - Flake8 linting'
+
+inputs:
+  config-file:
+    description: 'Path to flake8 configuration file (e.g., .flake8, setup.cfg, or tox.ini)'
+    required: false
+    default: '.flake8'
+    type: string
+  paths:
+    description: 'Paths to lint (space-separated)'
+    required: false
+    default: '.'
+    type: string
+
+runs:
+  using: composite
+  steps:
+    - name: Check Poetry Environment
+      uses: ./.github/actions/python/poetry/check
+      with:
+        available-commands: 'flake8'
+
+    - name: Check if paths is not empty
+      env:
+        PATHS: ${{ inputs.paths }}
+      shell: bash
+      run: |
+        if [ -z "$PATHS" ]; then
+          echo "❌ Error: Paths is empty"
+          exit 1
+        fi
+
+    - name: Check if config file exists
+      env:
+        CONFIG_FILE: ${{ inputs.config-file }}
+      shell: bash
+      run: |
+        if [ ! -f "$CONFIG_FILE" ]; then
+          echo "⚠️  Warning: Flake8 config file not found: $CONFIG_FILE"
+          echo "Using default Flake8 settings"
+        else
+          echo "✅ Using Flake8 config: $CONFIG_FILE"
+        fi
+
+    - name: Run linting
+      working-directory: ${{ env.POETRY_PROJECT_PATH }}
+      env:
+        CONFIG_FILE: ${{ inputs.config-file }}
+        PATHS: ${{ inputs.paths }}
+      shell: bash
+      run: |
+        echo "Running flake8 with config: $CONFIG_FILE"
+        echo "Linting paths: $PATHS"
+
+        # Build flake8 command
+        FLAKE8_CMD="poetry run flake8"
+
+        # Add config file if it exists
+        if [ -f "$CONFIG_FILE" ]; then
+          FLAKE8_CMD="$FLAKE8_CMD --config=$CONFIG_FILE"
+        fi
+        
+        # Add paths
+        FLAKE8_CMD="$FLAKE8_CMD $PATHS"
+
+        echo "Command: $FLAKE8_CMD"
+        eval $FLAKE8_CMD
