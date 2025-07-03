@@ -1,0 +1,64 @@
+name: 'Poetry Pytest'
+description: 'Run pytest with Poetry'
+
+inputs:
+  test-path:
+    description: 'Path to the test files'
+    required: true
+    type: string
+  run-in-parallel:
+    description: 'Run tests in parallel'
+    required: false
+    default: 'true'
+    type: boolean
+  fail-fast:
+    description: 'Fail fast'
+    required: false
+    default: 'true'
+    type: boolean
+  capture-output:
+    description: 'Capture output'
+    required: false
+    default: 'false'
+    type: boolean
+  additional-pytest-options:
+    description: 'Additional pytest options'
+    required: false
+    default: ''
+    type: string
+
+runs:
+  using: composite
+  steps:
+    - name: Check Poetry Environment
+      uses: ./.github/actions/python/poetry/check
+      with:
+        available-commands: pytest
+
+    - name: Run Test Suite
+      working-directory: ${{ env.POETRY_PROJECT_PATH }}
+      env:
+        TEST_PATH: ${{ inputs.test-path }}
+        RUN_IN_PARALLEL: ${{ inputs.run-in-parallel }}
+        FAIL_FAST: ${{ inputs.fail-fast }}
+        ADDITIONAL_PYTEST_OPTIONS: ${{ inputs.additional-pytest-options }}
+      shell: bash
+      run: |
+        PYTEST_CMD="poetry run pytest $TEST_PATH --show-capture=no"
+        if [ "$RUN_IN_PARALLEL" = "true" ]; then  
+          PYTEST_CMD="$PYTEST_CMD --numprocesses=auto"
+        fi
+        if [ "$FAIL_FAST" = "true" ]; then
+          PYTEST_CMD="$PYTEST_CMD --exitfirst"
+        fi
+        if [ "$CAPTURE_OUTPUT" = "true" ]; then
+          PYTEST_CMD="$PYTEST_CMD --capture=no"
+        fi
+        PYTEST_CMD="$PYTEST_CMD --verbose $ADDITIONAL_PYTEST_OPTIONS"
+        echo "✅ Running pytest command: $PYTEST_CMD"
+        $PYTEST_CMD
+
+    - name: Finalize
+      shell: bash
+      run: |
+        echo "✅ Pytest completed"
