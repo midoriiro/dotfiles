@@ -1,0 +1,83 @@
+name: 'Code Quality - Import Sorting'
+description: 'Code quality - Import sorting with isort'
+
+inputs:
+  config-file:
+    description: 'Path to isort configuration file (e.g., pyproject.toml, .isort.cfg, setup.cfg, tox.ini, .editorconfig)'
+    required: false
+    default: 'pyproject.toml'
+    type: string
+  paths:
+    description: 'Paths to sort imports (space-separated)'
+    required: false
+    default: '.'
+    type: string
+  profile:
+    description: 'isort profile to use (e.g., black, django, google)'
+    required: false
+    default: 'black'
+    type: string
+
+runs:
+  using: composite
+  steps:
+    - name: Check Poetry Environment
+      uses: ./.github/actions/python/poetry/check
+      with:
+        available-commands: 'isort'
+
+    - name: Check if paths is not empty
+      env:
+        PATHS: ${{ inputs.paths }}
+      shell: bash
+      run: |
+        if [ -z "$PATHS" ]; then
+          echo "❌ Error: Paths is empty"
+          exit 1
+        fi
+
+    - name: Check if config file exists
+      env:
+        CONFIG_FILE: ${{ inputs.config-file }}
+      shell: bash
+      run: |
+        if [ ! -f "$CONFIG_FILE" ]; then
+          echo "⚠️  Warning: isort config file not found: $CONFIG_FILE"
+          echo "Using default isort settings with profile: ${{ inputs.profile }}"
+        else
+          echo "✅ Using isort config: $CONFIG_FILE"
+        fi
+
+    - name: Run isort import sorting
+      working-directory: ${{ env.POETRY_PROJECT_PATH }}
+      env:
+        CONFIG_FILE: ${{ inputs.config-file }}
+        PATHS: ${{ inputs.paths }}
+        PROFILE: ${{ inputs.profile }}
+      shell: bash
+      run: |
+        echo "Running isort with config: $CONFIG_FILE"
+        echo "Sorting imports in paths: $PATHS"
+        echo "Profile: $PROFILE"
+        
+        # Build isort command
+        ISORT_CMD="poetry run isort"
+        
+        # Add profile if specified
+        if [ "$PROFILE" != "" ]; then
+          ISORT_CMD="$ISORT_CMD --profile=$PROFILE"
+        fi
+        
+        # Add config file if it exists
+        if [ -f "$CONFIG_FILE" ]; then
+          ISORT_CMD="$ISORT_CMD --settings-file=$CONFIG_FILE"
+        fi
+
+        # Add check flag
+        ISORT_CMD="$ISORT_CMD --check-only --diff"
+        
+        # Add paths
+        ISORT_CMD="$ISORT_CMD $PATHS"
+        
+        echo "Command: $ISORT_CMD"
+        eval $ISORT_CMD
