@@ -1,0 +1,25 @@
+name: 'Restore Artifacts Registry'
+description: 'Restore artifacts registry'
+
+outputs:
+  path:
+    description: 'The path to the registry'
+    value: ${{ steps.artifacts-registry.outputs.path }}
+  key:
+    description: 'The cache key for the registry'
+    value: ${{ steps.artifacts-registry.outputs.key }}
+
+runs:
+  using: composite
+  steps:
+    - name: Set Environment Variables
+      id: registry
+      uses: ./.github/actions/artifacts-registry/set-env
+
+    - name: Save Artifacts Registry
+      id: artifacts-registry
+      uses: ./.github/actions/registry/save
+      with:
+        path: ${{ steps.registry.outputs.path }}
+        key: ${{ steps.registry.outputs.key }}
+        clean: true
