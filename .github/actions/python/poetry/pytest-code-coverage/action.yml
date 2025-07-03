@@ -1,0 +1,109 @@
+name: 'Poetry Pytest - Code Coverage'
+description: 'Run pytest with Poetry and with code coverage'
+
+inputs:
+  run-in-parallel:
+    description: 'Run tests in parallel'
+    required: false
+    default: 'true'
+    type: boolean
+  fail-fast:
+    description: 'Fail fast'
+    required: false
+    default: 'true'
+    type: boolean
+  capture-output:
+    description: 'Capture output'
+    required: false
+    default: 'false'
+    type: boolean
+  test-path:
+    description: 'Path to the test files'
+    required: true
+    type: string
+  upload-to-codecov:
+    description: 'Upload coverage to Codecov'
+    required: false
+    default: 'true'
+    type: boolean
+  coverage-artifact-name:
+    description: 'Name of the coverage artifact'
+    required: false
+    default: 'coverage-report'
+    type: string
+  coverage-artifact-path:
+    description: 'Path to the coverage artifact'
+    required: false
+    default: 'coverage.xml'
+    type: string
+  coverage-report-format:
+    description: 'Format of the coverage report'
+    required: false
+    default: 'xml'
+    type: choice
+    options:
+      - 'xml'
+      - 'html'
+      - 'json'
+      - 'lcov'
+      - 'annotate'
+
+outputs:
+  coverage-artifact-name:
+    description: 'Name of the coverage artifact'
+    value: ${{ steps.artifact-info.outputs.artifact-name }}
+  coverage-artifact-path:
+    description: 'Path to the coverage artifact'
+    value: ${{ inputs.coverage-artifact-path }}
+  coverage-artifact-id:
+    description: 'ID of the coverage artifact'
+    value: ${{ steps.upload-artifact.outputs.artifact-id }}
+
+runs:
+  using: composite
+  steps:
+    - name: Artifact Info
+      id: artifact-info
+      env:
+        RUNNER_OS: ${{ runner.os }}
+        PYTHON_VERSION: ${{ env.PYTHON_VERSION }}
+        POETRY_PROJECT_PATH: ${{ env.POETRY_PROJECT_PATH }}
+        COVERAGE_ARTIFACT_NAME: ${{ inputs.coverage-artifact-name }}
+        COVERAGE_ARTIFACT_PATH: ${{ inputs.coverage-artifact-path }}
+      shell: bash
+      run: |
+        ARTIFACT_NAME=${RUNNER_OS}-${PYTHON_VERSION}-${COVERAGE_ARTIFACT_NAME}
+        ARTIFACT_PATH=${POETRY_PROJECT_PATH}/${COVERAGE_ARTIFACT_PATH}
+        echo "artifact-name=${ARTIFACT_NAME}" >> $GITHUB_OUTPUT
+        echo "artifact-path=${ARTIFACT_PATH}" >> $GITHUB_OUTPUT
+
+    - name: Run Test Suite
+      uses: ./.github/actions/python/poetry/pytest
+      with:
+        test-path: ${{ inputs.test-path }}
+        run-in-parallel: ${{ inputs.run-in-parallel }}
+        fail-fast: ${{ inputs.fail-fast }}
+        additional-pytest-options: --cov=${{ env.POETRY_PACKAGE_NAME }} --cov-report=${{ inputs.coverage-report-format }}:${{ inputs.coverage-artifact-path }}
+
+    - name: Upload coverage report to Codecov
+      if: ${{ inputs.upload-to-codecov == 'true' }}
+      uses: codecov/codecov-action@v3
+      with:
+        file: ${{ steps.artifact-info.outputs.artifact-path }}
+        name: codecov-${{ steps.artifact-info.outputs.artifact-name }}
+        fail_ci_if_error: true
+
+    - name: Upload coverage report artifacts
+      id: upload-artifact
+      uses: actions/upload-artifact@v4
+      with:
+        if-no-files-found: error
+        name: ${{ steps.artifact-info.outputs.artifact-name }}
+        path: |
+          ${{ steps.artifact-info.outputs.artifact-path }}
+
+    # Delete coverage report artifacts in case we downloaded them it the same job
+    - name: Delete coverage report artifacts
+      shell: bash
+      run: |
+        rm --force ${{ steps.artifact-info.outputs.artifact-path }}
