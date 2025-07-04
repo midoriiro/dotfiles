@@ -1,0 +1,147 @@
+name: Poetry Pipeline
+
+on:
+  workflow_call:
+    inputs:
+      supported-os:
+        description: 'Operating system to run on'
+        required: true
+        type: string
+      supported-python-versions:
+        description: 'Python versions to use'
+        required: true
+        type: string
+      last-supported-python-version:
+        description: 'Last Python version to use'
+        required: true
+        type: string
+      pipx-tools:
+        description: 'Pipx tools to install'
+        required: true
+        type: string
+      poetry-project-path:
+        description: 'Path to the Poetry project'
+        required: true
+        type: string
+      poetry-package-name:
+        description: 'Name of the Poetry package'
+        required: true
+        type: string
+      poetry-dependency-groups:
+        description: 'Dependency groups to install'
+        required: true
+        type: string
+      builds-registry-path:
+        description: 'Path to the builds registry'
+        required: true
+        type: string
+      builds-registry-key:
+        description: 'Key to the builds registry'
+        required: true
+        type: string
+      use-poexy-core:
+        description: 'Whether to use poexy-core'
+        required: true
+        type: boolean
+        default: true
+      code-coverage-threshold:
+        description: 'Code coverage threshold'
+        required: true
+        type: number
+        default: 95
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  matrix-analysis:
+    name: Analyze Matrix Definitions
+    runs-on: ubuntu-latest
+    outputs:
+      as-matrix: ${{ steps.as-matrix.outputs.as-matrix }}
+      supported-os: ${{ steps.as-matrix.outputs.supported-os }}
+      supported-python-versions: ${{ steps.as-matrix.outputs.supported-python-versions }}
+    steps:
+      - name: Determine If CI will run as matrix
+        id: as-matrix
+        shell: python
+        run: |
+          import os
+          import json
+          supported_os = json.loads('${{ inputs.supported-os }}')
+          supported_python_versions = json.loads('${{ inputs.supported-python-versions }}')
+          if len(supported_os) == 1 and len(supported_python_versions) == 1:
+            as_matrix = False
+            supported_os = supported_os[0]
+            supported_python_versions = supported_python_versions[0]
+            print(f"CI will run as single shot: {supported_os} {supported_python_versions}")
+          else:
+            as_matrix = True
+            supported_os = json.dumps(supported_os)
+            supported_python_versions = json.dumps(supported_python_versions)
+          print(f"CI will run as matrix: {as_matrix}")
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+            f.write(f"as-matrix={'true' if as_matrix else 'false'}\n")
+            f.write(f"supported-os={supported_os}\n")
+            f.write(f"supported-python-versions={supported_python_versions}\n")
+
+  ci-single:
+    name: CI - Single Shot
+    needs: [matrix-analysis]
+    if: needs.matrix-analysis.outputs.as-matrix == 'false'
+    uses: ./.github/workflows/poetry-ci.yml
+    with:
+        os: ${{ needs.matrix-analysis.outputs.supported-os }}
+        python-version: ${{ needs.matrix-analysis.outputs.supported-python-versions }}
+        pipx-tools: ${{ inputs.pipx-tools }}
+        poetry-project-path: ${{ inputs.poetry-project-path }}
+        poetry-package-name: ${{ inputs.poetry-package-name }}
+        poetry-dependency-groups: ${{ inputs.poetry-dependency-groups }}
+        builds-registry-path: ${{ inputs.builds-registry-path }}
+        builds-registry-key: ${{ inputs.builds-registry-key }}
+        use-poexy-core: ${{ inputs.use-poexy-core }}
+        code-coverage-threshold: ${{ inputs.code-coverage-threshold }}
+
+  ci-matrix:
+    name: CI - Matrix
+    needs: [matrix-analysis]
+    if: needs.matrix-analysis.outputs.as-matrix == 'true'
+    strategy:
+      matrix:
+        os: ${{ fromJSON(needs.matrix-analysis.outputs.supported-os) }}
+        python-version: ${{ fromJSON(needs.matrix-analysis.outputs.supported-python-versions) }}
+    uses: ./.github/workflows/poetry-ci.yml
+    with:
+        os: ${{ matrix.os }}
+        python-version: ${{ matrix.python-version }}
+        pipx-tools: ${{ inputs.pipx-tools }}
+        poetry-project-path: ${{ inputs.poetry-project-path }}
+        poetry-package-name: ${{ inputs.poetry-package-name }}
+        poetry-dependency-groups: ${{ inputs.poetry-dependency-groups }}
+        builds-registry-path: ${{ inputs.builds-registry-path }}
+        builds-registry-key: ${{ inputs.builds-registry-key }}
+        use-poexy-core: ${{ inputs.use-poexy-core }}
+        code-coverage-threshold: ${{ inputs.code-coverage-threshold }}
+
+  ci-result-aggregator:
+    name: CI Result Aggregator
+    runs-on: ubuntu-latest
+    needs: [ci-single, ci-matrix]
+    if: always()
+    steps:
+      - env:
+          CI_SINGLE_RESULT: ${{ needs.ci-single.result }}
+          CI_MATRIX_RESULT: ${{ needs.ci-matrix.result }}
+        shell: python
+        run: |
+          import json
+          import os
+          ci_single_result = os.environ['CI_SINGLE_RESULT']
+          ci_matrix_result = os.environ['CI_MATRIX_RESULT']
+          if ci_single_result == 'success' or ci_matrix_result == 'success':
+            print("CI succeeded")
+            exit(0)
+          else:
+            print("CI failed")
+            exit(1)     
