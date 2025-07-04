@@ -1,0 +1,235 @@
+name: Python Poetry CI Pipeline
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        description: 'Operating system to run on'
+        required: true
+        type: string
+      python-version:
+        description: 'Python version to use'
+        required: true
+        type: string
+      pipx-tools:
+        description: 'Pipx tools to install'
+        required: true
+        type: string
+      poetry-project-path:
+        description: 'Path to the Poetry project'
+        required: true
+        type: string
+      poetry-package-name:
+        description: 'Name of the Poetry package'
+        required: true
+        type: string
+      poetry-dependency-groups:
+        description: 'Dependency groups to install'
+        required: true
+        type: string
+      builds-registry-path:
+        description: 'Path to the builds registry'
+        required: true
+        type: string
+      builds-registry-key:
+        description: 'Key to the builds registry'
+        required: true
+        type: string
+      use-poexy-core:
+        description: 'Whether to use poexy-core'
+        required: true
+        type: boolean
+        default: true
+      code-coverage-threshold:
+        description: 'Code coverage threshold'
+        required: true
+        type: number
+        default: 95
+
+env:
+  PYTHON_VERSION: ${{ inputs.python-version }}
+  # Some composite actions related to Poetry are sensitive to working-directory,
+  # to simplify access to them, Poetry project path need to be set via an
+  # environment variable defined globally.
+  POETRY_PROJECT_PATH: ${{ inputs.poetry-project-path }}
+  POETRY_PACKAGE_NAME: ${{ inputs.poetry-package-name }}
+  USE_POEXY_CORE: ${{ inputs.use-poexy-core }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  runner-tag:
+    name: Set Runner Tag
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.runner-tag.outputs.tag }}
+    steps:
+      - name: Set Runner Tag
+        id: runner-tag
+        shell: python
+        run: |
+          import os
+          runner_os = "${{ inputs.os }}"
+          python_version = "${{ inputs.python-version }}"
+          runner_os = runner_os.lower()
+          if "ubuntu" in runner_os:
+            runner_os = "linux"
+          elif "macos" in runner_os:
+            runner_os = "macos"
+          elif "windows" in runner_os:
+            runner_os = "win"
+          else:
+            raise ValueError(f"Unknown runner OS: {runner_os}")
+          python_version = python_version.lower().replace(".", "")
+          tag = f"{runner_os}-py{python_version}"
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+            f.write(f"tag={tag}\n")
+  
+  setup-environment:
+    name: ${{ needs.runner-tag.outputs.tag }} - Setup Environment
+    runs-on: ${{ inputs.os }}
+    needs: [runner-tag]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: ./.github/actions/python/setup-python-pipx-poetry
+        with:
+          pipx-tools: ${{ inputs.pipx-tools }}
+          poetry-dependency-groups: ${{ inputs.poetry-dependency-groups }}
+        
+  tests:
+    name: ${{ needs.runner-tag.outputs.tag }} - Tests
+    runs-on: ${{ inputs.os }}
+    needs: [runner-tag, setup-environment]
+    
+    steps:
+      - name: Checkout Code 
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: ./.github/actions/python/setup-python-pipx-poetry
+        with:
+          pipx-tools: ${{ inputs.pipx-tools }}
+          poetry-dependency-groups: ${{ inputs.poetry-dependency-groups }}
+
+      - name: Run Code Coverage
+        id: code-coverage
+        uses: ./.github/actions/python/poetry/pytest-code-coverage
+        with:
+          test-path: tests/
+          coverage-report-format: xml
+          coverage-artifact-name: coverage-report-${{ inputs.poetry-package-name }}
+          coverage-artifact-path: coverage.xml
+          upload-to-codecov: false
+          run-in-parallel: true
+          fail-fast: true
+          capture-output: false
+
+      - name: Code Coverage Guard
+        uses: ./.github/actions/python/code-quality/coverage-guard
+        with:
+          threshold: ${{ inputs.code-coverage-threshold }}
+          artifact-name: ${{ steps.code-coverage.outputs.coverage-artifact-name }}
+          artifact-path: ${{ steps.code-coverage.outputs.coverage-artifact-path }}
+          artifact-id: ${{ steps.code-coverage.outputs.coverage-artifact-id }}
+
+  code-quality:
+    name: ${{ needs.runner-tag.outputs.tag }} - Code Quality
+    runs-on: ${{ inputs.os }}
+    needs: [runner-tag, setup-environment, tests]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: ./.github/actions/python/setup-python-pipx-poetry
+        with:
+          pipx-tools: ${{ inputs.pipx-tools }}
+          poetry-dependency-groups: ${{ inputs.poetry-dependency-groups }}
+
+      - name: Check Linting
+        id: linting
+        continue-on-error: true
+        uses: ./.github/actions/python/code-quality/flake8
+        with:
+          paths: ${{ inputs.poetry-package-name }}/ tests/
+
+      - name: Check Code Formatting
+        id: formatting
+        continue-on-error: true
+        uses: ./.github/actions/python/code-quality/black
+        with:
+          paths: ${{ inputs.poetry-package-name }}/ tests/
+
+      - name: Check Import Sorting
+        id: sorting
+        continue-on-error: true
+        uses: ./.github/actions/python/code-quality/isort
+        with:
+          paths: ${{ inputs.poetry-package-name }}/ tests/
+
+      - name: Check All Code Quality Steps
+        if: always()
+        env:
+          CODE_COVERAGE_OUTCOME: ${{ needs.tests.result == 'success' }}
+          LINTING_OUTCOME: ${{ steps.linting.outcome == 'success' }}
+          FORMATTING_OUTCOME: ${{ steps.formatting.outcome == 'success' }}
+          SORTING_OUTCOME: ${{ steps.sorting.outcome == 'success' }}
+        shell: bash
+        run: |
+          # Check if any of the code quality steps failed
+          if [[ "$CODE_COVERAGE_OUTCOME" == "false" ]] || \
+             [[ "$LINTING_OUTCOME" == "false" ]] || \
+             [[ "$FORMATTING_OUTCOME" == "false" ]] || \
+             [[ "$SORTING_OUTCOME" == "false" ]]; then
+            echo "❌ One or more checks failed:"
+            echo "  - Code coverage: $CODE_COVERAGE_OUTCOME"
+            echo "  - Linting: $LINTING_OUTCOME"
+            echo "  - Formatting: $FORMATTING_OUTCOME"
+            echo "  - Import sorting: $SORTING_OUTCOME"
+            exit 1
+          else
+            echo "✅ All checks passed!"
+          fi
+  
+  build:
+    name: ${{ needs.runner-tag.outputs.tag }} - Build
+    runs-on: ${{ inputs.os }}
+    needs: [runner-tag, setup-environment]
+    concurrency: ${{ github.workflow }}-build
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: ./.github/actions/python/setup-python-pipx-poetry
+        with:
+          pipx-tools: ${{ inputs.pipx-tools }}
+          poetry-dependency-groups: ${{ inputs.poetry-dependency-groups }}
+
+      - name: Bump Version
+        uses: ./.github/actions/python/poetry/version  
+
+      - name: Build Artifacts
+        id: build-artifacts
+        uses: ./.github/actions/python/poetry/build
+
+      - name: Publish Artifacts (Dry Run)
+        uses: ./.github/actions/python/poetry/publish
+        with:
+          dry-run: true
+
+  prepare-package:
+    name: ${{ needs.runner-tag.outputs.tag }} - Prepare Package
+    needs: [runner-tag, build]
+    runs-on: ubuntu-latest
+    concurrency: ${{ github.workflow }}-prepare-package
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Prepare Artifacts Registry for Release
+        uses: ./.github/actions/artifacts-registry/prepare-release
