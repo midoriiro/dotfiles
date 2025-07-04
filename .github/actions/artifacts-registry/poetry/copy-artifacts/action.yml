@@ -1,0 +1,36 @@
+name: 'Copy Poetry Artifacts'
+description: 'Copy Poetry artifacts to artifacts registry'
+
+inputs:
+  project-path:
+    description: 'The path to the project'
+    required: true
+    type: string
+  project-name:
+    description: 'The name of the project'
+    required: true
+    type: string
+  project-version:
+    description: 'The version of the project'
+    required: true
+    type: string
+
+runs:
+  using: composite
+  steps:
+    - name: Restore Artifacts Registry
+      id: artifacts-registry
+      uses: ./.github/actions/artifacts-registry/restore
+
+    - name: Copy Artifacts
+      env:
+        PROJECT_PATH: ${{ inputs.project-path }}
+        PROJECT_NAME: ${{ inputs.project-name }}
+        PROJECT_VERSION: ${{ inputs.project-version }}
+        ARTIFACTS_REGISTRY_PATH: ${{ steps.artifacts-registry.outputs.path }}
+      shell: bash
+      run: |
+        python3 ${{ github.action_path }}/main.py
+
+    - name: Save Artifacts Registry
+      uses: ./.github/actions/artifacts-registry/save

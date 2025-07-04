@@ -1,0 +1,19 @@
+name: 'Prepare Artifacts Registry for Release'
+description: 'Prepare artifacts registry for release'
+
+runs:
+  using: composite
+  steps:
+    - name: Restore Artifacts Registry
+      id: artifacts-registry
+      uses: ./.github/actions/artifacts-registry/restore
+
+    - name: Prepare Artifacts Release
+      env:
+        ARTIFACTS_REGISTRY_PATH: ${{ steps.artifacts-registry.outputs.path }}
+      shell: bash
+      run: |
+        python ${{ github.action_path }}/main.py
+
+    - name: Save Artifacts Registry
+      uses: ./.github/actions/artifacts-registry/save 
