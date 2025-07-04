@@ -1,0 +1,231 @@
+name: Python Poetry CD Pipeline
+
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        description: 'Python version to use'
+        required: true
+        type: string
+      pipx-tools:
+        description: 'Pipx tools to install'
+        required: true
+        type: string
+      dry-run:
+        description: 'Dry run'
+        required: true
+        type: boolean
+        default: true
+
+env:
+  PYTHON_VERSION: ${{ inputs.python-version }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  
+jobs: 
+  packages:
+    name: Get Packages
+    runs-on: ubuntu-latest
+    outputs:
+      result: ${{ steps.packages.outputs.result }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Get Artifacts Registry Packages
+        id: packages
+        uses: ./.github/actions/artifacts-registry/packages
+
+  release-draft:
+    name: ${{ matrix.packages.name }} - Create Release Draft
+    needs: [packages]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        packages: ${{ fromJSON(needs.packages.outputs.result) }}
+    outputs:
+      tag: ${{ steps.release-tag.outputs.result }}
+      assets: ${{ steps.prepare-assets.outputs.result }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Restore Artifacts Registry
+        id: restore-artifacts-registry
+        uses: ./.github/actions/artifacts-registry/restore
+        with:
+          fail-on-cache-miss: true
+
+      - name: Set Release Tag
+        id: release-tag
+        shell: bash
+        run: |
+          RELEASE_TAG=${{ matrix.packages.name }}-v${{ matrix.packages.version }}
+          echo "result=${RELEASE_TAG}" >> $GITHUB_OUTPUT
+          echo "✅ Release tag set to ${RELEASE_TAG}"
+
+      - name: Create Release
+        id: create-release
+        shell: bash
+        run: |
+          CMD="gh release create ${{ steps.release-tag.outputs.result }} --draft"
+          echo "✅ Command: ${CMD}"
+          if [ ${{ inputs.dry-run }} = false ]; then
+            ${CMD}
+            echo "✅ Release draft created with tag ${{ steps.release-tag.outputs.result }}"
+          else
+            echo "✅ Release draft created with tag ${{ steps.release-tag.outputs.result }} (dry run)"
+          fi
+
+      - name: Prepare Assets
+        id: prepare-assets
+        env:
+          ASSETS: ${{ matrix.packages.assets }}
+        shell: python
+        run: |
+          import json
+          import os
+          assets = json.loads('${{ env.ASSETS }}')
+          assets = " ".join(assets)
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+            f.write(f"result={assets}\n")
+          print(f"✅ Assets prepared: {assets}")
+
+      - name: Upload Artifacts to Release
+        id: upload-artifacts
+        env:
+          ASSETS: ${{ steps.prepare-assets.outputs.result }}
+        shell: bash
+        run: |
+          CMD="gh release upload ${{ steps.release-tag.outputs.result }} \
+            ${{ env.ASSETS }} \
+            --clobber"
+          echo "✅ Command: ${CMD}"
+          if [ ${{ inputs.dry-run }} = false ]; then
+            ${CMD}
+            echo "✅ Assets Uploaded: ${{ env.ASSETS }}"
+          else
+            echo "✅ Assets Uploaded: ${{ env.ASSETS }} (dry run)"
+          fi
+
+      - name: Setup Python Pipx Environment
+        id: setup-pipx
+        if: ${{ matrix.packages.type == 'poetry' }}
+        uses: ./.github/actions/python/setup-pipx
+        with:
+          tools: ${{ inputs.pipx-tools }}
+
+      - name: Poetry Release (Dry Run)
+        if: ${{ matrix.packages.type == 'poetry' }}
+        shell: bash
+        run: |
+          cd ${{ matrix.packages.path }}
+          poetry version -- ${{ matrix.packages.version }}
+          poetry publish --dry-run --dist-dir ${{ matrix.packages.assets_path }}
+          git add pyproject.toml
+          git config --local user.name 'Github Action'
+          git config --local user.email 'action@github.com'
+          git commit -m '${{ matrix.packages.commit_message }}'
+
+  clean-release-draft:
+    name: ${{ matrix.packages.name }} - Clean Release Draft
+    if: ${{ always() && (needs.release-draft.result == 'failure' || inputs.dry-run == true) }}
+    needs: [packages, release-draft]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        packages: ${{ fromJSON(needs.packages.outputs.result) }}
+    steps:
+      - name: Delete Release Assets
+        id: delete-release-assets
+        env:
+          ASSETS: ${{ needs.release-draft.outputs.assets }}
+        shell: bash
+        run: |
+          IFS=" " read -a ASSETS <<< "${{ env.ASSETS }}"
+          for ASSET in "${ASSETS[@]}"; do
+            if [ ${{ inputs.dry-run }} = false ]; then
+              gh release delete-asset ${{ needs.release-draft.outputs.tag }} \
+                $ASSET \
+                --yes
+              echo "✅ Asset Deleted: ${ASSET}"
+            else
+              echo "✅ Asset Deleted: ${ASSET} (dry run)"
+            fi
+          done
+
+      - name: Delete Release Draft
+        id: delete-release-draft
+        shell: bash
+        run: |
+          CMD="gh release delete ${{ needs.release-draft.outputs.tag }} --yes --cleanup-tag"
+          echo "✅ Command: ${CMD}"
+          if [ ${{ inputs.dry-run }} = false ]; then
+            ${CMD}
+            echo "✅ Release draft deleted with tag ${{ needs.release-draft.outputs.tag }}"
+          else
+            echo "✅ Release draft deleted with tag ${{ needs.release-draft.outputs.tag }} (dry run)"
+          fi
+
+  release:
+    name: ${{ matrix.packages.name }} - Release
+    if: ${{ always() && needs.release-draft.result == 'success' && inputs.dry-run == false }}
+    needs: [packages, release-draft]
+    strategy:
+      matrix:
+        packages: ${{ fromJSON(needs.packages.outputs.result) }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Restore Artifacts Registry
+        id: restore-artifacts-registry
+        uses: ./.github/actions/artifacts-registry/restore
+        with:
+          fail-on-cache-miss: true
+
+      - name: Edit Release
+        id: edit-release-draft
+        shell: bash
+        run: |
+          CMD="gh release edit ${{ needs.release-draft.outputs.tag }} --draft=false"
+          echo "✅ Command: ${CMD}"
+          if [ ${{ inputs.dry-run }} = false ]; then
+            ${CMD}
+            echo "✅ Release edited with tag ${{ needs.release-draft.outputs.tag }}"
+          else
+            echo "✅ Release edited with tag ${{ needs.release-draft.outputs.tag }} (dry run)"
+          fi
+
+      - name: Setup Python Pipx Environment
+        id: setup-pipx
+        if: ${{ matrix.packages.type == 'poetry' }}
+        uses: ./.github/actions/python/setup-pipx
+        with:
+          tools: ${{ inputs.pipx-tools }}
+
+      - name: Poetry Release (Publish)
+        if: ${{ matrix.packages.type == 'poetry' }}
+        shell: bash
+        run: |
+          cd ${{ matrix.packages.path }}
+          poetry version -- ${{ matrix.packages.version }}
+          poetry publish --dry-run --dist-dir ${{ matrix.packages.assets_path }}
+          git add pyproject.toml
+          git config --local user.name 'Github Action'
+          git config --local user.email 'action@github.com'
+          git commit -m '${{ matrix.packages.commit_message }}'
+
+      - name: Push Release
+        id: push-release
+        shell: bash
+        run: |
+          CMD="git push"
+          echo "✅ Command: ${CMD}"
+          if [ ${{ inputs.dry-run }} = false ]; then
+            ${CMD}
+            echo "✅ Release pushed"
+          else
+            echo "✅ Release pushed (dry run)"
+          fi
