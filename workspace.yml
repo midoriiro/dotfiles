@@ -61,8 +61,41 @@ workspace:
       vscode:
         settings:
           - $ref
+    poexy:
+      alias: Poexy
+      path: tools/
+      vscode:
+        settings:
+          - $ref
+          - python:
+            - $ref
+        tasks:
+          - poetry:
+            - $all
     ignite:
       alias: Ignite
+      path: tools/
+      vscode:
+        settings:
+          - $ref
+          - python:
+            - $ref
+        tasks:
+          - poetry:
+            - $all
+    mutex:
+      alias: Mutex
+      path: tools/
+      vscode:
+        settings:
+          - $ref
+          - python:
+            - $ref
+        tasks:
+          - poetry:
+            - $all
+    mutex-cli:
+      alias: Mutex-CLI
       path: tools/
       vscode:
         settings:

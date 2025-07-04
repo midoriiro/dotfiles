@@ -1,25 +1,21 @@
 [tool.poetry]
-name = "ignite"
+name = "poexy"
 version = "2025.6.0"
-description = "CLI tool to initialize and manage development environment configuration from a workspace.yml file"
+description = "CLI tool for building and packaging Poetry projects as executables"
 packages = [
-    { include = "ignite" }
+    { include = "poexy" }
 ]
-exclude = ["ignite", "scripts", "build", "dist", "tests"]
+exclude = ["poexy", "build", "dist", "tests"]
 include = [
-    { path = "files", format = "sdist" },
-    { path = ".env", format = ["sdist", "wheel"] },
-    { path = "ignite", format = "sdist" },
+    { path = "poexy", format = "sdist" },
     { path = "tests", format = "sdist" }
 ]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.14"
 typer = "^0.16.0"
-pydantic = "^2.11.7"
-jsonschema = "^4.22.0"
-pyyaml = "^6.0.2"
-python-dotenv = "^1.1.1"
+pyinstaller = "^6.14.1"
+rich = "^14.0.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.4.1"
@@ -31,13 +27,14 @@ coverage = "^7.3.2"
 black = "^25.1.0"
 isort = "^6.0.1"
 flake8 = "^7.3.0"
-pyinstaller = "^6.14.1"
 
 [tool.poetry.scripts]
-ignite = "ignite.main:cli"
-build = "scripts.build:run"
-build-executable = "scripts.pyinstaller:build"
-package-executable = "scripts.package:add"
+self-build = "poexy.main:self_build"
+
+[tool.poexy]
+package = "poexy"
+entry-point = "main.py"
+executable-name = "poexy"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

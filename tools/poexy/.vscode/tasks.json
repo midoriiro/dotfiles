@@ -1,0 +1,103 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Poexy: Install",
+      "type": "shell",
+      "command": "poetry install",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Poexy: Build",
+      "type": "shell",
+      "command": "poetry build",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Poexy: Remove Environment",
+      "type": "shell",
+      "command": "poetry env remove",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Poexy: Remove All Environments",
+      "type": "shell",
+      "command": "poetry env remove --all",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Poexy: Run Tests",
+      "type": "shell",
+      "command": "poetry run pytest",
+      "problemMatcher": [
+        "$python"
+      ],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Poexy: Run Tests with Coverage",
+      "type": "shell",
+      "command": "poetry run pytest --cov=Poexy",
+      "problemMatcher": [
+        "$python"
+      ],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Poexy: Lock",
+      "type": "shell",
+      "command": "poetry lock",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Poexy: Run Lint (flake8)",
+      "type": "shell",
+      "command": "poetry run flake8",
+      "problemMatcher": [
+        "$python"
+      ]
+    },
+    {
+      "label": "Poexy: Run Lint (pylint)",
+      "type": "shell",
+      "command": "poetry run pylint",
+      "problemMatcher": [
+        "$python"
+      ]
+    },
+    {
+      "label": "Poexy: Run Format (black)",
+      "type": "shell",
+      "command": "poetry run black",
+      "problemMatcher": [
+        "$python"
+      ]
+    }
+  ]
+}
