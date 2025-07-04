@@ -1,0 +1,28 @@
+name: Clean Up
+
+on:
+  workflow_call
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  clean:
+    if: always()
+    name: Clean Up
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Clean Registries
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+        uses: ./.github/actions/registry/clean
+      

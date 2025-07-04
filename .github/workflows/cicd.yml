@@ -1,0 +1,120 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, ci-cd-pipeline ]
+  pull_request:
+    branches: [ main, ci-cd-pipeline ]
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  matrix:
+    name: Matrix Definitions
+    runs-on: ubuntu-latest
+    outputs:
+      result: ${{ steps.set-matrix.outputs.result }}
+      length: ${{ steps.set-matrix.outputs.length }}
+      last-supported-python-version: ${{ steps.set-matrix.outputs.last-supported-python-version }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Detect Changes
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            poexy-core:
+              - 'tools/poexy-core/**'
+            ignite:
+              - 'tools/ignite/**'
+
+      - name: Set Matrix
+        id: set-matrix
+        env:
+          POEXY_CORE_PROJECT_CHANGED: ${{ steps.filter.outputs.poexy-core }}
+          IGNITE_PROJECT_CHANGED: ${{ steps.filter.outputs.ignite }}
+        shell: bash
+        run: python .github/workflows/projects_matrix.py
+
+  poetry-pipeline:
+    name: ${{ matrix.projects.name }}
+    needs: [matrix]
+    if: ${{ needs.matrix.outputs.length > 0 }}
+    strategy:
+      matrix: ${{ fromJSON(needs.matrix.outputs.result) }}
+    uses: ./.github/workflows/poetry-pipeline.yml
+    with:
+        supported-os: ${{ matrix.projects.inputs.supported-os }}
+        supported-python-versions: ${{ matrix.projects.inputs.supported-python-versions }}
+        last-supported-python-version: ${{ matrix.projects.inputs.last-supported-python-version }}
+        pipx-tools: ${{ matrix.projects.inputs.pipx-tools }}
+        poetry-project-path: ${{ matrix.projects.inputs.path }}
+        poetry-package-name: ${{ matrix.projects.inputs.package-name }}
+        poetry-dependency-groups: ${{ matrix.projects.inputs.dependency-groups }}
+        builds-registry-path: ${{ matrix.projects.inputs.builds-registry-path }}
+        builds-registry-key: ${{ matrix.projects.inputs.builds-registry-key }}
+        use-poexy-core: ${{ matrix.projects.inputs.use-poexy-core == 'true' }}
+        code-coverage-threshold: ${{ matrix.projects.inputs.code-coverage-threshold }}
+
+  prepare-release-mode:
+    name: Prepare Release Mode
+    runs-on: ubuntu-latest
+    outputs:
+      dry-run: ${{ steps.check-events.outputs.dry-run }}
+    steps:
+      - name: Check Events
+        id: check-events
+        shell: python
+        run: |
+          import os
+
+          event_name = "${{ github.event_name }}"
+          pull_request_merged = "${{ github.event.pull_request.merged }}"
+          base_ref = "${{ github.base_ref }}"
+
+          def set_dry_run_output(value: bool):
+            with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write(f"dry-run={str(value).lower()}\n")
+
+          if event_name == 'pull_request':
+            print("📥 Pull request event")
+            if pull_request_merged != 'true':
+              print("⚠️ Pull request is not merged -> dry-run mode")
+              set_dry_run_output(True)
+              exit(0)
+            if base_ref != 'main':
+              print("⚠️ Base ref is not main -> dry-run mode")
+              set_dry_run_output(True)
+              exit(0)
+            set_dry_run_output(False)
+            print("✅ Pull request event merged into main -> release mode")
+          elif event_name == 'push':
+            print("📤 Push event -> dry-run mode")
+            set_dry_run_output(True)
+            exit(0)
+          else:
+            print("❓ Unknown event -> dry-run mode")
+            set_dry_run_output(True)
+
+  continuous-delivery:
+    name: Continuous Delivery
+    needs: [matrix, poetry-pipeline, prepare-release-mode]
+    uses: ./.github/workflows/cd.yml
+    with:
+      python-version: ${{ needs.matrix.outputs.last-supported-python-version }}
+      pipx-tools: poetry
+      dry-run: true
+
+  clean-up:
+    name: Clean Up
+    if: ${{ always() }}
+    needs: [poetry-pipeline, continuous-delivery]
+    uses: ./.github/workflows/clean-up.yml
