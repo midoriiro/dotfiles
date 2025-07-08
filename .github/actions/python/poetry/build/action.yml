@@ -24,7 +24,6 @@ runs:
 
     - name: Run Build
       working-directory: ${{ env.POETRY_PROJECT_PATH }}
-      env:
       shell: bash
       run: |
         POETRY_CMD="poetry"
