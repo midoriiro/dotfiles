@@ -1,0 +1,10 @@
+[project]
+name = "wheel-source"
+version = "1.0.0"
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.wheel_source]
+source = "src"

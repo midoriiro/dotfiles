@@ -1,0 +1,13 @@
+[project]
+name = "wheel-source-binary"
+version = "1.0.0"
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.wheel_source_binary]
+source = "src"
+
+[tool.poexy.wheel]
+format = ["source", "binary"]

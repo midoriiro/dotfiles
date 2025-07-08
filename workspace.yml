@@ -72,6 +72,17 @@ workspace:
         tasks:
           - poetry:
             - $all
+    poexy-core:
+      alias: Poexy-Core
+      path: tools/
+      vscode:
+        settings:
+          - $ref
+          - python:
+            - $ref
+        tasks:
+          - poetry:
+            - $all
     ignite:
       alias: Ignite
       path: tools/

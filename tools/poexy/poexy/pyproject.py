@@ -24,11 +24,17 @@ class Pyproject:
 
     @property
     def project_name(self) -> str:
-        return self.pyproject["tool"]["poetry"]["name"]
+        if "project" in self.pyproject:
+            return self.pyproject["project"]["name"]
+        else:
+            return self.pyproject["tool"]["poetry"]["name"]
 
     @property
     def project_version(self) -> str:
-        return self.pyproject["tool"]["poetry"]["version"]
+        if "project" in self.pyproject:
+            return self.pyproject["project"]["version"]
+        else:
+            return self.pyproject["tool"]["poetry"]["version"]
     
     def __search_poetry_packages(self, packages: List[Dict]) -> Path:
         def search_package(package: dict) -> Path:

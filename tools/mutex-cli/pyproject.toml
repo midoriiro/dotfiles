@@ -1,36 +1,33 @@
-[tool.poetry]
+[project]
 name = "mutex-cli"
 version = "2025.6.0"
 description = "CLI tool to manage mutexes"
-packages = [
-    { include = "mutex_cli" }
+requires-python = ">=3.9,<3.14"
+dependencies = [
+    "typer>=0.16.0",
+    "mutex>=2025.6.0",
+    "mutex @ ../mutex/"
 ]
 
-[tool.poetry.dependencies]
-python = ">=3.9,<3.14"
-typer = "^0.16.0"
-mutex = [
-    { path = "../mutex/", develop = true },
-    { version = "^2025.6.0" }
-]
+[project.scripts]
+mutex-cli = "mutex_cli.main:main"
+build = "scripts.build:run"
+build-executable = "scripts.pyinstaller:build"
+package-executable = "scripts.package:add"
 
 [tool.poetry.group.dev.dependencies]
+black = "^25.1.0"
+isort = "^6.0.1"
+flake8 = "^7.3.0"
+pyinstaller = "^6.14.1"
+
+[tool.poetry.group.test.dependencies]
 pytest = "^8.4.1"
 pytest-cov = "^6.2.1"
 pytest-mock = "^3.14.0"
 pytest-xdist = "^3.7.0"
 assertpy = "^1.1"
 coverage = "^7.3.2"
-black = "^25.1.0"
-isort = "^6.0.1"
-flake8 = "^7.3.0"
-pyinstaller = "^6.14.1"
-
-[tool.poetry.scripts]
-mutex-cli = "mutex_cli.main:main"
-build = "scripts.build:run"
-build-executable = "scripts.pyinstaller:build"
-package-executable = "scripts.package:add"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

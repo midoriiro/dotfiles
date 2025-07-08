@@ -5,7 +5,7 @@ from typing import Callable
 
 Printer = Callable[[str], None]
 
-def run(cmd: list[str], printer: Printer, error_printer: Printer, **kwargs) -> int:
+def run(cmd: list[str], printer: Printer, **kwargs) -> int:
     """Run subprocess with proper encoding for Windows compatibility."""
     # Force UTF-8 encoding for subprocess
     env = os.environ.copy()

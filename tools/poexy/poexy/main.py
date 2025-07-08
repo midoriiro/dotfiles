@@ -24,10 +24,10 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 # Create and configure the TyperHandler
-typer_handler = ConsoleHandler()
-typer_handler.setFormatter(logging.Formatter("%(message)s"))
+console_handler = ConsoleHandler()
+console_handler.setFormatter(logging.Formatter("%(message)s"))
 logger.handlers.clear()
-logger.addHandler(typer_handler)
+logger.addHandler(console_handler)
 
 def self_build():
     poetry_project_path = Path(__file__).parent.parent

@@ -8,6 +8,10 @@
       "name": "Poexy"
     },
     {
+      "path": "tools/poexy-core",
+      "name": "Poexy-Core"
+    },
+    {
       "path": "tools/ignite",
       "name": "Ignite"
     },

@@ -1,0 +1,121 @@
+name: Poexy Core CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, ci-cd-pipeline ]
+  pull_request:
+    branches: [ main, ci-cd-pipeline ]
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  mutex:
+    name: Mutex Definitions
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Initialize Mutex
+        uses: ./.github/actions/mutex/init
+        with:
+          database-connection-uri: ${{ secrets.POSTGRESQL_CONNECTION_URI }}
+
+  matrix:
+    name: Matrix Definitions
+    runs-on: ubuntu-latest
+    outputs:
+      project-has-changed: ${{ steps.filter.outputs.poexy-core }}
+      result: ${{ steps.set-matrix.outputs.result }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Detect Changes
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            poexy-core:
+              - 'tools/poexy-core/**'
+
+      - name: Set Matrix
+        id: set-matrix
+        shell: python
+        run: |
+          import json
+          import os
+          matrix = {
+            "os": [
+              'ubuntu-latest', 
+              # 'windows-latest', 
+              # 'macos-latest'
+            ],
+            "python-version": [
+              # '3.9', 
+              # '3.10', 
+              # '3.11', 
+              # '3.12', 
+              '3.13'
+            ]
+          }
+          matrix_data = json.dumps(matrix)
+          print(matrix_data)
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+            f.write(f"result={matrix_data}\n")
+
+  ci:
+    name: CI - Poexy Core (${{ matrix.os }}-${{ matrix.python-version }})
+    if: needs.matrix.outputs.project-has-changed == 'true'
+    needs: [mutex, matrix]
+    strategy:
+      matrix: ${{ fromJSON(needs.matrix.outputs.result) }}
+    uses: ./.github/workflows/python-poetry-ci.yml
+    with:
+        os: ${{ matrix.os }}
+        python-version: ${{ matrix.python-version }}
+        poetry-project-path: 'tools/poexy-core'
+        poetry-package-name: 'poexy-core'
+        builds-registry-path: 'builds/'
+        builds-registry-key: 'builds-poexy-core'
+    secrets:
+      database-connection-uri: ${{ secrets.POSTGRESQL_CONNECTION_URI }}
+
+  cd:
+    name: CD - Poexy Core
+    if: needs.matrix.outputs.project-has-changed == 'true'
+    needs: [ci]
+    uses: ./.github/workflows/python-poetry-cd.yml
+    with:
+      python-version: '3.13'
+      poetry-project-path: 'tools/poexy-core'
+      builds-registry-path: 'builds/'
+      builds-registry-key: 'builds-poexy-core'
+
+  clean:
+    if: always()
+    name: Clean
+    runs-on: ubuntu-latest
+    needs: [ci, cd]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Clean Mutexes
+        if: always()
+        uses: ./.github/actions/mutex/clean
+        continue-on-error: true
+        with:
+          database-connection-uri: ${{ secrets.POSTGRESQL_CONNECTION_URI }}
+
+      - name: Clean Registries
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+        uses: ./.github/actions/registry/clean
+        with:
+          database-connection-uri: ${{ secrets.POSTGRESQL_CONNECTION_URI }}
+      

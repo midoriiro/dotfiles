@@ -1,28 +1,27 @@
-[tool.poetry]
+[project]
 name = "mutex"
 version = "2025.6.0"
 description = "CLI tool to manage mutexes"
-packages = [
-    { include = "mutex" }
+requires-python = ">=3.9,<3.14"
+dependencies = [
+    "typer>=0.16.0",
+    "asyncpg>=0.30.0",
+    "pydantic>=2.11.7"
 ]
 
-[tool.poetry.dependencies]
-python = ">=3.9,<3.14"
-typer = "^0.16.0"
-asyncpg = "^0.30.0"
-pydantic = "^2.11.7"
-
 [tool.poetry.group.dev.dependencies]
+black = "^25.1.0"
+isort = "^6.0.1"
+flake8 = "^7.3.0"
+pyinstaller = "^6.14.1"
+
+[tool.poetry.group.test.dependencies]
 pytest = "^8.4.1"
 pytest-cov = "^6.2.1"
 pytest-mock = "^3.14.0"
 pytest-xdist = "^3.7.0"
 assertpy = "^1.1"
 coverage = "^7.3.2"
-black = "^25.1.0"
-isort = "^6.0.1"
-flake8 = "^7.3.0"
-pyinstaller = "^6.14.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
