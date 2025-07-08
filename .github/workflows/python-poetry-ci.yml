@@ -39,6 +39,7 @@ env:
   # environment variable defined globally.
   POETRY_PROJECT_PATH: ${{ inputs.poetry-project-path }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  DATABASE_CONNECTION_URI: ${{ secrets.database-connection-uri }}
 
 jobs:
   setup-environment:
@@ -182,15 +183,12 @@ jobs:
       - name: Build Artifacts
         id: build-artifacts
         uses: ./.github/actions/python/poetry/build
-        with:
-          database-connection-uri: ${{ secrets.database-connection-uri }}
 
       - name: Wait for Build Mutex Release
         uses: ./.github/actions/mutex/wait
         with:
           key: ${{ inputs.builds-registry-key }}
           timeout: 60
-          database-connection-uri: ${{ secrets.database-connection-uri }}
 
       - name: Restore Build Registry
         id: build-registry
@@ -217,12 +215,10 @@ jobs:
         uses: ./.github/actions/mutex/release
         with:
           key: ${{ inputs.builds-registry-key }}
-          database-connection-uri: ${{ secrets.database-connection-uri }}
 
       - name: Save Build Registry
         uses: ./.github/actions/registry/save
         with:
           path: ${{ inputs.builds-registry-path }}
           key: ${{ inputs.builds-registry-key }}
-          database-connection-uri: ${{ secrets.database-connection-uri }}
           clean: true

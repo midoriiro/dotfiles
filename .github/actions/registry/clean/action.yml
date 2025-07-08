@@ -1,12 +1,6 @@
 name: 'Clean Registries'
 description: 'Clean registries'
 
-inputs:
-  database-connection-uri:
-    description: 'Database connection URI for mutex'
-    required: true
-    type: string
-
 runs:
   using: composite
   steps:
@@ -19,7 +13,6 @@ runs:
       with:
         key: ${{ steps.registry.outputs.self-key }}
         timeout: 60
-        database-connection-uri: ${{ inputs.database-connection-uri }}
 
     - name: Restore Self Registry
       id: self-registry
@@ -74,4 +67,3 @@ runs:
       uses: ./.github/actions/mutex/release
       with:
         key: ${{ steps.registry.outputs.self-key }}
-        database-connection-uri: ${{ inputs.database-connection-uri }}

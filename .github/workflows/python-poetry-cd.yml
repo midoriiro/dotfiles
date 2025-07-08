@@ -26,7 +26,7 @@ env:
   # but to simplify access to them, Poetry project path need to be set via an
   # environment variable defined globally.
   POETRY_PROJECT_PATH: ${{ inputs.poetry-project-path }}
-
+  
 jobs:
   package:
     name: Package

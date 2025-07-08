@@ -19,9 +19,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Initialize Mutex
+        env:
+          DATABASE_CONNECTION_URI: ${{ secrets.POSTGRESQL_CONNECTION_URI }}
         uses: ./.github/actions/mutex/init
-        with:
-          database-connection-uri: ${{ secrets.POSTGRESQL_CONNECTION_URI }}
 
   matrix:
     name: Matrix Definitions

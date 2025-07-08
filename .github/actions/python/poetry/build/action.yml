@@ -1,12 +1,6 @@
 name: 'Poetry Build'
 description: 'Build Python packages with Poetry'
 
-inputs:
-  database-connection-uri:
-    description: 'Database connection URI for mutex'
-    required: true
-    type: string
-
 outputs:
   artifacts-registry-key:
     description: 'Registry key where artifacts are saved'
@@ -37,7 +31,6 @@ runs:
       with:
         path: ${{ env.POETRY_PROJECT_PATH }}/dist
         key: artifacts-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ steps.poetry-info.outputs.project-name }}-${{ steps.poetry-info.outputs.project-version }}
-        database-connection-uri: ${{ inputs.database-connection-uri }}
         clean: true
 
     - name: Finalize
