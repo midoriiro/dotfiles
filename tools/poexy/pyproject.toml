@@ -1,0 +1,60 @@
+[project]
+name = "poexy"
+version = "2025.6.0"
+description = "CLI tool for building and packaging Poetry projects as executables"
+requires-python = ">=3.9,<3.14"
+dependencies = [
+    "typer>=0.16.0",
+    "pyinstaller>=6.14.1",
+    "rich>=14.0.0"
+]
+
+[project.scripts]
+self-build = "poexy.main:self_build"
+
+[tool.poetry.group.dev.dependencies]
+black = "^25.1.0"
+isort = "^6.0.1"
+flake8 = "^7.3.0"
+
+[tool.poetry.group.test.dependencies]
+pytest = "^8.4.1"
+pytest-cov = "^6.2.1"
+pytest-mock = "^3.14.0"
+pytest-xdist = "^3.7.0"
+assertpy = "^1.1"
+coverage = "^7.3.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api" 
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+python_classes = ["Test*"]
+
+[tool.coverage.run]
+source = ["poexy"]
+omit = [
+    "*/tests/*",
+    "*/__init__.py",
+    "*/__pycache__/*",
+    "*/.?*/*",
+    "*/venv/*",
+    "*/.venv/*"
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "pass",
+    "raise ImportError"
+]
+
+[tool.coverage.paths]
+source = ["poexy"]
