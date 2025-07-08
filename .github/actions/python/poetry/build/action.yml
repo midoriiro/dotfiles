@@ -2,10 +2,6 @@ name: 'Poetry Build'
 description: 'Build Python packages with Poetry'
 
 inputs:
-  build-script:
-    description: 'Poetry build script to use'
-    required: false
-    type: string
   database-connection-uri:
     description: 'Database connection URI for mutex'
     required: true
@@ -29,17 +25,11 @@ runs:
     - name: Run Build
       working-directory: ${{ env.POETRY_PROJECT_PATH }}
       env:
-        BUILD_SCRIPT: ${{ inputs.build-script }}
       shell: bash
       run: |
         POETRY_CMD="poetry"
-        if [ -z "$BUILD_SCRIPT" ]; then
-          POETRY_CMD="$POETRY_CMD build"
-          echo "✅ Using default build command: $POETRY_CMD"
-        else
-          POETRY_CMD="$POETRY_CMD run $BUILD_SCRIPT"
-          echo "✅ Using custom build command: $POETRY_CMD" 
-        fi
+        POETRY_CMD="$POETRY_CMD build"
+        echo "✅ Using default build command: $POETRY_CMD"
         $POETRY_CMD
 
     - name: Save Artifacts
