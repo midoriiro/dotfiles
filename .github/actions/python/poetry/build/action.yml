@@ -43,6 +43,20 @@ runs:
       run: |
         echo "path=${{ env.POETRY_PROJECT_PATH }}/dist" >> $GITHUB_OUTPUT
 
+    - name: Restore Artifacts Registry
+      id: artifacts-registry
+      uses: ./.github/actions/registry/restore
+      with:
+        path: ${{ steps.artifacts-registry-path.outputs.path }}
+        key: ${{ steps.artifacts-registry-key.outputs.key }}
+        fail-on-cache-miss: true
+
+    - name: Copy Artifacts
+      shell: bash
+      run: |
+        cp "dist/*.whl" "${{ steps.artifacts-registry.outputs.path }}/."
+        cp "dist/*.tar.gz" "${{ steps.artifacts-registry.outputs.path }}/."
+
     - name: Save Artifacts
       id: save-artifacts
       uses: ./.github/actions/registry/save
