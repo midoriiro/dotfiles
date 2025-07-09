@@ -122,8 +122,8 @@ jobs:
         run: |
           LOCATION="artifacts" 
           mkdir --parents "$LOCATION/wheels" "$LOCATION/source"
-          cp "${{ matrix.artifacts.registry-path }}/*.whl" "$LOCATION/wheels/."
-          cp "${{ matrix.artifacts.registry-path }}/*.tar.gz" "$LOCATION/source/."
+          cp "${{ steps.artifacts-registry.outputs.path }}/*.whl" "$LOCATION/wheels/."
+          cp "${{ steps.artifacts-registry.outputs.path }}/*.tar.gz" "$LOCATION/source/."
 
       - name: Save Build Registry
         uses: ./.github/actions/registry/save
