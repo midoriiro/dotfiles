@@ -124,6 +124,7 @@ jobs:
           mkdir --parents "$LOCATION/wheels" "$LOCATION/source"
           cp ${{ steps.artifacts-registry.outputs.path }}/*.whl $LOCATION/wheels/.
           cp ${{ steps.artifacts-registry.outputs.path }}/*.tar.gz $LOCATION/source/.
+          ls -la $LOCATION
 
       - name: Save Build Registry
         uses: ./.github/actions/registry/save
