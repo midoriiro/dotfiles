@@ -59,6 +59,7 @@ jobs:
         shell: python
         run: |
           import json
+          import os
           from pathlib import Path
           files = [path for path in Path.cwd().iterdir() if path.is_file()]
           if '${{ inputs.is-single-artifact }}' == 'true':
