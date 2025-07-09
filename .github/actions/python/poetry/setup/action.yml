@@ -37,7 +37,7 @@ runs:
       shell: bash
       env:
         POETRY_CACHE_DIR: ${{ steps.poetry.outputs.cache_dir }}
-        DEPENDENCY_GROUPS: ${{ join( inputs.dependency-groups, ',' ) }}
+        DEPENDENCY_GROUPS: ${{ steps.poetry.outputs.dependency-groups }}
       run: poetry install --only=$DEPENDENCY_GROUPS
 
     - name: Install poexy-core
