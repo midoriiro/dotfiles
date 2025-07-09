@@ -106,8 +106,8 @@ jobs:
         poetry-package-name: ${{ matrix.poetry-projects.package-name }}
         builds-registry-path: ${{ matrix.poetry-projects.builds-registry-path }}
         builds-registry-key: ${{ matrix.poetry-projects.builds-registry-key }}
-        use-poexy-core: ${{ matrix.poetry-projects.use-poexy-core }}
-        use-mutex: ${{ matrix.poetry-projects.use-mutex }}
+        use-poexy-core: ${{ matrix.poetry-projects.use-poexy-core == 'true' }}
+        use-mutex: ${{ matrix.poetry-projects.use-mutex == 'true' }}
     secrets:
       database-connection-uri: ${{ secrets.POSTGRESQL_CONNECTION_URI }}
       
