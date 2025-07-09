@@ -54,8 +54,6 @@ runs:
       working-directory: ${{ env.POETRY_PROJECT_PATH }}
       shell: bash
       run: |
-        ls -la
-        ls -la dist
         cp dist/*.whl ${{ steps.artifacts-registry.outputs.path }}/.
         cp dist/*.tar.gz ${{ steps.artifacts-registry.outputs.path }}/.
 
