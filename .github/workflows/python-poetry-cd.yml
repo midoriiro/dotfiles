@@ -74,6 +74,7 @@ jobs:
               content = f.read()
               content = content.strip()
               content = content.replace('\n', '')
+              content = content.replace('"', '')
             artifacts.append({
               "registry-path": content,
               "registry-key": file.name,
