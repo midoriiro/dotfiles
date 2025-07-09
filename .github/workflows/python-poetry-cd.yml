@@ -26,6 +26,7 @@ env:
   # but to simplify access to them, Poetry project path need to be set via an
   # environment variable defined globally.
   POETRY_PROJECT_PATH: ${{ inputs.poetry-project-path }}
+  POETRY_DEPENDENCY_GROUPS: main, dev, test
   
 jobs:
   package:
@@ -47,8 +48,10 @@ jobs:
       - name: List Build Registry
         run: |
           ls -la ${{ steps.build-registry.outputs.path }}
+          
   release:
     name: Release
+    needs: [package]
     runs-on: ubuntu-latest
     # if: github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.base_ref == 'main'
 
@@ -61,7 +64,7 @@ jobs:
         with:
           python-version: ${{ inputs.python-version }}
           pipx-tools: '["poetry"]'
-          poetry-dependency-groups: '["main", "dev"]'
+          poetry-dependency-groups: ${{ env.POETRY_DEPENDENCY_GROUPS }}
 
       - name: Bump Version
         uses: ./.github/actions/python/poetry/version  

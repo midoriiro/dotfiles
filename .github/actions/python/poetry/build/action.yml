@@ -25,12 +25,21 @@ runs:
         echo "✅ Using default build command: $POETRY_CMD"
         $POETRY_CMD
 
+    - name: Get Artifacts Registry Key
+      id: artifacts-registry-key
+      shell: bash
+      run: |
+        KEY="${{ runner.os }}-${{ env.PYTHON_VERSION }}"
+        KEY="$KEY-${{ steps.poetry-info.outputs.project-name }}"
+        KEY="$KEY-${{ steps.poetry-info.outputs.project-version }}"
+        echo "key=artifacts-$KEY" >> $GITHUB_OUTPUT
+
     - name: Save Artifacts
       id: save-artifacts
       uses: ./.github/actions/registry/save
       with:
         path: ${{ env.POETRY_PROJECT_PATH }}/dist
-        key: artifacts-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ steps.poetry-info.outputs.project-name }}-${{ steps.poetry-info.outputs.project-version }}
+        key: ${{ steps.artifacts-registry-key.outputs.key }}
         clean: true
 
     - name: Finalize
