@@ -122,6 +122,7 @@ jobs:
         run: |
           LOCATION="artifacts" 
           mkdir --parents "$LOCATION/wheels" "$LOCATION/source"
+          ls -la ${{ steps.artifacts-registry.outputs.path }}
           cp "${{ steps.artifacts-registry.outputs.path }}/*.whl" "$LOCATION/wheels/."
           cp "${{ steps.artifacts-registry.outputs.path }}/*.tar.gz" "$LOCATION/source/."
 
