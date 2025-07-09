@@ -55,7 +55,7 @@ jobs:
 
       - name: Prepare Artifacts Registry Keys
         id: build-artifacts-registry-keys
-        working-directory: ${{ inputs.builds-registry-path }}
+        working-directory: ${{ steps.build-registry.outputs.path }}
         shell: python
         run: |
           import json
@@ -113,7 +113,7 @@ jobs:
           key: ${{ matrix.artifacts.registry-key }}
 
       - name: Copy Package
-        working-directory: ${{ inputs.builds-registry-path }}
+        working-directory: ${{ steps.build-registry.outputs.path }}
         shell: bash
         run: |
           LOCATION="artifacts" 
