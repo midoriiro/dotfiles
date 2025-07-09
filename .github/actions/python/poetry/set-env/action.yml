@@ -57,11 +57,21 @@ runs:
         PYPROJECT_TOML_HASH=$(cat pyproject.toml | sha256sum | awk '{print $1}')
         echo "hash=$PYPROJECT_TOML_HASH" >> $GITHUB_OUTPUT
 
+    - name: Get dependency groups
+      id: dependency-groups
+      shell: python
+      run: |
+        dependency_groups = ${{ steps.dependency-groups.outputs.result }}
+        dependency_groups = dependency_groups.split(',')
+        dependency_groups = [group.strip() for group in dependency_groups]
+        with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+          f.write(f"result={dependency_groups}\n")
+
     - name: Generate poetry environment variables
       shell: bash
       env:
         HOME_DIR: ${{ steps.home-directory.outputs.path }}
-        DEPENDENCY_GROUPS: ${{ join( inputs.dependency-groups, ',' ) }}
+        DEPENDENCY_GROUPS: ${{ steps.dependency-groups.outputs.result }}
         PYPROJECT_TOML_HASH: ${{ steps.pyproject-toml-hash.outputs.hash }}
         USE_POEXY_CORE: ${{ env.USE_POEXY_CORE }}
       run: |  
