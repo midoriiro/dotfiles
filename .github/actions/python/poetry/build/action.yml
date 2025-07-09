@@ -56,8 +56,8 @@ runs:
       run: |
         ls -la
         ls -la dist
-        cp "dist/*.whl" "${{ steps.artifacts-registry.outputs.path }}/."
-        cp "dist/*.tar.gz" "${{ steps.artifacts-registry.outputs.path }}/."
+        cp dist/*.whl ${{ steps.artifacts-registry.outputs.path }}/.
+        cp dist/*.tar.gz ${{ steps.artifacts-registry.outputs.path }}/.
 
     - name: Save Artifacts
       id: save-artifacts
