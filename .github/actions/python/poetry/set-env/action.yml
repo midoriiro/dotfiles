@@ -11,9 +11,9 @@ outputs:
   home:
     description: 'Poetry home directory'
     value: ${{ steps.poetry.outputs.home }}
-  cache_dir:
+  cache-dir:
     description: 'Poetry cache directory'
-    value: ${{ steps.poetry.outputs.cache_dir }}
+    value: ${{ steps.poetry.outputs.cache-dir }}
   dependency-groups:
     description: 'Poetry dependency groups'
     value: ${{ steps.poetry.outputs.dependency-groups }}
@@ -99,7 +99,7 @@ runs:
         
         # Set poetry environment variables
         echo "home=$POETRY_HOME" >> $GITHUB_OUTPUT
-        echo "cache_dir=$POETRY_CACHE_DIR" >> $GITHUB_OUTPUT
+        echo "cache-dir=$POETRY_CACHE_DIR" >> $GITHUB_OUTPUT
         echo "dependency-groups=$DEPENDENCY_GROUPS_COMMAS" >> $GITHUB_OUTPUT
         echo "registry-key=$POETRY_REGISTRY_KEY" >> $GITHUB_OUTPUT
         echo "install-poexy-core=$USE_POEXY_CORE" >> $GITHUB_OUTPUT

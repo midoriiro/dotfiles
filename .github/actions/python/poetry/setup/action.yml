@@ -16,19 +16,11 @@ runs:
       with:
         dependency-groups: ${{ inputs.dependency-groups }}
 
-    - name: Get dependency groups
-      id: dependency-groups
-      env:
-        DEPENDENCY_GROUPS: ${{ join( inputs.dependency-groups, ',' ) }}
-      shell: bash
-      run: |
-        echo "result=$DEPENDENCY_GROUPS" >> $GITHUB_OUTPUT
-
     - name: Restore Poetry Registry
       id: poetry-registry
       uses: ./.github/actions/registry/restore
       with:
-        path: ${{ steps.poetry.outputs.cache_dir }}
+        path: ${{ steps.poetry.outputs.cache-dir }}
         key: ${{ steps.poetry.outputs.registry-key }}
 
     - name: Install dependencies
@@ -36,7 +28,7 @@ runs:
       working-directory: ${{ env.POETRY_PROJECT_PATH }}
       shell: bash
       env:
-        POETRY_CACHE_DIR: ${{ steps.poetry.outputs.cache_dir }}
+        POETRY_CACHE_DIR: ${{ steps.poetry.outputs.cache-dir }}
         DEPENDENCY_GROUPS: ${{ steps.poetry.outputs.dependency-groups }}
       run: poetry install --only=$DEPENDENCY_GROUPS
 
@@ -44,7 +36,7 @@ runs:
       if: ${{ steps.poetry.outputs.install-poexy-core == 'true' }}
       working-directory: ${{ github.action_path }}/../../../../../tools/poexy-core/
       env:
-        POETRY_CACHE_DIR: ${{ steps.poetry.outputs.cache_dir }}
+        POETRY_CACHE_DIR: ${{ steps.poetry.outputs.cache-dir }}
       shell: bash
       run: |
         poetry build
@@ -54,7 +46,7 @@ runs:
       uses: ./.github/actions/registry/save
       if: ${{ steps.poetry-registry.outputs.cache-hit != 'true' }}
       with:  
-        path: ${{ steps.poetry.outputs.cache_dir }}
+        path: ${{ steps.poetry.outputs.cache-dir }}
         key: ${{ steps.poetry.outputs.registry-key }}
         clean: true
 
