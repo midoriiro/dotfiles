@@ -19,6 +19,11 @@ on:
         description: 'Key to the builds registry'
         required: true
         type: string
+      is-single-artifact:
+        description: 'Whether the package is a single artifact'
+        required: true
+        type: boolean
+        default: false
 
 env:
   PYTHON_VERSION: ${{ inputs.python-version }}
@@ -29,10 +34,13 @@ env:
   POETRY_DEPENDENCY_GROUPS: main, dev, test
   
 jobs:
-  package:
-    name: Package
+  prepare-package:
+    name: Prepare Package
     runs-on: ubuntu-latest
     # if: github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.base_ref == 'main'
+
+    outputs:
+      result: ${{ steps.build-artifacts-registry-keys.outputs.result }}
 
     steps:
       - name: Checkout Code
@@ -45,10 +53,78 @@ jobs:
           path: ${{ inputs.builds-registry-path }}
           key: ${{ inputs.builds-registry-key }}
 
-      - name: List Build Registry
+      - name: Prepare Artifacts Registry Keys
+        id: build-artifacts-registry-keys
+        working-directory: ${{ steps.build-registry.outputs.path }}
+        shell: python
         run: |
-          ls -la ${{ steps.build-registry.outputs.path }}
-          
+          import json
+          from pathlib import Path
+          files = [path for path in Path.cwd().iterdir() if path.is_file()]
+          if ${{ inputs.is-single-artifact }} == True:
+            runner_os = '${{ runner.os }}'
+            for file in files:
+              if runner_os in file.name:
+                files = [file]
+                break
+          artifacts = []
+          for file in files:
+            with open(file, 'r', encoding='utf-8') as f:
+              content = f.read()
+            artifacts.append({
+              "registry-path": content,
+              "registry-key": file.name,
+            })
+          matrix = {
+            "artifacts": artifacts
+          }
+          matrix_data = json.dumps(matrix)
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+            f.write(f"result={matrix_data}\n")
+
+  package:
+    name: Package (${{ matrix.artifacts.registry-key }})
+    needs: [prepare-package]
+    runs-on: ubuntu-latest
+    concurrency:
+      group: packaging
+      cancel-in-progress: false
+    strategy:
+      matrix: ${{ fromJSON(needs.prepare-package.outputs.result) }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Restore Build Registry
+        id: build-registry
+        uses: ./.github/actions/registry/restore
+        with:
+          path: ${{ inputs.builds-registry-path }}
+          key: ${{ inputs.builds-registry-key }}
+
+      - name: Restore Artifacts Registry
+        id: artifacts-registry
+        uses: ./.github/actions/registry/restore
+        with:
+          path: ${{ matrix.artifacts.registry-path }}
+          key: ${{ matrix.artifacts.registry-key }}
+
+      - name: Copy Package
+        working-directory: ${{ steps.build-registry.outputs.path }}
+        shell: bash
+        run: |
+          LOCATION="artifacts" 
+          mkdir --parents "$LOCATION"
+          cp ${{ matrix.artifacts.registry-path }}/*.whl "$LOCATION/wheels"
+          cp ${{ matrix.artifacts.registry-path }}/*.tar.gz "$LOCATION/source"
+
+      - name: Save Build Registry
+        uses: ./.github/actions/registry/save
+        with:
+          path: ${{ inputs.builds-registry-path }}
+          key: ${{ inputs.builds-registry-key }}
+          clean: true
+
   release:
     name: Release
     needs: [package]

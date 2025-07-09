@@ -37,6 +37,11 @@ on:
         required: true
         type: boolean
         default: true
+      is-single-artifact:
+        description: 'Whether the package is a single artifact'
+        required: true
+        type: boolean
+        default: false
     secrets:
       database-connection-uri:
         description: 'Database connection URI for mutex'
@@ -71,6 +76,7 @@ jobs:
       poetry-project-path: ${{ inputs.poetry-project-path }}
       builds-registry-path: ${{ inputs.builds-registry-path }}
       builds-registry-key: ${{ inputs.builds-registry-key }}
+      is-single-artifact: ${{ inputs.is-single-artifact }}
 
   clean:
     if: always()

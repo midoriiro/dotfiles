@@ -2,6 +2,9 @@ name: 'Poetry Build'
 description: 'Build Python packages with Poetry'
 
 outputs:
+  artifacts-registry-path:
+    description: 'Registry path where artifacts are saved'
+    value: ${{ steps.save-artifacts.outputs.path }}
   artifacts-registry-key:
     description: 'Registry key where artifacts are saved'
     value: ${{ steps.save-artifacts.outputs.key }}

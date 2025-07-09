@@ -216,11 +216,13 @@ jobs:
       - name: Add Build Artifacts to Build Registry
         env: 
           REGISTRY_PATH: ${{ steps.build-registry.outputs.path }}
+          BUILD_ARTIFACTS_REGISTRY_PATH: ${{ steps.build-artifacts.outputs.artifacts-registry-path }}
           BUILD_ARTIFACTS_REGISTRY_KEY: ${{ steps.build-artifacts.outputs.artifacts-registry-key }}
         shell: bash
         run: |
           touch "$REGISTRY_PATH/$BUILD_ARTIFACTS_REGISTRY_KEY"
           if [ -f "$REGISTRY_PATH/$BUILD_ARTIFACTS_REGISTRY_KEY" ]; then
+            echo "$BUILD_ARTIFACTS_REGISTRY_PATH" > "$REGISTRY_PATH/$BUILD_ARTIFACTS_REGISTRY_KEY"
             echo "✅ Build artifacts added to registry"
           else
             echo "❌ Failed to add build artifacts to registry"

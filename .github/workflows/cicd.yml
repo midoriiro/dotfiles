@@ -47,6 +47,7 @@ jobs:
               'package-name': 'poexy-core',
               'builds-registry-path': 'builds/',
               'builds-registry-key': 'builds-poexy-core',
+              'is-single-artifact': 'true',
               'use-poexy-core': 'false',
               'use-mutex': 'false'
             })
@@ -56,6 +57,7 @@ jobs:
           #     'package-name': 'ignite',
           #     'builds-registry-path': 'builds/',
           #     'builds-registry-key': 'builds-ignite',
+          #     'is-single-artifact': 'false',
           #     'use-poexy-core': 'true',
           #     'use-mutex': 'true'
           #   })
@@ -108,6 +110,7 @@ jobs:
         builds-registry-key: ${{ matrix.poetry-projects.builds-registry-key }}
         use-poexy-core: ${{ matrix.poetry-projects.use-poexy-core == 'true' }}
         use-mutex: ${{ matrix.poetry-projects.use-mutex == 'true' }}
+        is-single-artifact: ${{ matrix.poetry-projects.is-single-artifact == 'true' }}
     secrets:
       database-connection-uri: ${{ secrets.POSTGRESQL_CONNECTION_URI }}
       
