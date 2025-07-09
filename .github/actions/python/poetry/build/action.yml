@@ -4,10 +4,10 @@ description: 'Build Python packages with Poetry'
 outputs:
   artifacts-registry-path:
     description: 'Registry path where artifacts are saved'
-    value: ${{ steps.save-artifacts.outputs.path }}
+    value: ${{ steps.artifacts-registry-path.outputs.path }}
   artifacts-registry-key:
     description: 'Registry key where artifacts are saved'
-    value: ${{ steps.save-artifacts.outputs.key }}
+    value: ${{ steps.artifacts-registry-key.outputs.key }}
 
 runs:
   using: composite
@@ -37,11 +37,17 @@ runs:
         KEY="$KEY-${{ steps.poetry-info.outputs.project-version }}"
         echo "key=artifacts-$KEY" >> $GITHUB_OUTPUT
 
+    - name: Get Artifacts Registry Path
+      id: artifacts-registry-path
+      shell: bash
+      run: |
+        echo "path=${{ env.POETRY_PROJECT_PATH }}/dist" >> $GITHUB_OUTPUT
+
     - name: Save Artifacts
       id: save-artifacts
       uses: ./.github/actions/registry/save
       with:
-        path: ${{ env.POETRY_PROJECT_PATH }}/dist
+        path: ${{ steps.artifacts-registry-path.outputs.path }}
         key: ${{ steps.artifacts-registry-key.outputs.key }}
         clean: true
 
