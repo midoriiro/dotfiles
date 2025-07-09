@@ -106,6 +106,7 @@ jobs:
         with:
           path: ${{ inputs.builds-registry-path }}
           key: ${{ inputs.builds-registry-key }}
+          fail-on-cache-miss: true
 
       - name: Restore Artifacts Registry
         id: artifacts-registry
@@ -113,6 +114,7 @@ jobs:
         with:
           path: ${{ matrix.artifacts.registry-path }}
           key: ${{ matrix.artifacts.registry-key }}
+          fail-on-cache-miss: true
 
       - name: Copy Package
         working-directory: ${{ steps.build-registry.outputs.path }}

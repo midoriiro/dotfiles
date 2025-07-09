@@ -10,6 +10,11 @@ inputs:
     description: 'Key to the registry'
     required: true
     type: string
+  fail-on-cache-miss:
+    description: 'Fail on cache miss'
+    required: false
+    type: boolean
+    default: false
 
 outputs:
   path:
@@ -38,10 +43,4 @@ runs:
       with:
         path: ${{ steps.registry.outputs.path }}
         key: ${{ steps.registry.outputs.key }}
-
-    - name: Check if cache hit
-      if: steps.registry-restore.outputs.cache-hit == false
-      shell: bash
-      run: |
-        echo "❌ Cache miss"
-        exit 1
+        fail-on-cache-miss: ${{ inputs.fail-on-cache-miss }}
