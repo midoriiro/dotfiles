@@ -40,10 +40,6 @@ runs:
           exit 1
         fi
 
-    - name: Get home directory path
-      uses: ./.github/actions/core/get-home-directory
-      id: home-directory
-
     - name: Get pyproject.toml hash
       id: pyproject-toml-hash
       working-directory: ${{ env.POETRY_PROJECT_PATH }}
@@ -68,14 +64,13 @@ runs:
       id: poetry
       shell: bash
       env:
-        HOME_DIR: ${{ steps.home-directory.outputs.path }}
         DEPENDENCY_GROUPS_DASHES: ${{ steps.dependency-groups.outputs.with-dashes }}
         DEPENDENCY_GROUPS_COMMAS: ${{ steps.dependency-groups.outputs.with-commas }}
         PYPROJECT_TOML_HASH: ${{ steps.pyproject-toml-hash.outputs.hash }}
         USE_POEXY_CORE: ${{ env.USE_POEXY_CORE }}
       run: |  
         # Set poetry paths
-        POETRY_HOME="$HOME_DIR/.local/poetry"
+        POETRY_HOME="poetry"
         POETRY_CACHE_DIR="$POETRY_HOME/cache"
         POETRY_DEPENDENCY_GROUPS="$DEPENDENCY_GROUPS_DASHES"
         POETRY_PYPROJECT_TOML_HASH="$PYPROJECT_TOML_HASH"
@@ -92,11 +87,6 @@ runs:
             USE_POEXY_CORE="false"
           fi
         fi
-
-        
-        # Create directories if they don't exist
-        mkdir --parents "$POETRY_HOME"
-        mkdir --parents "$POETRY_CACHE_DIR"
         
         # Set poetry environment variables
         echo "home=$POETRY_HOME" >> $GITHUB_OUTPUT
