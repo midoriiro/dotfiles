@@ -49,7 +49,6 @@ runs:
       with:
         path: ${{ steps.artifacts-registry-path.outputs.path }}
         key: ${{ steps.artifacts-registry-key.outputs.key }}
-        fail-on-cache-miss: true
 
     - name: Copy Artifacts
       shell: bash
