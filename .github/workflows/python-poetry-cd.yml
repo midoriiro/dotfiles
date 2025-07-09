@@ -61,7 +61,7 @@ jobs:
           import json
           from pathlib import Path
           files = [path for path in Path.cwd().iterdir() if path.is_file()]
-          if ${{ inputs.is-single-artifact }} == True:
+          if ${{ inputs.is-single-artifact == 'true' }} == True:
             runner_os = '${{ runner.os }}'
             for file in files:
               if runner_os in file.name:
