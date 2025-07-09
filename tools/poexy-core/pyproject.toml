@@ -1,0 +1,76 @@
+[project]
+name = "poexy-core"
+version = "2025.6.0"
+description = "Unified Python packaging backend for wheels, sdist, and executables"
+readme = "README.md"
+license-files = ["LICENSE"]
+requires-python = ">=3.9,<3.14"
+dependencies = [
+    "poetry-core>=2.1.0",
+    "pydantic>=2.11.7",
+    "rich>=14.0.0",
+    "pyinstaller>=6.14.2"
+]
+
+[tool.poetry.group.dev.dependencies]
+black = "^25.1.0"
+isort = "^6.0.1"
+flake8 = "^7.3.0"
+flake8-pyproject = "^1.2.3"
+
+[tool.poetry.group.test.dependencies]
+pytest = "^8.4.1"
+pytest-cov = "^6.2.1"
+pytest-mock = "^3.14.0"
+pytest-xdist = "^3.7.0"
+assertpy = "^1.1"
+coverage = "^7.3.2"
+virtualenv = "^20.31.2"
+
+[tool.poexy.sdist]
+includes = [
+    { path = "tests" }
+]
+
+[build-system]
+requires = ["poetry-core>=2.1.0", "pydantic>=2.11.7", "rich>=14.0.0", "pyinstaller>=6.14.2"]
+build-backend = "poexy_core.api"
+backend-path = ["."]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+python_classes = ["Test*"]
+
+[tool.coverage.run]
+source = ["poexy_core"]
+omit = [
+    "*/tests/*",
+    "*/__init__.py",
+    "*/__pycache__/*",
+    "*/.?*/*",
+    "*/venv/*",
+    "*/.venv/*"
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "pass",
+    "raise ImportError"
+]
+
+[tool.coverage.paths]
+source = ["poexy_core"]
+
+[tool.flake8]
+max-line-length = 88
+exclude = [
+    ".git",
+    "__pycache__",
+    "dist"
+]
