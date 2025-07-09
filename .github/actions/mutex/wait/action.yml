@@ -15,18 +15,25 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Set Mutex Environment
+      id: mutex
+      uses: ./.github/actions/mutex/set-env
+
     - name: Install AsyncPG
+      if: ${{ steps.mutex.outputs.is-enabled == 'true' }}
       shell: bash
       run: |
         pip install asyncpg
 
     - name: Get Holder ID
+      if: ${{ steps.mutex.outputs.is-enabled == 'true' }}
       uses: ./.github/actions/core/unique-id
       id: holder-id
       with:
         timestamp: false
 
     - name: Wait for Mutex Key
+      if: ${{ steps.mutex.outputs.is-enabled == 'true' }}
       env:
         MUTEX_KEY: ${{ inputs.key }}
         TIMEOUT: ${{ inputs.timeout }}

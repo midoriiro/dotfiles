@@ -16,6 +16,7 @@ mutex-cli = "mutex_cli.main:main"
 black = "^25.1.0"
 isort = "^6.0.1"
 flake8 = "^7.3.0"
+poexy-core = { path = "../poexy-core" }
 
 [tool.poetry.group.test.dependencies]
 pytest = "^8.4.1"
@@ -26,7 +27,7 @@ assertpy = "^1.1"
 coverage = "^7.3.2"
 
 [build-system]
-requires = ["poexy-core>=2025.6.0"]
+requires = ["poexy-core @ ../poexy-core"]
 build-backend = "poexy_core.api" 
 
 [tool.pytest.ini_options]

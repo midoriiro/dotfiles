@@ -26,7 +26,7 @@ runs:
       with:
         tools: ${{ inputs.pipx-tools }}
 
-    - name: Install Poetry Project Dependencies
-      uses: ./.github/actions/python/poetry/install-dependencies
+    - name: Set up Poetry
+      uses: ./.github/actions/python/poetry/setup
       with:
         dependency-groups: ${{ inputs.poetry-dependency-groups }}

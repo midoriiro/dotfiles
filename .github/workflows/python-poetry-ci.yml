@@ -27,6 +27,16 @@ on:
         description: 'Key to the builds registry'
         required: true
         type: string
+      use-poexy-core:
+        description: 'Whether to use poexy-core'
+        required: true
+        type: boolean
+        default: true
+      use-mutex:
+        description: 'Whether to use mutex'
+        required: true
+        type: boolean
+        default: true
     secrets:
       database-connection-uri:
         description: 'Database connection URI for mutex'
@@ -38,6 +48,9 @@ env:
   # to simplify access to them, Poetry project path need to be set via an
   # environment variable defined globally.
   POETRY_PROJECT_PATH: ${{ inputs.poetry-project-path }}
+  POETRY_DEPENDENCY_GROUPS: main, dev, test
+  USE_POEXY_CORE: ${{ inputs.use-poexy-core }}
+  USE_MUTEX: ${{ inputs.use-mutex }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   DATABASE_CONNECTION_URI: ${{ secrets.database-connection-uri }}
 
@@ -49,11 +62,14 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Initialize Mutex
+        uses: ./.github/actions/mutex/init
+
       - name: Setup Environment
         uses: ./.github/actions/python/setup-python-pipx-poetry
         with:
           pipx-tools: '["poetry"]'
-          poetry-dependency-groups: '["main", "dev"]'
+          poetry-dependency-groups: ${{ env.POETRY_DEPENDENCY_GROUPS }}
         
   # tests:
   #   name: Tests
@@ -175,7 +191,7 @@ jobs:
         uses: ./.github/actions/python/setup-python-pipx-poetry
         with:
           pipx-tools: '["poetry"]'
-          poetry-dependency-groups: '["main", "dev"]'
+          poetry-dependency-groups: ${{ env.POETRY_DEPENDENCY_GROUPS }}
 
       - name: Bump Version
         uses: ./.github/actions/python/poetry/version  

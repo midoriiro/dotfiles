@@ -4,12 +4,18 @@ description: 'Clean Mutex'
 runs:
   using: composite
   steps:
+    - name: Set Mutex Environment
+      uses: ./.github/actions/mutex/set-env
+      id: mutex
+
     - name: Install AsyncPG
+      if: ${{ steps.mutex.outputs.is-enabled == 'true' }}
       shell: bash
       run: |
         pip install asyncpg
 
     - name: Get Holder ID
+      if: ${{ steps.mutex.outputs.is-enabled == 'true' }}
       uses: ./.github/actions/core/unique-id
       id: holder-id
       with:
@@ -18,6 +24,7 @@ runs:
         timestamp: false
 
     - name: Clean All Mutexes
+      if: ${{ steps.mutex.outputs.is-enabled == 'true' }}
       env:
         DATABASE_CONNECTION_URI: ${{ env.DATABASE_CONNECTION_URI }}
         HOLDER_ID: ${{ steps.holder-id.outputs.id }}

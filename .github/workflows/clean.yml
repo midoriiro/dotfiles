@@ -1,0 +1,38 @@
+name: Poetry CI/CD Pipeline
+
+on:
+  workflow_call:
+    secrets:
+      database-connection-uri:
+        description: 'Database connection URI for mutex'
+        required: true
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  DATABASE_CONNECTION_URI: ${{ secrets.database-connection-uri }}
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  clean:
+    if: always()
+    name: Clean
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Clean Mutexes
+        if: always()
+        uses: ./.github/actions/mutex/clean
+        continue-on-error: true
+
+      - name: Clean Registries
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+        uses: ./.github/actions/registry/clean
+      

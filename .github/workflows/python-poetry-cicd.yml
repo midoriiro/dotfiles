@@ -1,0 +1,82 @@
+name: Poetry CI/CD Pipeline
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        description: 'Operating system to run on'
+        required: true
+        type: string
+      python-version:
+        description: 'Python version to use'
+        required: true
+        type: string
+      poetry-project-path:
+        description: 'Path to the Poetry project'
+        required: true
+        type: string
+      poetry-package-name:
+        description: 'Name of the Poetry package'
+        required: true
+        type: string
+      builds-registry-path:
+        description: 'Path to the builds registry'
+        required: true
+        type: string
+      builds-registry-key:
+        description: 'Key to the builds registry'
+        required: true
+        type: string
+      use-poexy-core:
+        description: 'Whether to use poexy-core'
+        required: true
+        type: boolean
+        default: true
+      use-mutex:
+        description: 'Whether to use mutex'
+        required: true
+        type: boolean
+        default: true
+    secrets:
+      database-connection-uri:
+        description: 'Database connection URI for mutex'
+        required: true
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  ci:
+    name: CI
+    uses: ./.github/workflows/python-poetry-ci.yml
+    with:
+        os: ${{ inputs.os }}
+        python-version: ${{ inputs.python-version }}
+        poetry-project-path: ${{ inputs.poetry-project-path }}
+        poetry-package-name: ${{ inputs.poetry-package-name }}
+        builds-registry-path: ${{ inputs.builds-registry-path }}
+        builds-registry-key: ${{ inputs.builds-registry-key }}
+        use-poexy-core: ${{ inputs.use-poexy-core }}
+        use-mutex: ${{ inputs.use-mutex }}
+    secrets:
+      database-connection-uri: ${{ secrets.POSTGRESQL_CONNECTION_URI }}
+
+  cd:
+    name: CD
+    needs: [ci]
+    uses: ./.github/workflows/python-poetry-cd.yml
+    with:
+      python-version: ${{ inputs.python-version }}
+      poetry-project-path: ${{ inputs.poetry-project-path }}
+      builds-registry-path: ${{ inputs.builds-registry-path }}
+      builds-registry-key: ${{ inputs.builds-registry-key }}
+
+  clean:
+    if: always()
+    name: Clean
+    needs: [ci, cd]
+    uses: ./.github/workflows/clean.yml
+    secrets:
+      database-connection-uri: ${{ secrets.database-connection-uri }}
+      
