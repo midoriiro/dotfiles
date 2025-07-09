@@ -51,7 +51,7 @@ runs:
         key: ${{ steps.artifacts-registry-key.outputs.key }}
 
     - name: Copy Artifacts
-      working-directory: ${{ steps.artifacts-registry.outputs.path }}
+      working-directory: ${{ env.POETRY_PROJECT_PATH }}
       shell: bash
       run: |
         cp "dist/*.whl" "${{ steps.artifacts-registry.outputs.path }}/."
