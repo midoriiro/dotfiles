@@ -65,6 +65,7 @@ runs:
           f.write(f"with-commas={','.join(dependency_groups)}\n")
 
     - name: Generate poetry environment variables
+      id: poetry
       shell: bash
       env:
         HOME_DIR: ${{ steps.home-directory.outputs.path }}
