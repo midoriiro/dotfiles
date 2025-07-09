@@ -25,11 +25,11 @@ runs:
         echo "result=$DEPENDENCY_GROUPS" >> $GITHUB_OUTPUT
 
     - name: Restore Poetry Registry
-        id: poetry-registry
-        uses: ./.github/actions/registry/restore
-        with:
-          path: ${{ steps.poetry.outputs.cache_dir }}
-          key: ${{ steps.poetry.outputs.registry-key }}
+      id: poetry-registry
+      uses: ./.github/actions/registry/restore
+      with:
+        path: ${{ steps.poetry.outputs.cache_dir }}
+        key: ${{ steps.poetry.outputs.registry-key }}
 
     - name: Install dependencies
       if: ${{ steps.poetry-registry.outputs.cache-hit != 'true' }}
