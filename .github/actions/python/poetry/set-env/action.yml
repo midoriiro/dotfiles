@@ -56,7 +56,7 @@ runs:
       id: dependency-groups
       shell: python
       run: |
-        dependency_groups = ${{ inputs.dependency-groups }}
+        dependency_groups = "${{ inputs.dependency-groups }}"
         dependency_groups = dependency_groups.split(',')
         dependency_groups = [group.strip() for group in dependency_groups]
         with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
