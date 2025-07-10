@@ -158,6 +158,10 @@ jobs:
           key: ${{ inputs.builds-registry-key }}
           fail-on-cache-miss: true
 
+      - name: List Build Registry
+        run: |
+          ls -la ${{ steps.build-registry.outputs.path }}/*
+
       - name: Bump Version
         uses: ./.github/actions/python/poetry/version  
 
