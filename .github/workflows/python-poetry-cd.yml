@@ -163,8 +163,7 @@ jobs:
 
       - name: List Build Registry
         run: |
-          ls -la ${{ steps.build-registry.outputs.path }}/wheels/
-          ls -la ${{ steps.build-registry.outputs.path }}/source/
+          ls -la ${{ steps.build-registry.outputs.path }}/**/*
 
       - name: Bump Version
         uses: ./.github/actions/python/poetry/version  
