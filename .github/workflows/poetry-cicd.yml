@@ -96,7 +96,7 @@ jobs:
             f.write(f"supported-python-versions={supported_python_versions}\n")
 
   ci-single:
-    name: CI - ${{ inputs.poetry-package-name }}
+    name: CI - Single Shot
     needs: [matrix-analysis]
     if: needs.matrix-analysis.outputs.as-matrix == 'false'
     uses: ./.github/workflows/poetry-ci.yml
@@ -115,7 +115,7 @@ jobs:
       database-connection-uri: ${{ secrets.database-connection-uri }}
 
   ci-matrix:
-    name: CI - ${{ inputs.poetry-package-name }} (${{ matrix.os }}-${{ matrix.python-version }})
+    name: CI - Matrix
     needs: [matrix-analysis]
     if: needs.matrix-analysis.outputs.as-matrix == 'true'
     strategy:
@@ -162,7 +162,7 @@ jobs:
   cd:
     name: CD
     needs: [ci-result-aggregator]
-    if: ${{ needs.ci-result-aggregator.result == 'success' }}
+    if: ${{ always() && needs.ci-result-aggregator.result == 'success' }}
     uses: ./.github/workflows/poetry-cd.yml
     with:
       python-version: ${{ inputs.last-supported-python-version }}
