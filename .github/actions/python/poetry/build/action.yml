@@ -28,6 +28,11 @@ runs:
         echo "✅ Using default build command: $POETRY_CMD"
         $POETRY_CMD
 
+    - name: List Build Artifacts
+      shell: bash
+      run: |
+        ls -la ${{ env.POETRY_PROJECT_PATH }}/dist
+
     - name: Restore Artifacts Registry
       id: artifacts-registry
       uses: ./.github/actions/artifacts-registry/restore

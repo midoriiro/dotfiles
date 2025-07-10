@@ -40,6 +40,7 @@ for file in files:
 
 if wheel_archive_path is None and source_archive_path is None:
     print(f"❌ No wheel or tar.gz file found in {dist_path}")
+    exit(1)
 
 destination_path = artifacts_registry_path / "poetry"
 destination_path = destination_path / project_name / project_version
