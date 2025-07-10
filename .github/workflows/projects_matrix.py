@@ -2,7 +2,11 @@ import json
 import os
 poetry_projects = []
 pipx_tools = 'poetry'
-if '${{ env.POEXY_CORE_PROJECT_CHANGED }}' == 'true':
+poexy_core_project_changed = os.environ.get('POEXY_CORE_PROJECT_CHANGED')
+ignite_project_changed = os.environ.get('IGNITE_PROJECT_CHANGED')
+print(f"POEXY_CORE_PROJECT_CHANGED: {poexy_core_project_changed}")
+print(f"IGNITE_PROJECT_CHANGED: {ignite_project_changed}")
+if poexy_core_project_changed == 'true':
     poetry_projects.append({
         'path': 'tools/poexy-core',
         'pipx-tools': pipx_tools,
@@ -14,7 +18,7 @@ if '${{ env.POEXY_CORE_PROJECT_CHANGED }}' == 'true':
         'use-poexy-core': 'false',
         'use-mutex': 'false'
     })
-# if '${{ env.IGNITE_PROJECT_CHANGED }}' == 'true':
+# if ignite_project_changed == 'true':
 #   poetry_projects.append({
 #     'path': 'tools/ignite',
 #     'pipx-tools': pipx_tools,
