@@ -86,8 +86,7 @@ runs:
       if: ${{ steps.pipx-cache.outputs.cache-hit != 'true' }}
       working-directory: ${{ steps.pipx-cache.outputs.path }}
       env:
-        PIPX_HOME: ${{ env.PIPX_HOME }}
-        PIPX_BIN_DIR: ${{ env.PIPX_BIN_DIR }}
+        PIPX_BIN_DIR: "bin"
         TOOLS: ${{ env.PIPX_TOOLS }}
       shell: bash
       run: |
