@@ -40,7 +40,7 @@ for file in files:
     elif file.suffix == '.tar.gz':
         source_archive_path = file
 
-if wheel_archive_path is None and source_archive_path is None:
+if wheel_archive_path is None or source_archive_path is None:
     print(f"❌ No wheel or tar.gz file found in {dist_path}")
     exit(1)
 
