@@ -25,8 +25,8 @@ def add_project(
     os: List[str], 
     python_version: List[str]
 ):
-    project['supported-os'] = os
-    project['supported-python-versions'] = python_version
+    project['supported-os'] = json.dumps(os)
+    project['supported-python-versions'] = json.dumps(python_version)
     project['last-supported-python-version'] = last_supported_python_version
     projects.append({
         'name': project_name,
