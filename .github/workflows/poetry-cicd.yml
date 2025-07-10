@@ -76,6 +76,7 @@ jobs:
         id: as-matrix
         shell: python
         run: |
+          import os
           import json
           supported_os = json.loads('${{ inputs.supported-os }}')
           supported_python_versions = json.loads('${{ inputs.supported-python-versions }}')
