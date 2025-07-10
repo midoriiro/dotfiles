@@ -30,4 +30,4 @@ runs:
         ARTIFACTS_REGISTRY_PATH: ${{ inputs.artifacts-registry-path }}
       shell: bash
       run: |
-        python3 main.py
+        python3 ${{ github.action_path }}/main.py
