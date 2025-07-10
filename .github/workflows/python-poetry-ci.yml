@@ -19,6 +19,10 @@ on:
         description: 'Name of the Poetry package'
         required: true
         type: string
+      poetry-dependency-groups:
+        description: 'Dependency groups to install'
+        required: true
+        type: string
       builds-registry-path:
         description: 'Path to the builds registry'
         required: true
@@ -48,7 +52,7 @@ env:
   # to simplify access to them, Poetry project path need to be set via an
   # environment variable defined globally.
   POETRY_PROJECT_PATH: ${{ inputs.poetry-project-path }}
-  POETRY_DEPENDENCY_GROUPS: main, dev, test
+  POETRY_DEPENDENCY_GROUPS: ${{ inputs.poetry-dependency-groups }}
   USE_POEXY_CORE: ${{ inputs.use-poexy-core }}
   USE_MUTEX: ${{ inputs.use-mutex }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

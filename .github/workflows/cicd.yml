@@ -45,6 +45,7 @@ jobs:
             poetry_projects.append({
               'path': 'tools/poexy-core',
               'package-name': 'poexy-core',
+              'dependency-groups': 'main, dev, test',
               'builds-registry-path': 'builds/',
               'builds-registry-key': 'builds-poexy-core',
               'is-single-artifact': 'true',
@@ -106,6 +107,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
         poetry-project-path: ${{ matrix.poetry-projects.path }}
         poetry-package-name: ${{ matrix.poetry-projects.package-name }}
+        poetry-dependency-groups: ${{ matrix.poetry-projects.dependency-groups }}
         builds-registry-path: ${{ matrix.poetry-projects.builds-registry-path }}
         builds-registry-key: ${{ matrix.poetry-projects.builds-registry-key }}
         use-poexy-core: ${{ matrix.poetry-projects.use-poexy-core == 'true' }}

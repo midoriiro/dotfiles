@@ -11,6 +11,10 @@ on:
         description: 'Path to the Poetry project'
         required: true
         type: string
+      poetry-dependency-groups:
+        description: 'Dependency groups to install'
+        required: true
+        type: string
       builds-registry-path:
         description: 'Path to the builds registry'
         required: true
@@ -31,7 +35,7 @@ env:
   # but to simplify access to them, Poetry project path need to be set via an
   # environment variable defined globally.
   POETRY_PROJECT_PATH: ${{ inputs.poetry-project-path }}
-  POETRY_DEPENDENCY_GROUPS: main, dev, test
+  POETRY_DEPENDENCY_GROUPS: ${{ inputs.poetry-dependency-groups }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   
 jobs:
@@ -160,7 +164,8 @@ jobs:
 
       - name: List Build Registry
         run: |
-          ls -la ${{ steps.build-registry.outputs.path }}/*
+          ls -la ${{ steps.build-registry.outputs.path }}/wheels/
+          ls -la ${{ steps.build-registry.outputs.path }}/source/
 
       - name: Bump Version
         uses: ./.github/actions/python/poetry/version  
