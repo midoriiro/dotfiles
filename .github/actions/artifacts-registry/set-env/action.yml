@@ -4,10 +4,10 @@ description: 'Set artifacts registry environment variables'
 outputs:
   path:
     description: 'The path to the registry'
-    value: ${{ steps.registry.outputs.path }}
+    value: ${{ steps.artifacts-registry.outputs.path }}
   key:
     description: 'The cache key for the registry'
-    value: ${{ steps.registry.outputs.key }}
+    value: ${{ steps.artifacts-registry.outputs.key }}
 
 runs:
   using: composite
@@ -27,10 +27,3 @@ runs:
         # Debug output
         echo "✅ REGISTRY_PATH: $REGISTRY_PATH"
         echo "✅ REGISTRY_KEY: $REGISTRY_KEY"
-
-    - name: Set Registry Environment Variables
-      id: registry
-      uses: ./.github/actions/registry/set-env
-      with:
-        key: ${{ steps.artifacts-registry.outputs.key }}
-        path: ${{ steps.artifacts-registry.outputs.path }}
