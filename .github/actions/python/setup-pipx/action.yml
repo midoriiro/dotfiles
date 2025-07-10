@@ -37,6 +37,8 @@ runs:
 
     - name: Generate Pipx Registry Environment Variables
       id: pipx-registry-env
+      env:
+        TOOLS_DASHES: ${{ steps.tools.outputs.with-dashes }}
       shell: bash
       run: |        
         # Set pipx
