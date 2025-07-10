@@ -29,7 +29,7 @@ def add_project(
     project['last-supported-python-version'] = last_supported_python_version
     projects.append({
         'name': project_name,
-        'project': project
+        'inputs': project
     })
 
 

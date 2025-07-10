@@ -39,23 +39,24 @@ jobs:
         run: python .github/workflows/projects_matrix.py
 
   poetry-cicd:
-    name: Poetry CI/CD - ${{ matrix.name }}
+    name: Poetry CI/CD - ${{ matrix.project.name }}
     needs: [matrix]
     strategy:
-      matrix: ${{ fromJSON(needs.matrix.outputs.result) }}
+      matrix: 
+        project: ${{ fromJSON(needs.matrix.outputs.result) }}
     uses: ./.github/workflows/poetry-cicd.yml
     with:
-        supported-os: ${{ matrix.project.supported-os }}
-        supported-python-versions: ${{ matrix.project.supported-python-versions }}
-        last-supported-python-version: ${{ matrix.project.last-supported-python-version }}
-        pipx-tools: ${{ matrix.project.pipx-tools }}
-        poetry-project-path: ${{ matrix.project.path }}
-        poetry-package-name: ${{ matrix.project.package-name }}
-        poetry-dependency-groups: ${{ matrix.project.dependency-groups }}
-        builds-registry-path: ${{ matrix.project.builds-registry-path }}
-        builds-registry-key: ${{ matrix.project.builds-registry-key }}
-        use-poexy-core: ${{ matrix.project.use-poexy-core == 'true' }}
-        use-mutex: ${{ matrix.project.use-mutex == 'true' }}
-        is-single-artifact: ${{ matrix.project.is-single-artifact == 'true' }}
+        supported-os: ${{ matrix.project.inputs.supported-os }}
+        supported-python-versions: ${{ matrix.project.inputs.supported-python-versions }}
+        last-supported-python-version: ${{ matrix.project.inputs.last-supported-python-version }}
+        pipx-tools: ${{ matrix.project.inputs.pipx-tools }}
+        poetry-project-path: ${{ matrix.project.inputs.path }}
+        poetry-package-name: ${{ matrix.project.inputs.package-name }}
+        poetry-dependency-groups: ${{ matrix.project.inputs.dependency-groups }}
+        builds-registry-path: ${{ matrix.project.inputs.builds-registry-path }}
+        builds-registry-key: ${{ matrix.project.inputs.builds-registry-key }}
+        use-poexy-core: ${{ matrix.project.inputs.use-poexy-core == 'true' }}
+        use-mutex: ${{ matrix.project.inputs.use-mutex == 'true' }}
+        is-single-artifact: ${{ matrix.project.inputs.is-single-artifact == 'true' }}
     secrets:
       database-connection-uri: ${{ secrets.POSTGRESQL_CONNECTION_URI }}
