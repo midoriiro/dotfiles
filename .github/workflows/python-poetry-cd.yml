@@ -35,7 +35,6 @@ env:
   # but to simplify access to them, Poetry project path need to be set via an
   # environment variable defined globally.
   POETRY_PROJECT_PATH: ${{ inputs.poetry-project-path }}
-  POETRY_DEPENDENCY_GROUPS: ${{ inputs.poetry-dependency-groups }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   
 jobs:
@@ -152,7 +151,7 @@ jobs:
         with:
           python-version: ${{ inputs.python-version }}
           pipx-tools: '["poetry"]'
-          poetry-dependency-groups: ${{ env.POETRY_DEPENDENCY_GROUPS }}
+          poetry-dependency-groups: ${{ inputs.poetry-dependency-groups }}
 
       - name: Restore Build Registry
         id: build-registry
