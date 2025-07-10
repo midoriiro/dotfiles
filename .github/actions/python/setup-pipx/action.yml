@@ -66,7 +66,7 @@ runs:
       id: pipx-env
       shell: bash
       env:
-        PIPX_HOME: ${{ steps.pipx-registry-env.outputs.path }}
+        PIPX_HOME: ${{ steps.pipx-cache.outputs.path }}
         TOOLS_DASHES: ${{ steps.tools.outputs.with-dashes }}
         TOOLS_COMMAS: ${{ steps.tools.outputs.with-commas }}
       run: |        
