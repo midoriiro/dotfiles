@@ -39,23 +39,23 @@ jobs:
         run: python .github/workflows/projects_matrix.py
 
   poetry-cicd:
-    name: Poetry CI/CD - ${{ matrix.projects.package-name }}
+    name: Poetry CI/CD - ${{ matrix.package-name }}
     needs: [matrix]
     strategy:
       matrix: ${{ fromJSON(needs.matrix.outputs.result) }}
     uses: ./.github/workflows/poetry-cicd.yml
     with:
-        supported-os: ${{ matrix.projects.supported-os }}
-        supported-python-versions: ${{ matrix.projects.supported-python-versions }}
-        last-supported-python-version: ${{ matrix.projects.last-supported-python-version }}
-        pipx-tools: ${{ matrix.projects.pipx-tools }}
-        poetry-project-path: ${{ matrix.projects.path }}
-        poetry-package-name: ${{ matrix.projects.package-name }}
-        poetry-dependency-groups: ${{ matrix.projects.dependency-groups }}
-        builds-registry-path: ${{ matrix.projects.builds-registry-path }}
-        builds-registry-key: ${{ matrix.projects.builds-registry-key }}
-        use-poexy-core: ${{ matrix.projects.use-poexy-core == 'true' }}
-        use-mutex: ${{ matrix.projects.use-mutex == 'true' }}
-        is-single-artifact: ${{ matrix.projects.is-single-artifact == 'true' }}
+        supported-os: ${{ matrix.supported-os }}
+        supported-python-versions: ${{ matrix.supported-python-versions }}
+        last-supported-python-version: ${{ matrix.last-supported-python-version }}
+        pipx-tools: ${{ matrix.pipx-tools }}
+        poetry-project-path: ${{ matrix.path }}
+        poetry-package-name: ${{ matrix.package-name }}
+        poetry-dependency-groups: ${{ matrix.dependency-groups }}
+        builds-registry-path: ${{ matrix.builds-registry-path }}
+        builds-registry-key: ${{ matrix.builds-registry-key }}
+        use-poexy-core: ${{ matrix.use-poexy-core == 'true' }}
+        use-mutex: ${{ matrix.use-mutex == 'true' }}
+        is-single-artifact: ${{ matrix.is-single-artifact == 'true' }}
     secrets:
       database-connection-uri: ${{ secrets.POSTGRESQL_CONNECTION_URI }}
