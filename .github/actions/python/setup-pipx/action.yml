@@ -50,10 +50,10 @@ runs:
         # Set pipx paths
         PIPX_HOME="$HOME_DIR/.local/pipx"
         PIPX_BIN_DIR="$PIPX_HOME/bin"
-        PIPX_TOOLS="$TOOLS_COMMAS"
+        PIPX_TOOLS="${{ env.TOOLS_COMMAS }}"
         REGISTRY_KEY="python-pipx"
         REGISTRY_KEY="$REGISTRY_KEY-${{ runner.os }}-${{ env.PYTHON_VERSION }}"
-        REGISTRY_KEY="$REGISTRY_KEY-with-${{ TOOLS_DASHES }}"
+        REGISTRY_KEY="$REGISTRY_KEY-with-${{ env.TOOLS_DASHES }}"
         
         # Create directories if they don't exist
         mkdir --parents "$PIPX_HOME"
