@@ -176,11 +176,15 @@ jobs:
         uses: ./.github/actions/python/poetry/info
 
       - name: Commit Version Changes
+        shell: bash
         run: |
-          echo "version: ${{ steps.info.outputs.project-version }}"
+          PROJECT_NAME=${{ steps.info.outputs.project-name }}
+          PROJECT_VERSION=${{ steps.info.outputs.project-version }}
+          echo "name: $PROJECT_NAME"
+          echo "version: $PROJECT_VERSION"
           echo "commiting as ${{ github.actor }}"
           # git config --local user.email "action@github.com"
           # git config --local user.name "GitHub Action"
           # git add ${{ env.POETRY_PROJECT_PATH }}/pyproject.toml
-          # git commit -m "chore(release): bump version to ${{ steps.info.outputs.project-version }}"
+          # git commit -m "chore(release): bump $PROJECT_NAME version to $PROJECT_VERSION"
           # git push 

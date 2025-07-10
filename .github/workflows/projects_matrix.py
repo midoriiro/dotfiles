@@ -42,23 +42,23 @@ print(f"IGNITE_PROJECT_CHANGED: {ignite_project_changed}")
 
 if poexy_core_project_changed == 'true':
     print("Adding Poexy Core project to matrix")
-    add_project(
-        poetry_projects, 
-        {
-            'path': 'tools/poexy-core',
-            'pipx-tools': pipx_tools,
-            'package-name': 'poexy-core',
-            'dependency-groups': 'main, dev, test',
-            'builds-registry-path': 'builds/',
-            'builds-registry-key': 'builds-poexy-core',
-            'is-single-artifact': 'true',
-            'use-poexy-core': 'false',
-            'use-mutex': 'false'
-        }, 
-        "Poexy Core",
-        supported_os, 
-        supported_python_versions
-    )
+    # add_project(
+    #     poetry_projects, 
+    #     {
+    #         'path': 'tools/poexy-core',
+    #         'pipx-tools': pipx_tools,
+    #         'package-name': 'poexy-core',
+    #         'dependency-groups': 'main, dev, test',
+    #         'builds-registry-path': 'builds/',
+    #         'builds-registry-key': 'builds-poexy-core',
+    #         'is-single-artifact': 'true',
+    #         'use-poexy-core': 'false',
+    #         'use-mutex': 'false'
+    #     }, 
+    #     "Poexy Core",
+    #     supported_os, 
+    #     supported_python_versions
+    # )
 
 if ignite_project_changed == 'true':
     print("Adding Ignite project to matrix")
@@ -73,7 +73,7 @@ if ignite_project_changed == 'true':
             'builds-registry-key': 'builds-ignite',
             'is-single-artifact': 'false',
             'use-poexy-core': 'true',
-            'use-mutex': 'true'
+            'use-mutex': 'false'
         }, 
         "Ignite",
         supported_os, 
