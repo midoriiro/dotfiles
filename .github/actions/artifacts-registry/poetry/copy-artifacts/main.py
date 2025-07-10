@@ -34,7 +34,7 @@ wheel_archive_path = None
 source_archive_path = None
 
 for file in files:
-    print(f"ℹ️ File: {file}")
+    print(f"ℹ️ File: {file}, suffix: {file.suffix}")
     if file.suffix == '.whl':
         wheel_archive_path = file
     elif file.suffix == '.tar.gz':
