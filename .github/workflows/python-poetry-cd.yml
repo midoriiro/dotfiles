@@ -32,6 +32,7 @@ env:
   # environment variable defined globally.
   POETRY_PROJECT_PATH: ${{ inputs.poetry-project-path }}
   POETRY_DEPENDENCY_GROUPS: main, dev, test
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   
 jobs:
   prepare-package:
@@ -124,7 +125,6 @@ jobs:
           mkdir --parents "$LOCATION/wheels" "$LOCATION/source"
           cp ${{ steps.artifacts-registry.outputs.path }}/*.whl $LOCATION/wheels/.
           cp ${{ steps.artifacts-registry.outputs.path }}/*.tar.gz $LOCATION/source/.
-          ls -la $LOCATION/*
 
       - name: Save Build Registry
         uses: ./.github/actions/registry/save
@@ -149,6 +149,14 @@ jobs:
           python-version: ${{ inputs.python-version }}
           pipx-tools: '["poetry"]'
           poetry-dependency-groups: ${{ env.POETRY_DEPENDENCY_GROUPS }}
+
+      - name: Restore Build Registry
+        id: build-registry
+        uses: ./.github/actions/registry/restore
+        with:
+          path: ${{ inputs.builds-registry-path }}
+          key: ${{ inputs.builds-registry-key }}
+          fail-on-cache-miss: true
 
       - name: Bump Version
         uses: ./.github/actions/python/poetry/version  
