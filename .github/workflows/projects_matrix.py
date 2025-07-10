@@ -74,7 +74,7 @@ if poexy_core_project_changed == 'true':
 #         supported_python_versions
 #     )
 matrix = {
-    "project": poetry_projects
+    "projects": poetry_projects
 }
 matrix_data = json.dumps(matrix)
 print(matrix_data)
