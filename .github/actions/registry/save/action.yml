@@ -52,7 +52,7 @@ runs:
         GH_TOKEN: ${{ env.GITHUB_TOKEN }}
       shell: bash
       run: |
-        gh cache delete "${{ env.CACHE_KEY }}"
+        gh cache delete "${{ env.CACHE_KEY }}" || exit 0
         echo "✅ Deleted previous registry with key: ${{ env.CACHE_KEY }}"
 
     - name: Save Registry
