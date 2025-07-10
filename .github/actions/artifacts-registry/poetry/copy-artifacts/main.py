@@ -83,7 +83,7 @@ if not source_destination_path.exists():
 
 with open(project_destination_path / "info.json", "w") as f:
     project_data = {
-        "path": project_path,
+        "path": str(project_path),
         "name": project_name,
         "version": project_version,
     }
