@@ -101,6 +101,11 @@ runs:
         pipx install ${{ env.TOOLS }}
         echo "✅ Installed tools: ${{ env.TOOLS }}"
 
+    - name: List Installed Tools
+      shell: bash
+      run: |
+        pipx list
+
     - name: Save Pipx Cache
       if: ${{ steps.pipx-cache.outputs.cache-hit != 'true' }}
       uses: ./.github/actions/registry/save
