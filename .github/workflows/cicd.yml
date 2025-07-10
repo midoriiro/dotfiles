@@ -47,8 +47,8 @@ jobs:
       matrix: ${{ fromJSON(needs.matrix.outputs.result) }}
     uses: ./.github/workflows/poetry-cicd.yml
     with:
-        supported-os: ${{ toJSON(matrix.projects.inputs.supported-os) }}
-        supported-python-versions: ${{ toJSON(matrix.projects.inputs.supported-python-versions) }}
+        supported-os: ${{ matrix.projects.inputs.supported-os }}
+        supported-python-versions: ${{ matrix.projects.inputs.supported-python-versions }}
         last-supported-python-version: ${{ matrix.projects.inputs.last-supported-python-version }}
         pipx-tools: ${{ matrix.projects.inputs.pipx-tools }}
         poetry-project-path: ${{ matrix.projects.inputs.path }}
