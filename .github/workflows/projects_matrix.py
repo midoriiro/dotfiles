@@ -62,7 +62,11 @@ if poexy_core_project_changed == 'true':
 #         supported_os, 
 #         supported_python_versions
 #     )
-matrix = poetry_projects
+project_names = [project['package-name'] for project in poetry_projects]
+matrix = {
+    "project-name": project_names,
+    "project": poetry_projects
+}
 matrix_data = json.dumps(matrix)
 print(matrix_data)
 with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
