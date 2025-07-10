@@ -28,44 +28,17 @@ runs:
         echo "✅ Using default build command: $POETRY_CMD"
         $POETRY_CMD
 
-    - name: Get Artifacts Registry Key
-      id: artifacts-registry-key
-      shell: bash
-      run: |
-        KEY="${{ runner.os }}-${{ env.PYTHON_VERSION }}"
-        KEY="$KEY-${{ steps.poetry-info.outputs.project-name }}"
-        KEY="$KEY-${{ steps.poetry-info.outputs.project-version }}"
-        echo "key=artifacts-$KEY" >> $GITHUB_OUTPUT
-
-    - name: Get Artifacts Registry Path
-      id: artifacts-registry-path
-      shell: bash
-      run: |
-        echo "path=${{ env.POETRY_PROJECT_PATH }}/dist" >> $GITHUB_OUTPUT
-
     - name: Restore Artifacts Registry
       id: artifacts-registry
-      uses: ./.github/actions/registry/restore
-      with:
-        path: ${{ steps.artifacts-registry-path.outputs.path }}
-        key: ${{ steps.artifacts-registry-key.outputs.key }}
+      uses: ./.github/actions/artifacts-registry/restore
 
     - name: Copy Artifacts
-      working-directory: ${{ env.POETRY_PROJECT_PATH }}
-      shell: bash
-      run: |
-        cp dist/*.whl ${{ steps.artifacts-registry.outputs.path }}/.
-        cp dist/*.tar.gz ${{ steps.artifacts-registry.outputs.path }}/.
-
-    - name: Save Artifacts
-      id: save-artifacts
-      uses: ./.github/actions/registry/save
+      uses: ./.github/actions/artifacts-registry/poetry/copy-artifacts
       with:
-        path: ${{ steps.artifacts-registry-path.outputs.path }}
-        key: ${{ steps.artifacts-registry-key.outputs.key }}
-        clean: true
+        project-path: ${{ env.POETRY_PROJECT_PATH }}
+        project-name: ${{ steps.poetry-info.outputs.project-name }}
+        project-version: ${{ steps.poetry-info.outputs.project-version }}
+        artifacts-registry-path: ${{ steps.artifacts-registry.outputs.path }}
 
-    - name: Finalize
-      shell: bash
-      run: |
-        echo "✅ Build artifacts to registry key: ${{ steps.save-artifacts.outputs.key }}"
+    - name: Save Artifacts Registry
+      uses: ./.github/actions/artifacts-registry/save

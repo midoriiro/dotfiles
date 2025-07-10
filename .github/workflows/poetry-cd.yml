@@ -42,103 +42,27 @@ env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   
 jobs:
-  prepare-package:
-    name: Prepare Package
-    runs-on: ubuntu-latest
-    # if: github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.base_ref == 'main'
-
-    outputs:
-      result: ${{ steps.build-artifacts-registry-keys.outputs.result }}
-
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-      
-      - name: Restore Build Registry
-        id: build-registry
-        uses: ./.github/actions/registry/restore
-        with:
-          path: ${{ inputs.builds-registry-path }}
-          key: ${{ inputs.builds-registry-key }}
-
-      - name: Prepare Artifacts Registry Keys
-        id: build-artifacts-registry-keys
-        working-directory: ${{ steps.build-registry.outputs.path }}
-        shell: python
-        run: |
-          import json
-          import os
-          from pathlib import Path
-          files = [path for path in Path.cwd().iterdir() if path.is_file()]
-          if '${{ inputs.is-single-artifact }}' == 'true':
-            runner_os = '${{ runner.os }}'
-            for file in files:
-              if runner_os in file.name:
-                files = [file]
-                break
-          artifacts = []
-          for file in files:
-            with open(file, 'r', encoding='utf-8') as f:
-              content = f.read()
-              content = content.strip()
-              content = content.replace('\n', '')
-              content = content.replace('"', '')
-            artifacts.append({
-              "registry-path": content,
-              "registry-key": file.name,
-            })
-          matrix = {
-            "artifacts": artifacts
-          }
-          matrix_data = json.dumps(matrix)
-          print(matrix_data)
-          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
-            f.write(f"result={matrix_data}\n")
-
   package:
-    name: Package (${{ matrix.artifacts.registry-key }})
-    needs: [prepare-package]
+    name: Package
     runs-on: ubuntu-latest
-    concurrency:
-      group: packaging
-      cancel-in-progress: false
-    strategy:
-      matrix: ${{ fromJSON(needs.prepare-package.outputs.result) }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
       
-      - name: Restore Build Registry
-        id: build-registry
-        uses: ./.github/actions/registry/restore
-        with:
-          path: ${{ inputs.builds-registry-path }}
-          key: ${{ inputs.builds-registry-key }}
-          fail-on-cache-miss: true
-
       - name: Restore Artifacts Registry
         id: artifacts-registry
-        uses: ./.github/actions/registry/restore
+        uses: ./.github/actions/artifacts-registry/restore
         with:
-          path: ${{ matrix.artifacts.registry-path }}
-          key: ${{ matrix.artifacts.registry-key }}
           fail-on-cache-miss: true
 
-      - name: Copy Package
-        working-directory: ${{ steps.build-registry.outputs.path }}
+      - name: Select Packages to Release
+        working-directory: ${{ steps.artifacts-registry.outputs.path }}
         shell: bash
         run: |
-          LOCATION="artifacts" 
-          mkdir --parents "$LOCATION/wheels" "$LOCATION/source"
-          cp ${{ steps.artifacts-registry.outputs.path }}/*.whl $LOCATION/wheels/.
-          cp ${{ steps.artifacts-registry.outputs.path }}/*.tar.gz $LOCATION/source/.
+          ls -l **/*
 
-      - name: Save Build Registry
-        uses: ./.github/actions/registry/save
-        with:
-          path: ${{ inputs.builds-registry-path }}
-          key: ${{ inputs.builds-registry-key }}
-          clean: true
+      - name: Save Artifacts Registry
+        uses: ./.github/actions/artifacts-registry/save
 
   release:
     name: Release
@@ -168,10 +92,10 @@ jobs:
         run: |
           ls -la ${{ steps.build-registry.outputs.path }}/**/*
 
-      - name: Bump Version
+      - name: Bump Project Version
         uses: ./.github/actions/python/poetry/version  
 
-      - name: Get Version
+      - name: Get Project Info
         id: info
         uses: ./.github/actions/python/poetry/info
 

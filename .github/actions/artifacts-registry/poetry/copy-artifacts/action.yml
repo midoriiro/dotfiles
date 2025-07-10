@@ -1,0 +1,33 @@
+name: 'Copy Poetry Artifacts'
+description: 'Copy Poetry artifacts to artifacts registry'
+
+inputs:
+  project-path:
+    description: 'The path to the project'
+    required: true
+    type: string
+  project-name:
+    description: 'The name of the project'
+    required: true
+    type: string
+  project-version:
+    description: 'The version of the project'
+    required: true
+    type: string
+  artifacts-registry-path:
+    description: 'The path to the artifacts registry'
+    required: true
+    type: string
+
+runs:
+  using: composite
+  steps:
+    - name: Copy Artifacts
+      env:
+        PROJECT_PATH: ${{ inputs.project-path }}
+        PROJECT_NAME: ${{ inputs.project-name }}
+        PROJECT_VERSION: ${{ inputs.project-version }}
+        ARTIFACTS_REGISTRY_PATH: ${{ inputs.artifacts-registry-path }}
+      shell: bash
+      run: |
+        python3 main.py

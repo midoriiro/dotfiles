@@ -30,14 +30,14 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Set environment variables
+    - name: Set Environment Variables
       id: registry
       uses: ./.github/actions/registry/set-env
       with:
         path: ${{ inputs.path }}
         key: ${{ inputs.key }}
 
-    - name: Restore cache
+    - name: Restore Cache
       id: registry-restore
       uses: actions/cache/restore@v4
       with:
