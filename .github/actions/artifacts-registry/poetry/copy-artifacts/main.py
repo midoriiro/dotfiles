@@ -87,6 +87,6 @@ with open(project_destination_path / "info.json", "w") as f:
         "name": project_name,
         "version": project_version,
     }
-    json.dump(project_data, f, indent=2)
+    f.write(json.dumps(project_data, indent=2))
 
 print(f"✅ Artifacts copied to {destination_path}")
