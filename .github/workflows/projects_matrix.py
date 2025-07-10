@@ -60,25 +60,25 @@ if poexy_core_project_changed == 'true':
         supported_python_versions
     )
 
-# if ignite_project_changed == 'true':
-#     print("Adding Ignite project to matrix")
-#     add_project(
-#         poetry_projects, 
-#         {
-#             'path': 'tools/ignite',
-#             'pipx-tools': pipx_tools,
-#             'package-name': 'ignite',
-#             'dependency-groups': 'main, dev, test',
-#             'builds-registry-path': 'builds/',
-#             'builds-registry-key': 'builds-ignite',
-#             'is-single-artifact': 'false',
-#             'use-poexy-core': 'true',
-#             'use-mutex': 'true'
-#         }, 
-#         "Ignite",
-#         supported_os, 
-#         supported_python_versions
-#     )
+if ignite_project_changed == 'true':
+    print("Adding Ignite project to matrix")
+    add_project(
+        poetry_projects, 
+        {
+            'path': 'tools/ignite',
+            'pipx-tools': pipx_tools,
+            'package-name': 'ignite',
+            'dependency-groups': 'main, dev, test',
+            'builds-registry-path': 'builds/',
+            'builds-registry-key': 'builds-ignite',
+            'is-single-artifact': 'false',
+            'use-poexy-core': 'true',
+            'use-mutex': 'true'
+        }, 
+        "Ignite",
+        supported_os, 
+        supported_python_versions
+    )
 
 matrix = {
     "projects": poetry_projects,
