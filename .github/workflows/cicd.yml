@@ -42,8 +42,7 @@ jobs:
     name: Poetry CI/CD - ${{ matrix.project.name }}
     needs: [matrix]
     strategy:
-      matrix: 
-        project: ${{ fromJSON(needs.matrix.outputs.result) }}
+      matrix: ${{ fromJSON(needs.matrix.outputs.result) }}
     uses: ./.github/workflows/poetry-cicd.yml
     with:
         supported-os: ${{ matrix.project.inputs.supported-os }}
