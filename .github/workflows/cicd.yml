@@ -44,7 +44,7 @@ jobs:
     needs: [matrix]
     strategy:
       matrix: ${{ fromJSON(needs.matrix.outputs.result) }}
-    uses: ./.github/workflows/poetry/cicd.yml
+    uses: ./.github/workflows/poetry-cicd.yml
     with:
         supported-os: ${{ matrix.supported-os }}
         supported-python-versions: ${{ matrix.supported-python-versions }}

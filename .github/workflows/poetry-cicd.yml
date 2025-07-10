@@ -98,7 +98,7 @@ jobs:
     name: CI - ${{ inputs.poetry-package-name }}
     needs: [matrix-analysis]
     if: needs.matrix-analysis.outputs.as-matrix == 'false'
-    uses: ./.github/workflows/poetry/ci.yml
+    uses: ./.github/workflows/poetry-ci.yml
     with:
         os: ${{ needs.matrix-analysis.outputs.supported-os }}
         python-version: ${{ needs.matrix-analysis.outputs.supported-python-versions }}
@@ -121,7 +121,7 @@ jobs:
       matrix:
         os: ${{ fromJSON(needs.matrix-analysis.outputs.supported-os) }}
         python-version: ${{ fromJSON(needs.matrix-analysis.outputs.supported-python-versions) }}
-    uses: ./.github/workflows/poetry/ci.yml
+    uses: ./.github/workflows/poetry-ci.yml
     with:
         os: ${{ matrix.os }}
         python-version: ${{ matrix.python-version }}
@@ -138,6 +138,7 @@ jobs:
 
   ci-result-aggregator:
     name: CI Result Aggregator
+    runs-on: ubuntu-latest
     needs: [ci-single, ci-matrix]
     if: always()
     steps:
@@ -160,7 +161,7 @@ jobs:
   cd:
     name: CD
     needs: [ci-result-aggregator]
-    uses: ./.github/workflows/poetry/cd.yml
+    uses: ./.github/workflows/poetry-cd.yml
     with:
       python-version: ${{ inputs.last-supported-python-version }}
       pipx-tools: ${{ inputs.pipx-tools }}
