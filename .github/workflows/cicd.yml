@@ -15,7 +15,6 @@ jobs:
     name: Matrix Definitions
     runs-on: ubuntu-latest
     outputs:
-      project-result: ${{ steps.set-project-matrix.outputs.result }}
       result: ${{ steps.set-matrix.outputs.result }}
     steps:
       - name: Checkout Code
