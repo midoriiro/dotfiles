@@ -39,23 +39,23 @@ jobs:
         run: python .github/workflows/projects_matrix.py
 
   poetry-cicd:
-    name: Poetry CI/CD - ${{ matrix.package-name }}
+    name: Poetry CI/CD - ${{ matrix.project.package-name }}
     needs: [matrix]
     strategy:
       matrix: ${{ fromJSON(needs.matrix.outputs.result) }}
     uses: ./.github/workflows/poetry-cicd.yml
     with:
-        supported-os: ${{ matrix.supported-os }}
-        supported-python-versions: ${{ matrix.supported-python-versions }}
-        last-supported-python-version: ${{ matrix.last-supported-python-version }}
-        pipx-tools: ${{ matrix.pipx-tools }}
-        poetry-project-path: ${{ matrix.path }}
-        poetry-package-name: ${{ matrix.package-name }}
-        poetry-dependency-groups: ${{ matrix.dependency-groups }}
-        builds-registry-path: ${{ matrix.builds-registry-path }}
-        builds-registry-key: ${{ matrix.builds-registry-key }}
-        use-poexy-core: ${{ matrix.use-poexy-core == 'true' }}
-        use-mutex: ${{ matrix.use-mutex == 'true' }}
-        is-single-artifact: ${{ matrix.is-single-artifact == 'true' }}
+        supported-os: ${{ matrix.project.supported-os }}
+        supported-python-versions: ${{ matrix.project.supported-python-versions }}
+        last-supported-python-version: ${{ matrix.project.last-supported-python-version }}
+        pipx-tools: ${{ matrix.project.pipx-tools }}
+        poetry-project-path: ${{ matrix.project.path }}
+        poetry-package-name: ${{ matrix.project.package-name }}
+        poetry-dependency-groups: ${{ matrix.project.dependency-groups }}
+        builds-registry-path: ${{ matrix.project.builds-registry-path }}
+        builds-registry-key: ${{ matrix.project.builds-registry-key }}
+        use-poexy-core: ${{ matrix.project.use-poexy-core == 'true' }}
+        use-mutex: ${{ matrix.project.use-mutex == 'true' }}
+        is-single-artifact: ${{ matrix.project.is-single-artifact == 'true' }}
     secrets:
       database-connection-uri: ${{ secrets.POSTGRESQL_CONNECTION_URI }}
