@@ -162,7 +162,7 @@ jobs:
   cd:
     name: CD
     needs: [ci-result-aggregator]
-    if: needs.ci-result-aggregator.result == 'success'
+    if: ${{ needs.ci-result-aggregator.result == 'success' }}
     uses: ./.github/workflows/poetry-cd.yml
     with:
       python-version: ${{ inputs.last-supported-python-version }}
