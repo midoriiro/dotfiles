@@ -1,6 +1,7 @@
 import json
 import os
 from typing import Dict, List
+
 poetry_projects = []
 pipx_tools = 'poetry'
 supported_os = [
@@ -33,11 +34,14 @@ def add_project(
     })
 
 
-poexy_core_project_changed = os.environ.get('POEXY_CORE_PROJECT_CHANGED')
-ignite_project_changed = os.environ.get('IGNITE_PROJECT_CHANGED')
+poexy_core_project_changed = os.environ.get('POEXY_CORE_PROJECT_CHANGED', 'false')
+ignite_project_changed = os.environ.get('IGNITE_PROJECT_CHANGED', 'false')
+
 print(f"POEXY_CORE_PROJECT_CHANGED: {poexy_core_project_changed}")
 print(f"IGNITE_PROJECT_CHANGED: {ignite_project_changed}")
+
 if poexy_core_project_changed == 'true':
+    print("Adding Poexy Core project to matrix")
     add_project(
         poetry_projects, 
         {
@@ -55,8 +59,10 @@ if poexy_core_project_changed == 'true':
         supported_os, 
         supported_python_versions
     )
+
 # if ignite_project_changed == 'true':
-#   add_project(
+#     print("Adding Ignite project to matrix")
+#     add_project(
 #         poetry_projects, 
 #         {
 #             'path': 'tools/ignite',
@@ -73,10 +79,25 @@ if poexy_core_project_changed == 'true':
 #         supported_os, 
 #         supported_python_versions
 #     )
+
 matrix = {
-    "projects": poetry_projects
+    "projects": poetry_projects,
 }
+
+print(f"Generated matrix: {json.dumps(matrix, indent=2)}")
+print(f"Number of projects: {len(poetry_projects)}")
+
+if len(poetry_projects) == 0:
+    print("WARNING: No projects were added to the matrix!")
+    print("This might cause the workflow to fail.")
+else:
+    print("Projects added to matrix")
+
 matrix_data = json.dumps(matrix)
-print(matrix_data)
+print(f"Final matrix JSON: {matrix_data}")
+
 with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
     f.write(f"result={matrix_data}\n")
+    f.write(f"length={len(poetry_projects)}\n")
+
+print("Matrix output written to GITHUB_OUTPUT")

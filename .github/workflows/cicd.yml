@@ -16,6 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       result: ${{ steps.set-matrix.outputs.result }}
+      length: ${{ steps.set-matrix.outputs.length }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -41,12 +42,13 @@ jobs:
   poetry-cicd:
     name: Poetry CI/CD - ${{ matrix.projects.name }}
     needs: [matrix]
+    if: ${{ needs.matrix.outputs.length > 0 }}
     strategy:
       matrix: ${{ fromJSON(needs.matrix.outputs.result) }}
     uses: ./.github/workflows/poetry-cicd.yml
     with:
-        supported-os: ${{ matrix.projects.inputs.supported-os }}
-        supported-python-versions: ${{ matrix.projects.inputs.supported-python-versions }}
+        supported-os: ${{ toJSON(matrix.projects.inputs.supported-os) }}
+        supported-python-versions: ${{ toJSON(matrix.projects.inputs.supported-python-versions) }}
         last-supported-python-version: ${{ matrix.projects.inputs.last-supported-python-version }}
         pipx-tools: ${{ matrix.projects.inputs.pipx-tools }}
         poetry-project-path: ${{ matrix.projects.inputs.path }}
