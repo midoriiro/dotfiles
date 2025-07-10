@@ -72,7 +72,7 @@ jobs:
       supported-os: ${{ steps.as-matrix.outputs.supported-os }}
       supported-python-versions: ${{ steps.as-matrix.outputs.supported-python-versions }}
     steps:
-      - Determine if CI will run as matrix
+      - name: Determine If CI will run as matrix
         id: as-matrix
         shell: python
         run: |

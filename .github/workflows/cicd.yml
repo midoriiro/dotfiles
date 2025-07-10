@@ -60,4 +60,3 @@ jobs:
         is-single-artifact: ${{ matrix.is-single-artifact == 'true' }}
     secrets:
       database-connection-uri: ${{ secrets.POSTGRESQL_CONNECTION_URI }}
-      
