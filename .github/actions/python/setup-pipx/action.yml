@@ -35,26 +35,49 @@ runs:
           f.write(f"with-dashes={'-'.join(tools)}\n")
           f.write(f"with-commas={','.join(tools)}\n")
 
-    - name: Generate Pipx Environment Variables
-      id: pipx
+    - name: Generate Pipx Registry Environment Variables
+      id: pipx-registry-env
       shell: bash
-      env:
-        TOOLS_DASHES: ${{ steps.tools.outputs.with-dashes }}
-        TOOLS_COMMAS: ${{ steps.tools.outputs.with-commas }}
       run: |        
-        # Set pipx paths
-        PIPX_HOME="pipx"
-        PIPX_BIN_DIR="$PIPX_HOME/bin"
-        PIPX_TOOLS="$TOOLS_COMMAS"
+        # Set pipx
+        REGISTRY_PATH="pipx"
         REGISTRY_KEY="python-pipx"
         REGISTRY_KEY="$REGISTRY_KEY-${{ runner.os }}-${{ env.PYTHON_VERSION }}"
         REGISTRY_KEY="$REGISTRY_KEY-with-$TOOLS_DASHES"
         
         # Set pipx environment variables
+        echo "path=$REGISTRY_PATH" >> $GITHUB_OUTPUT
+        echo "key=$REGISTRY_KEY" >> $GITHUB_OUTPUT
+        
+        # Debug output
+        echo "✅ REGISTRY_PATH: $REGISTRY_PATH"
+        echo "✅ REGISTRY_KEY: $REGISTRY_KEY"
+
+    - name: Restore Pipx Cache
+      id: pipx-cache
+      uses: ./.github/actions/registry/restore
+      with:
+        path: ${{ steps.pipx-registry-env.outputs.path }}
+        key: ${{ steps.pipx-registry-env.outputs.key }}
+
+    - name: Generate Pipx Environment Variables
+      id: pipx-env
+      shell: bash
+      env:
+        PIPX_HOME: ${{ steps.pipx-registry-env.outputs.path }}
+        TOOLS_DASHES: ${{ steps.tools.outputs.with-dashes }}
+        TOOLS_COMMAS: ${{ steps.tools.outputs.with-commas }}
+      run: |        
+        # Set pipx paths
+        PIPX_BIN_DIR="$PIPX_HOME/bin"
+        PIPX_TOOLS="$TOOLS_COMMAS"
+
+        mkdir --parents $PIPX_HOME/bin
+        
+        # Set pipx environment variables
         echo "PIPX_HOME=$PIPX_HOME" >> $GITHUB_ENV
         echo "PIPX_BIN_DIR=$PIPX_BIN_DIR" >> $GITHUB_ENV
         echo "PIPX_TOOLS=$PIPX_TOOLS" >> $GITHUB_ENV
-        echo "PIPX_REGISTRY_KEY=$REGISTRY_KEY" >> $GITHUB_ENV
         
         # Add pipx bin directory to PATH
         echo "$PIPX_BIN_DIR" >> $GITHUB_PATH
@@ -63,22 +86,12 @@ runs:
         echo "✅ PIPX_HOME: $PIPX_HOME"
         echo "✅ PIPX_BIN_DIR: $PIPX_BIN_DIR"
         echo "✅ PIPX_TOOLS: $PIPX_TOOLS"
-        echo "✅ REGISTRY_KEY: $REGISTRY_KEY"
         echo "✅ Github PATH:"
         cat $GITHUB_PATH
-
-    - name: Restore Pipx Cache
-      id: pipx-cache
-      uses: ./.github/actions/registry/restore
-      with:
-        path: ${{ env.PIPX_HOME }}
-        key: ${{ env.PIPX_REGISTRY_KEY }}
 
     - name: Install Pipx
       if: ${{ steps.pipx-cache.outputs.cache-hit != 'true' }}
       working-directory: ${{ steps.pipx-cache.outputs.path }}
-      env:
-        PIPX_BIN_DIR: "bin"
       shell: bash
       run: |
         python -m pip install --user pipx
@@ -88,7 +101,6 @@ runs:
       if: ${{ steps.pipx-cache.outputs.cache-hit != 'true' }}
       working-directory: ${{ steps.pipx-cache.outputs.path }}
       env:
-        PIPX_BIN_DIR: "bin"
         TOOLS: ${{ env.PIPX_TOOLS }}
       shell: bash
       run: |
@@ -104,6 +116,6 @@ runs:
       if: ${{ steps.pipx-cache.outputs.cache-hit != 'true' }}
       uses: ./.github/actions/registry/save
       with:
-        path: ${{ env.PIPX_HOME }}
-        key: ${{ env.PIPX_REGISTRY_KEY }}
+        path: ${{ steps.pipx-registry-env.outputs.path }}
+        key: ${{ steps.pipx-registry-env.outputs.key }}
         clean: false
