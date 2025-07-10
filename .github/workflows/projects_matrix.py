@@ -56,7 +56,10 @@ if poexy_core_project_changed == 'true':
 #     'use-poexy-core': 'true',
 #     'use-mutex': 'true'
 #   })
-matrix_data = json.dumps(poetry_projects)
+matrix = {
+    'projects': poetry_projects
+}
+matrix_data = json.dumps(matrix)
 print(matrix_data)
 with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
     f.write(f"result={matrix_data}\n")
