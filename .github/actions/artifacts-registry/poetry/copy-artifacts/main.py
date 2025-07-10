@@ -28,7 +28,7 @@ if not artifacts_registry_path.exists():
     print(f"❌ Artifacts registry path does not exist: {artifacts_registry_path}")
     exit(1)
 
-files = [path for path in project_path.iterdir() if path.is_file()]
+files = [path for path in dist_path.iterdir() if path.is_file()]
 
 wheel_archive_path = None
 source_archive_path = None
