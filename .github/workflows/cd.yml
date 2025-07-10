@@ -42,12 +42,25 @@ env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   
 jobs:
-  prepare-release:
-    name: Prepare Package for Release
+  release:
+    name: Release
     runs-on: ubuntu-latest
+    # if: github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.base_ref == 'main'
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-      
-      - name: Prepare Artifacts Registry for Release
-        uses: ./.github/actions/artifacts-registry/prepare-release
+        
+      - name: Commit Version Changes
+        shell: bash
+        run: |
+          PROJECT_NAME=${{ steps.info.outputs.project-name }}
+          PROJECT_VERSION=${{ steps.info.outputs.project-version }}
+          echo "name: $PROJECT_NAME"
+          echo "version: $PROJECT_VERSION"
+          echo "commiting as ${{ github.actor }}"
+          # git config --local user.email "action@github.com"
+          # git config --local user.name "GitHub Action"
+          # git add ${{ env.POETRY_PROJECT_PATH }}/pyproject.toml
+          # git commit -m "chore(release): bump $PROJECT_NAME version to $PROJECT_VERSION"
+          # git push 

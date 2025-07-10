@@ -1,3 +1,4 @@
+import json
 import os
 from pathlib import Path
 import shutil
@@ -44,7 +45,10 @@ if wheel_archive_path is None or source_archive_path is None:
     exit(1)
 
 destination_path = artifacts_registry_path / "poetry"
-destination_path = destination_path / project_name / project_version
+project_destination_path = destination_path / project_name
+project_destination_path.mkdir(parents=True, exist_ok=True)
+
+destination_path = project_destination_path / project_version
 destination_path.mkdir(parents=True, exist_ok=True)
 
 wheel_destination_path = destination_path / "wheel"
@@ -76,5 +80,13 @@ if not wheel_destination_path.exists():
 if not source_destination_path.exists():
     shutil.copy(source_archive_path, source_destination_path)
     print(f"✅ Source archive copied to {source_destination_path}")
+
+with open(project_destination_path / "info.json", "w") as f:
+    project_data = {
+        "path": project_path,
+        "name": project_name,
+        "version": project_version,
+    }
+    json.dump(project_data, f, indent=2)
 
 print(f"✅ Artifacts copied to {destination_path}")
