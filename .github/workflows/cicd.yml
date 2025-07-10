@@ -39,7 +39,7 @@ jobs:
         run: python .github/workflows/projects_matrix.py
 
   poetry-cicd:
-    name: Poetry CI/CD - ${{ matrix.project-name }}
+    name: Poetry CI/CD - ${{ matrix.name }}
     needs: [matrix]
     strategy:
       matrix: ${{ fromJSON(needs.matrix.outputs.result) }}

@@ -17,11 +17,20 @@ supported_python_versions = [
     last_supported_python_version
 ]
 
-def add_project(projects: List[Dict], project: Dict, os: List[str], python_version: List[str]):
+def add_project(
+    projects: List[Dict], 
+    project: Dict,
+    project_name: str,
+    os: List[str], 
+    python_version: List[str]
+):
     project['supported-os'] = os
     project['supported-python-versions'] = python_version
     project['last-supported-python-version'] = last_supported_python_version
-    projects.append(project)
+    projects.append({
+        'name': project_name,
+        'project': project
+    })
 
 
 poexy_core_project_changed = os.environ.get('POEXY_CORE_PROJECT_CHANGED')
@@ -42,6 +51,7 @@ if poexy_core_project_changed == 'true':
             'use-poexy-core': 'false',
             'use-mutex': 'false'
         }, 
+        "Poexy Core",
         supported_os, 
         supported_python_versions
     )
@@ -59,14 +69,11 @@ if poexy_core_project_changed == 'true':
 #             'use-poexy-core': 'true',
 #             'use-mutex': 'true'
 #         }, 
+#         "Ignite",
 #         supported_os, 
 #         supported_python_versions
 #     )
-project_names = [project['package-name'] for project in poetry_projects]
-matrix = {
-    "project-name": project_names,
-    "project": poetry_projects
-}
+matrix = poetry_projects
 matrix_data = json.dumps(matrix)
 print(matrix_data)
 with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
