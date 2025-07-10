@@ -77,6 +77,8 @@ runs:
     - name: Install Pipx
       if: ${{ steps.pipx-cache.outputs.cache-hit != 'true' }}
       working-directory: ${{ steps.pipx-cache.outputs.path }}
+      env:
+        PIPX_BIN_DIR: "bin"
       shell: bash
       run: |
         python -m pip install --user pipx
