@@ -23,10 +23,6 @@ runs:
           exit 1
         fi
 
-    - name: Get Home Directory Path
-      uses: ./.github/actions/core/get-home-directory
-      id: home-directory
-
     - name: Get Tools
       id: tools
       shell: python
@@ -43,21 +39,16 @@ runs:
       id: pipx
       shell: bash
       env:
-        HOME_DIR: ${{ steps.home-directory.outputs.path }}
         TOOLS_DASHES: ${{ steps.tools.outputs.with-dashes }}
         TOOLS_COMMAS: ${{ steps.tools.outputs.with-commas }}
       run: |        
         # Set pipx paths
-        PIPX_HOME="$HOME_DIR/.local/pipx"
+        PIPX_HOME="pipx"
         PIPX_BIN_DIR="$PIPX_HOME/bin"
-        PIPX_TOOLS="${{ env.TOOLS_COMMAS }}"
+        PIPX_TOOLS="$TOOLS_COMMAS"
         REGISTRY_KEY="python-pipx"
         REGISTRY_KEY="$REGISTRY_KEY-${{ runner.os }}-${{ env.PYTHON_VERSION }}"
-        REGISTRY_KEY="$REGISTRY_KEY-with-${{ env.TOOLS_DASHES }}"
-        
-        # Create directories if they don't exist
-        mkdir --parents "$PIPX_HOME"
-        mkdir --parents "$PIPX_BIN_DIR"
+        REGISTRY_KEY="$REGISTRY_KEY-with-$TOOLS_DASHES"
         
         # Set pipx environment variables
         echo "PIPX_HOME=$PIPX_HOME" >> $GITHUB_ENV
@@ -92,6 +83,7 @@ runs:
 
     - name: Install Tools
       if: ${{ steps.pipx-cache.outputs.cache-hit != 'true' }}
+      working-directory: ${{ steps.pipx-cache.outputs.path }}
       env:
         PIPX_HOME: ${{ env.PIPX_HOME }}
         PIPX_BIN_DIR: ${{ env.PIPX_BIN_DIR }}
