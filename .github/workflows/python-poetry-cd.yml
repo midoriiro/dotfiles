@@ -7,6 +7,10 @@ on:
         description: 'Python version to use'
         required: true
         type: string
+      pipx-tools:
+        description: 'Pipx tools to install'
+        required: true
+        type: string
       poetry-project-path:
         description: 'Path to the Poetry project'
         required: true
@@ -149,8 +153,7 @@ jobs:
       - name: Setup Environment
         uses: ./.github/actions/python/setup-python-pipx-poetry
         with:
-          python-version: ${{ inputs.python-version }}
-          pipx-tools: '["poetry"]'
+          pipx-tools: ${{ inputs.pipx-tools }}
           poetry-dependency-groups: ${{ inputs.poetry-dependency-groups }}
 
       - name: Restore Build Registry

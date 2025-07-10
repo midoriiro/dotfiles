@@ -7,6 +7,10 @@ on:
         description: 'Operating system to run on'
         required: true
         type: string
+      pipx-tools:
+        description: 'Pipx tools to install'
+        required: true
+        type: string
       python-version:
         description: 'Python version to use'
         required: true
@@ -62,6 +66,7 @@ jobs:
     with:
         os: ${{ inputs.os }}
         python-version: ${{ inputs.python-version }}
+        pipx-tools: ${{ inputs.pipx-tools }}
         poetry-project-path: ${{ inputs.poetry-project-path }}
         poetry-package-name: ${{ inputs.poetry-package-name }}
         poetry-dependency-groups: ${{ inputs.poetry-dependency-groups }}
@@ -78,6 +83,7 @@ jobs:
     uses: ./.github/workflows/python-poetry-cd.yml
     with:
       python-version: ${{ inputs.python-version }}
+      pipx-tools: ${{ inputs.pipx-tools }}
       poetry-project-path: ${{ inputs.poetry-project-path }}
       poetry-dependency-groups: ${{ inputs.poetry-dependency-groups }}
       builds-registry-path: ${{ inputs.builds-registry-path }}
