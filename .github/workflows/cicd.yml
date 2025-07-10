@@ -37,7 +37,7 @@ jobs:
           POEXY_CORE_PROJECT_CHANGED: ${{ steps.filter.outputs.poexy-core }}
           IGNITE_PROJECT_CHANGED: ${{ steps.filter.outputs.ignite }}
         shell: python
-        run: python ./.github/workflows/projects_matrix.py
+        run: python .github/workflows/projects_matrix.py
 
       - name: Set Matrix
         id: set-matrix
