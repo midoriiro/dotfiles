@@ -7,8 +7,6 @@ runs:
     - name: Restore Artifacts Registry
       id: artifacts-registry
       uses: ./.github/actions/artifacts-registry/restore
-      with:
-        fail-on-cache-miss: true
 
     - name: Prepare Artifacts Release
       env:
