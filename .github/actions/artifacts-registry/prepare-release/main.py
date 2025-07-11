@@ -23,6 +23,9 @@ class Package:
         self.pre_commands = []
         self.post_commands = []
 
+    def __contains__(self, other: "Package"):
+        return self.type == other.type and self.name == other.name and self.version == other.version
+
     def __dict__(self):
         return {
             "type": self.type.value,
@@ -105,7 +108,8 @@ for project in poetry_packages_path.iterdir():
             version.name, 
             packages_files
         )
-        packages.append(package)
+        if package not in packages:
+            packages.append(package)
         # We should only have one version per project: TODO check this 
         break
 
