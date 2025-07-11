@@ -23,6 +23,17 @@ class Package:
         self.pre_commands = []
         self.post_commands = []
 
+    def __dict__(self):
+        return {
+            "type": self.type.value,
+            "name": self.name,
+            "version": self.version,
+            "packages": [str(package) for package in self.packages],
+            "commit_message": self.commit_message,
+            "pre_commands": self.pre_commands,
+            "post_commands": self.post_commands
+        }
+
 class PoetryPackage(Package):
     def __init__(
             self,
