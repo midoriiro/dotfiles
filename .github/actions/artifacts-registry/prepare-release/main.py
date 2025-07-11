@@ -31,16 +31,17 @@ class Package:
     
     @staticmethod
     def from_dict(data: dict) -> "Package":
-        return Package(
+        package = Package(
             data["type"],
             data["name"],
             data["version"],
-            data["packages"],
-            data["commit_message"],
-            data["pre_commands"],
-            data["post_commands"]
+            data["packages"]
         )
-
+        package.commit_message = data["commit_message"]
+        package.pre_commands = data["pre_commands"]
+        package.post_commands = data["post_commands"]
+        return package
+    
     def to_dict(self):
         return {
             "type": self.type.value,

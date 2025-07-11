@@ -62,14 +62,14 @@ env:
   DATABASE_CONNECTION_URI: ${{ secrets.database-connection-uri }}
 
 jobs:
-  run-tag:
-    name: Run Tag
+  runner-tag:
+    name: Runner Tag
     runs-on: ubuntu-latest
     outputs:
-      tag: ${{ steps.run-tag.outputs.tag }}
+      tag: ${{ steps.runner-tag.outputs.tag }}
     steps:
-      - name: Run Tag
-        id: run-tag
+      - name: Get Runner Tag
+        id: runner-tag
         shell: python
         run: |
           import os
@@ -82,9 +82,9 @@ jobs:
             f.write(f"tag={tag}\n")
   
   setup-environment:
-    name: \[${{ needs.run-tag.outputs.tag }}\] - Setup Environment
+    name: ${{ needs.runner-tag.outputs.tag }} - Setup Environment
     runs-on: ${{ inputs.os }}
-    needs: [run-tag]
+    needs: [runner-tag]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -206,9 +206,9 @@ jobs:
   #         fi
   
   build:
-    name: Build
+    name: ${{ needs.runner-tag.outputs.tag }} Build
     runs-on: ${{ inputs.os }}
-    needs: [setup-environment]
+    needs: [runner-tag, setup-environment]
     concurrency: ${{ github.workflow }}-build
 
     steps:
@@ -229,8 +229,8 @@ jobs:
         uses: ./.github/actions/python/poetry/build
 
   prepare-release:
-    name: Prepare Package for Release
-    needs: [build]
+    name: ${{ needs.runner-tag.outputs.tag }} - Prepare Package for Release
+    needs: [runner-tag, build]
     runs-on: ubuntu-latest
     concurrency: ${{ github.workflow }}-prepare-release
     steps:
