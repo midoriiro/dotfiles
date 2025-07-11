@@ -61,6 +61,8 @@ for project in poetry_packages_path.iterdir():
         packages_files = []
         source = version / "source"
         wheel = version / "wheel"
+        if version.name == 'info.json':
+            continue
         for file in source.iterdir():
             if file.is_file():
                 print(f"\t - Source file: {file.name}")
