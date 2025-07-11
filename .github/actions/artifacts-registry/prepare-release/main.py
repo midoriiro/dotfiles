@@ -75,8 +75,8 @@ class PoetryPackage(Package):
         ]
 
     def __eq__(self, other):
-        print(f"🔍 Comparing {self.type} {self.name} v{self.version} with {other.type} {other.name} v{other.version}")
-        print(super().__eq__(other) and self.path == other.path)
+        print(f"🔍 Comparing {self.path} with {other.path}")
+        print(super().__eq__(other), self.path == other.path)
         return super().__eq__(other) and self.path == other.path
     
     def __ne__(self, other):
