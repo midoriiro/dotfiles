@@ -52,7 +52,6 @@ if poexy_core_project_changed == 'true':
     #         'builds-registry-path': 'builds/',
     #         'builds-registry-key': 'builds-poexy-core',
     #         'use-poexy-core': 'false',
-    #         'use-mutex': 'false'
     #     }, 
     #     "Poexy Core",
     #     supported_os, 
@@ -71,7 +70,6 @@ if ignite_project_changed == 'true':
             'builds-registry-path': 'builds/',
             'builds-registry-key': 'builds-ignite',
             'use-poexy-core': 'true',
-            'use-mutex': 'false'
         }, 
         "Ignite",
         supported_os, 

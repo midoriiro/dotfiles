@@ -44,15 +44,6 @@ on:
         required: true
         type: boolean
         default: true
-      use-mutex:
-        description: 'Whether to use mutex'
-        required: true
-        type: boolean
-        default: true
-    secrets:
-      database-connection-uri:
-        description: 'Database connection URI for mutex'
-        required: true
 
 permissions:
   contents: write
@@ -105,9 +96,6 @@ jobs:
         builds-registry-path: ${{ inputs.builds-registry-path }}
         builds-registry-key: ${{ inputs.builds-registry-key }}
         use-poexy-core: ${{ inputs.use-poexy-core }}
-        use-mutex: ${{ inputs.use-mutex }}
-    secrets:
-      database-connection-uri: ${{ secrets.database-connection-uri }}
 
   ci-matrix:
     name: CI - Matrix
@@ -128,9 +116,6 @@ jobs:
         builds-registry-path: ${{ inputs.builds-registry-path }}
         builds-registry-key: ${{ inputs.builds-registry-key }}
         use-poexy-core: ${{ inputs.use-poexy-core }}
-        use-mutex: ${{ inputs.use-mutex }}
-    secrets:
-      database-connection-uri: ${{ secrets.database-connection-uri }}
 
   ci-result-aggregator:
     name: CI Result Aggregator

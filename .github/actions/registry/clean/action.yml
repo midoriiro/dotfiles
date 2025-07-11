@@ -8,12 +8,6 @@ runs:
       id: registry
       uses: ./.github/actions/registry/set-env
 
-    - name: Wait for Mutex Release
-      uses: ./.github/actions/mutex/wait
-      with:
-        key: ${{ steps.registry.outputs.self-key }}
-        timeout: 60
-
     - name: Restore Self Registry
       id: self-registry
       uses: actions/cache/restore@v4
@@ -61,9 +55,3 @@ runs:
       run: |
         gh cache delete "${{ env.CACHE_KEY }}"
         echo "✅ Self registry deleted with key: ${{ env.CACHE_KEY }}"
-
-    - name: Release Mutex
-      if: always()
-      uses: ./.github/actions/mutex/release
-      with:
-        key: ${{ steps.registry.outputs.self-key }}

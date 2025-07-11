@@ -61,6 +61,3 @@ jobs:
         builds-registry-path: ${{ matrix.projects.inputs.builds-registry-path }}
         builds-registry-key: ${{ matrix.projects.inputs.builds-registry-key }}
         use-poexy-core: ${{ matrix.projects.inputs.use-poexy-core == 'true' }}
-        use-mutex: ${{ matrix.projects.inputs.use-mutex == 'true' }}
-    secrets:
-      database-connection-uri: ${{ secrets.POSTGRESQL_CONNECTION_URI }}

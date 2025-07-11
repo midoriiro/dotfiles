@@ -136,7 +136,7 @@ for project in poetry_packages_path.iterdir():
                 print(f"  - Wheel file: {file.name}")
                 packages_files.append(file)
         package = PoetryPackage(
-            project_data["path"],
+            Path(project_data["path"]),
             project.name, 
             version.name, 
             packages_files

@@ -39,12 +39,6 @@ runs:
         path: ${{ inputs.path }}
         key: ${{ inputs.key }}
 
-    - name: Wait for Registry Mutex Release
-      uses: ./.github/actions/mutex/wait
-      with:
-        key: ${{ steps.registry.outputs.key }}
-        timeout: 60
-
     - name: Delete Previous Registry
       if: ${{ inputs.delete-previous-registry == 'true' }}
       env:
@@ -65,13 +59,6 @@ runs:
       shell: bash
       run: |
         echo "✅ Saved registry with key: ${{ steps.registry.outputs.key }}"
-
-    - name: Wait Self Registry Mutex Release
-      if: ${{ inputs.clean == 'true' }} 
-      uses: ./.github/actions/mutex/wait
-      with:
-        key: ${{ steps.registry.outputs.self-key }}
-        timeout: 60
 
     - name: Restore Self Registry
       if: ${{ inputs.clean == 'true' }}
@@ -114,15 +101,3 @@ runs:
       shell: bash
       run: |
         echo "✅ Saved self registry with key: ${{ steps.registry.outputs.self-key }}"
-
-    - name: Release Self Registry Mutex
-      if: always() && ${{ inputs.clean == 'true' }}
-      uses: ./.github/actions/mutex/release
-      with:
-        key: ${{ steps.registry.outputs.self-key }}
-
-    - name: Release Registry Mutex
-      if: always()
-      uses: ./.github/actions/mutex/release
-      with:
-        key: ${{ steps.registry.outputs.key }}
