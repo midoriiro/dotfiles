@@ -24,7 +24,8 @@ class Package:
         self.post_commands = []
 
     def __eq__(self, other):
-        if not isinstance(other, Package):
+        if not isinstance(other, "Package"):
+            print(f"❌ Not a Package: {type(other).__name__}")
             return False
         return self.type == other.type and self.name == other.name and self.version == other.version
     
@@ -77,12 +78,13 @@ class PoetryPackage(Package):
             "git push"
         ]
 
-    def __eq__(self, other: "Package"):
+    def __eq__(self, other):
         if not isinstance(other, PoetryPackage):
+            print(f"❌ Not a PoetryPackage: {type(other).__name__}")
             return False
         return super().__eq__(other) and self.path == other.path
     
-    def __ne__(self, other: "Package"):
+    def __ne__(self, other):
         return not self.__eq__(other)
     
     def __hash__(self):
