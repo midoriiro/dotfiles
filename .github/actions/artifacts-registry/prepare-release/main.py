@@ -24,7 +24,7 @@ class Package:
         self.post_commands = []
 
     def __eq__(self, other):
-        print(f"🔍 Comparing {self.name} v{self.version} with {other.name} v{other.version}")
+        print(f"🔍 Comparing {self.type} {self.name} v{self.version} with {other.type} {other.name} v{other.version}")
         return self.type == other.type and self.name == other.name and self.version == other.version
     
     def __ne__(self, other):
@@ -74,7 +74,7 @@ class PoetryPackage(Package):
         ]
 
     def __eq__(self, other):
-        print(f"🔍 Comparing {self.name} v{self.version} with {other.name} v{other.version}")
+        print(f"🔍 Comparing {self.type} {self.name} v{self.version} with {other.type} {other.name} v{other.version}")
         return super().__eq__(other) and self.path == other.path
     
     def __ne__(self, other):
