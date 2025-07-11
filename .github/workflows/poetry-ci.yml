@@ -211,6 +211,7 @@ jobs:
 
   prepare-release:
     name: Prepare Package for Release
+    needs: [build]
     runs-on: ubuntu-latest
     concurrency: ${{ github.workflow }}-prepare-release
     steps:
