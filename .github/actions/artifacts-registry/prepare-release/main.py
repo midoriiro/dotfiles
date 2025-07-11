@@ -24,7 +24,7 @@ class Package:
         self.post_commands = []
 
     def __eq__(self, other):
-        if not isinstance(other, "Package"):
+        if not isinstance(other, Package):
             print(f"❌ Not a Package: {type(other).__name__}")
             return False
         return self.type == other.type and self.name == other.name and self.version == other.version
