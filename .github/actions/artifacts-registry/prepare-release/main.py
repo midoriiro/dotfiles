@@ -7,7 +7,7 @@ current_file_path = Path(__file__).resolve()
 utils_path = current_file_path.parent.parent
 sys.path.insert(1, str(utils_path))
 
-from utils.packages import PoetryPackage
+from utils.packages import Package, PoetryPackage
 
 artifacts_registry_path = Path(os.getenv("ARTIFACTS_REGISTRY_PATH"))
 
