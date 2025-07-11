@@ -1,13 +1,13 @@
-
 import json
 import os
-from pathlib import Path
 import sys
+from pathlib import Path
 
 current_file_path = Path(__file__).resolve()
-sys.path.insert(0, current_file_path.parent.parent) 
+utils_path = current_file_path.parent.parent
+sys.path.insert(1, str(utils_path))
 
-from utils.packages import Package, PoetryPackage
+from utils.packages import PoetryPackage
 
 artifacts_registry_path = Path(os.getenv("ARTIFACTS_REGISTRY_PATH"))
 
