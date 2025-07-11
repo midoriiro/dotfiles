@@ -24,9 +24,6 @@ class Package:
         self.post_commands = []
 
     def __eq__(self, other):
-        if not isinstance(other, Package):
-            print(f"❌ Not a Package: {type(other).__name__}")
-            return False
         return self.type == other.type and self.name == other.name and self.version == other.version
     
     def __ne__(self, other):
@@ -79,9 +76,6 @@ class PoetryPackage(Package):
         ]
 
     def __eq__(self, other):
-        if not isinstance(other, PoetryPackage):
-            print(f"❌ Not a PoetryPackage: {type(other).__name__}")
-            return False
         return super().__eq__(other) and self.path == other.path
     
     def __ne__(self, other):
@@ -151,6 +145,7 @@ for project in poetry_packages_path.iterdir():
         )
         
         print(f"🔍 Checking if package {package.name} v{package.version} exists in {len(packages)} existing packages")
+
         for i, existing_package in enumerate(packages):
             print(f"  {i}: {existing_package.name} v{existing_package.version} (type: {type(existing_package).__name__})")
             if package == existing_package:
