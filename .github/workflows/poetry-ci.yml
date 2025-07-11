@@ -52,12 +52,12 @@ env:
 
 jobs:
   runner-tag:
-    name: Runner Tag
+    name: Set Runner Tag
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.runner-tag.outputs.tag }}
     steps:
-      - name: Get Runner Tag
+      - name: Set Runner Tag
         id: runner-tag
         shell: python
         run: |
