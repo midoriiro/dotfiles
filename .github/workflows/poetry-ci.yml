@@ -62,9 +62,29 @@ env:
   DATABASE_CONNECTION_URI: ${{ secrets.database-connection-uri }}
 
 jobs:
+  run-tag:
+    name: Run Tag
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.run-tag.outputs.tag }}
+    steps:
+      - name: Run Tag
+        id: run-tag
+        shell: python
+        run: |
+          import os
+          runner_os = "${{ inputs.os }}"
+          python_version = "${{ inputs.python-version }}"
+          runner_os = runner_os.lower()
+          python_version = python_version.lower().replace(".", "")
+          tag = f"{runner_os}-{python_version}"
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+            f.write(f"tag={tag}\n")
+  
   setup-environment:
-    name: Setup Environment
+    name: \[${{ needs.run-tag.outputs.tag }}\] - Setup Environment
     runs-on: ${{ inputs.os }}
+    needs: [run-tag]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4

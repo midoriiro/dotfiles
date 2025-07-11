@@ -28,8 +28,20 @@ class Package:
     
     def __ne__(self, other: "Package"):
         return not self == other
+    
+    @staticmethod
+    def from_dict(data: dict) -> "Package":
+        return Package(
+            data["type"],
+            data["name"],
+            data["version"],
+            data["packages"],
+            data["commit_message"],
+            data["pre_commands"],
+            data["post_commands"]
+        )
 
-    def __dict__(self):
+    def to_dict(self):
         return {
             "type": self.type.value,
             "name": self.name,
@@ -71,10 +83,16 @@ class PoetryPackage(Package):
     def __ne__(self, other: "PoetryPackage"):
         return not self.__eq__(other)
 
-    def __dict__(self):
-        data = super().__dict__()
+    def to_dict(self):
+        data = super().to_dict()
         data["path"] = str(self.path)
         return data
+    
+    @staticmethod
+    def from_dict(data: dict) -> "PoetryPackage":
+        package = Package.from_dict(data)
+        package.path = Path(data["path"])
+        return package
 
 artifacts_registry_path = Path(os.getenv("ARTIFACTS_REGISTRY_PATH"))
 
@@ -85,7 +103,7 @@ packages_file_path = artifacts_registry_path / "packages.json"
 if packages_file_path.exists():
     print(f"ℹ️ Packages file exists: {packages_file_path}")
     with open(packages_file_path, "r") as f:
-        packages = json.load(f)
+        packages = [Package.from_dict(package) for package in json.load(f)]
 else:
     print(f"ℹ️ Packages file does not exist: {packages_file_path}")
     packages = []
@@ -122,7 +140,7 @@ for project in poetry_packages_path.iterdir():
         # We should only have one version per project: TODO check this 
         break
 
-packages_data = json.dumps(packages, indent=2, default=lambda o: o.__dict__())
+packages_data = json.dumps(packages, indent=2, default=lambda o: o.to_dict())
 
 print(f"ℹ️ Packages: {packages_data}")
 
