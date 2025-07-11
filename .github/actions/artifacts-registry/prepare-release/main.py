@@ -92,7 +92,7 @@ for project in poetry_packages_path.iterdir():
         # We should only have one version per project: TODO check this 
         break
 
-packages_data = json.dumps(packages, indent=2, default=str)
+packages_data = json.dumps(packages, indent=2, default=lambda o: o.__dict__())
 
 print(f"ℹ️ Packages: {packages_data}")
 
