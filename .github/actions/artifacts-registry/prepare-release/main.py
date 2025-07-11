@@ -24,7 +24,11 @@ class Package:
         self.post_commands = []
 
     def __eq__(self, other: "Package"):
-        return self.type == other.type and self.name == other.name and self.version == other.version
+        if not isinstance(other, Package):
+            return False
+        return (self.type == other.type and 
+                self.name == other.name and 
+                self.version == other.version)
     
     def __ne__(self, other: "Package"):
         return not self.__eq__(other)
@@ -76,7 +80,9 @@ class PoetryPackage(Package):
         ]
 
     def __eq__(self, other: "PoetryPackage"):
-        return super().__eq__(other) and self.path == other.path
+        if not isinstance(other, PoetryPackage):
+            return False
+        return (super().__eq__(other) and self.path == other.path)
     
     def __ne__(self, other: "PoetryPackage"):
         return not self.__eq__(other)
@@ -143,8 +149,21 @@ for project in poetry_packages_path.iterdir():
             version.name, 
             packages_files
         )
+        
+        # Debug: afficher les packages existants
+        print(f"🔍 Checking if package {package.name} v{package.version} exists in {len(packages)} existing packages")
+        for i, existing_package in enumerate(packages):
+            print(f"  {i}: {existing_package.name} v{existing_package.version} (type: {type(existing_package).__name__})")
+            if package == existing_package:
+                print(f"    ✅ MATCH FOUND!")
+            else:
+                print(f"    ❌ No match")
+        
         if package not in packages:
+            print(f"➕ Adding new package: {package.name} v{package.version}")
             packages.append(package)
+        else:
+            print(f"⏭️ Package already exists: {package.name} v{package.version}")
         # We should only have one version per project: TODO check this 
         break
 

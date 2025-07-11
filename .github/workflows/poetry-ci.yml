@@ -214,7 +214,7 @@ jobs:
   #         fi
   
   build:
-    name: ${{ needs.runner-tag.outputs.tag }} Build
+    name: ${{ needs.runner-tag.outputs.tag }} - Build
     runs-on: ${{ inputs.os }}
     needs: [runner-tag, setup-environment]
     concurrency: ${{ github.workflow }}-build
