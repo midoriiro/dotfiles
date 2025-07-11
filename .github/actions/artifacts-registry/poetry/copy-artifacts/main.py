@@ -1,7 +1,10 @@
 import os
 from pathlib import Path
+import sys
 
-from ...utils.packages import PoetryPackage
+sys.path.insert(0, Path.cwd().parent.parent.parent / "utils") 
+
+from utils.packages import PoetryPackage
 
 project_path = Path(os.environ.get('POETRY_PROJECT_PATH'))
 project_name = os.environ.get('PROJECT_NAME')

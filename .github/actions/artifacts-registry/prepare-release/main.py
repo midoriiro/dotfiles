@@ -2,9 +2,11 @@
 import json
 import os
 from pathlib import Path
-from typing import List
+import sys
 
-from ..utils.packages import Package, PoetryPackage
+sys.path.insert(0, Path.cwd().parent.parent / "utils") 
+
+from utils.packages import Package, PoetryPackage
 
 artifacts_registry_path = Path(os.getenv("ARTIFACTS_REGISTRY_PATH"))
 
