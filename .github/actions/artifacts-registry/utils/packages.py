@@ -187,6 +187,7 @@ class PoetryPackage(Package):
             print(f"ℹ️ Path: {project_path}")
             print(f"ℹ️ Name: {project_name}")
             print(f"ℹ️ Version: {project_version}")
+            print(f"ℹ️ Files: {[file.name for file in packages_files]}")
 
             package = PoetryPackage(
                 Path(project_path), project_name, project_version, packages_files
