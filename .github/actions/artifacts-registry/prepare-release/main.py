@@ -62,6 +62,9 @@ class PoetryPackage(Package):
             "git push"
         ]
 
+    def __contains__(self, other: "PoetryPackage"):
+        return super().__contains__(other) and self.path == other.path
+
     def __dict__(self):
         data = super().__dict__()
         data["path"] = str(self.path)
