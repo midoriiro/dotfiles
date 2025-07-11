@@ -1,0 +1,2 @@
+class PyProjectError(Exception):
+    pass
