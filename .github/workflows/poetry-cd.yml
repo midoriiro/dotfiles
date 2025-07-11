@@ -1,50 +1,13 @@
 name: Python Poetry CD Pipeline
 
 on:
-  workflow_call:
-    inputs:
-      python-version:
-        description: 'Python version to use'
-        required: true
-        type: string
-      pipx-tools:
-        description: 'Pipx tools to install'
-        required: true
-        type: string
-      poetry-project-path:
-        description: 'Path to the Poetry project'
-        required: true
-        type: string
-      poetry-dependency-groups:
-        description: 'Dependency groups to install'
-        required: true
-        type: string
-      builds-registry-path:
-        description: 'Path to the builds registry'
-        required: true
-        type: string
-      builds-registry-key:
-        description: 'Key to the builds registry'
-        required: true
-        type: string
-      is-single-artifact:
-        description: 'Whether the package is a single artifact'
-        required: true
-        type: boolean
-        default: false
+  workflow_call
 
-env:
-  PYTHON_VERSION: ${{ inputs.python-version }}
-  # Some composite actions related to Poetry are sensitive to working-directory,
-  # but to simplify access to them, Poetry project path need to be set via an
-  # environment variable defined globally.
-  POETRY_PROJECT_PATH: ${{ inputs.poetry-project-path }}
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  
 jobs:
   prepare-release:
     name: Prepare Package for Release
     runs-on: ubuntu-latest
+    concurrency: ${{ github.workflow }}-prepare-release
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4

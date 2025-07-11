@@ -49,10 +49,14 @@ class PoetryPackage(Package):
             packages
         )
         self.path = path
-        self.post_commands = [
+        self.pre_commands = [
+            f"cd {self.path}",
             f"poetry version -- {self.version}",
             "git add pyproject.toml",
-            f"git commit -m '{self.commit_message}'"
+            f"git commit -m '{self.commit_message}'",
+        ]
+        self.post_commands = [
+            "git push"
         ]
 
     def __dict__(self):
@@ -64,7 +68,15 @@ artifacts_registry_path = Path(os.getenv("ARTIFACTS_REGISTRY_PATH"))
 
 print(f"ℹ️ Artifacts registry path: {artifacts_registry_path}")
 
-packages = []
+packages_file_path = artifacts_registry_path / "packages.json"
+
+if packages_file_path.exists():
+    print(f"ℹ️ Packages file exists: {packages_file_path}")
+    with open(packages_file_path, "r") as f:
+        packages = json.load(f)
+else:
+    print(f"ℹ️ Packages file does not exist: {packages_file_path}")
+    packages = []
 
 poetry_packages_path = artifacts_registry_path / PackageType.Poetry
 
@@ -73,19 +85,19 @@ for project in poetry_packages_path.iterdir():
     with open(project / "info.json", "r") as f:
         project_data = json.load(f)
     for version in project.iterdir():
+        if version.name == 'info.json':
+            continue
         print(f"ℹ️ Version: {version.name}")
         packages_files = []
         source = version / "source"
         wheel = version / "wheel"
-        if version.name == 'info.json':
-            continue
         for file in source.iterdir():
             if file.is_file():
-                print(f"\t - Source file: {file.name}")
+                print(f"  - Source file: {file.name}")
                 packages_files.append(file)
         for file in wheel.iterdir():
             if file.is_file():
-                print(f"\t - Wheel file: {file.name}")
+                print(f"  - Wheel file: {file.name}")
                 packages_files.append(file)
         package = PoetryPackage(
             project_data["path"],
@@ -100,8 +112,6 @@ for project in poetry_packages_path.iterdir():
 packages_data = json.dumps(packages, indent=2, default=lambda o: o.__dict__())
 
 print(f"ℹ️ Packages: {packages_data}")
-
-packages_file_path = artifacts_registry_path / "packages.json"
 
 with open(packages_file_path, "w") as f:
     f.write(packages_data)

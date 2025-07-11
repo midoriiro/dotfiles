@@ -49,11 +49,6 @@ on:
         required: true
         type: boolean
         default: true
-      is-single-artifact:
-        description: 'Whether the package is a single artifact'
-        required: true
-        type: boolean
-        default: false
     secrets:
       database-connection-uri:
         description: 'Database connection URI for mutex'
@@ -164,14 +159,6 @@ jobs:
     needs: [ci-result-aggregator]
     if: ${{ always() && needs.ci-result-aggregator.result == 'success' }}
     uses: ./.github/workflows/poetry-cd.yml
-    with:
-      python-version: ${{ inputs.last-supported-python-version }}
-      pipx-tools: ${{ inputs.pipx-tools }}
-      poetry-project-path: ${{ inputs.poetry-project-path }}
-      poetry-dependency-groups: ${{ inputs.poetry-dependency-groups }}
-      builds-registry-path: ${{ inputs.builds-registry-path }}
-      builds-registry-key: ${{ inputs.builds-registry-key }}
-      is-single-artifact: ${{ inputs.is-single-artifact }}
 
   clean:
     if: always()

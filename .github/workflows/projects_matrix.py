@@ -51,7 +51,6 @@ if poexy_core_project_changed == 'true':
     #         'dependency-groups': 'main, dev, test',
     #         'builds-registry-path': 'builds/',
     #         'builds-registry-key': 'builds-poexy-core',
-    #         'is-single-artifact': 'true',
     #         'use-poexy-core': 'false',
     #         'use-mutex': 'false'
     #     }, 
@@ -71,7 +70,6 @@ if ignite_project_changed == 'true':
             'dependency-groups': 'main, dev, test',
             'builds-registry-path': 'builds/',
             'builds-registry-key': 'builds-ignite',
-            'is-single-artifact': 'false',
             'use-poexy-core': 'true',
             'use-mutex': 'false'
         }, 
