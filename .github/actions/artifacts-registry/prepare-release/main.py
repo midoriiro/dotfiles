@@ -4,7 +4,8 @@ import os
 from pathlib import Path
 import sys
 
-sys.path.insert(0, Path.cwd().parent.parent) 
+current_file_path = Path(__file__).resolve()
+sys.path.insert(0, current_file_path.parent.parent) 
 
 from utils.packages import Package, PoetryPackage
 
