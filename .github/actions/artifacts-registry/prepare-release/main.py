@@ -27,7 +27,7 @@ class Package:
         return self.type == other.type and self.name == other.name and self.version == other.version
     
     def __ne__(self, other: "Package"):
-        return not self == other
+        return not self.__eq__(other)
     
     def __hash__(self):
         return hash((self.type, self.name, self.version))
