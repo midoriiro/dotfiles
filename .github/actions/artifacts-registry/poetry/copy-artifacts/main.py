@@ -3,7 +3,9 @@ from pathlib import Path
 import sys
 
 current_file_path = Path(__file__).resolve()
+print(f"ℹ️ Current file path: {current_file_path}")
 sys.path.insert(0, current_file_path.parent.parent.parent) 
+print(f"ℹ️ Sys path: {sys.path}")
 
 from utils.packages import PoetryPackage
 
