@@ -55,6 +55,11 @@ class PoetryPackage(Package):
             f"git commit -m '{self.commit_message}'"
         ]
 
+    def __dict__(self):
+        data = super().__dict__()
+        data["path"] = str(self.path)
+        return data
+
 artifacts_registry_path = Path(os.getenv("ARTIFACTS_REGISTRY_PATH"))
 
 print(f"ℹ️ Artifacts registry path: {artifacts_registry_path}")
