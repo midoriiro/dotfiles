@@ -48,7 +48,6 @@ runs:
       with:  
         path: ${{ steps.poetry.outputs.cache-dir }}
         key: ${{ steps.poetry.outputs.registry-key }}
-        clean: false
 
     - name: Finalize
       shell: bash

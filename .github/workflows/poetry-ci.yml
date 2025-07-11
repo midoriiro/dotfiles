@@ -65,7 +65,6 @@ jobs:
   setup-environment:
     name: Setup Environment
     runs-on: ${{ inputs.os }}
-    concurrency: ${{ github.workflow }}-setup-environment
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4

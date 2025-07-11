@@ -23,8 +23,11 @@ class Package:
         self.pre_commands = []
         self.post_commands = []
 
-    def __contains__(self, other: "Package"):
+    def __eq__(self, other: "Package"):
         return self.type == other.type and self.name == other.name and self.version == other.version
+    
+    def __ne__(self, other: "Package"):
+        return not self == other
 
     def __dict__(self):
         return {
@@ -62,8 +65,11 @@ class PoetryPackage(Package):
             "git push"
         ]
 
-    def __contains__(self, other: "PoetryPackage"):
-        return super().__contains__(other) and self.path == other.path
+    def __eq__(self, other: "PoetryPackage"):
+        return super().__eq__(other) and self.path == other.path
+    
+    def __ne__(self, other: "PoetryPackage"):
+        return not self.__eq__(other)
 
     def __dict__(self):
         data = super().__dict__()

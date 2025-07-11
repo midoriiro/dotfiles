@@ -120,4 +120,3 @@ runs:
       with:
         path: ${{ steps.pipx-registry-env.outputs.path }}
         key: ${{ steps.pipx-registry-env.outputs.key }}
-        clean: false
