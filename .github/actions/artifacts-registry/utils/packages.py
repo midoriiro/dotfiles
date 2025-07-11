@@ -1,21 +1,18 @@
-from enum import Enum
 import json
-from pathlib import Path
 import shutil
+from enum import Enum
+from pathlib import Path
 from typing import List
 
 
 class PackageType(str, Enum):
     Poetry = "poetry"
 
+
 class Package:
     def __init__(
-            self,
-            type: PackageType,
-            name: str, 
-            version: str, 
-            packages: List[Path]
-        ):
+        self, type: PackageType, name: str, version: str, packages: List[Path]
+    ):
         self.type = type
         self.name = name
         self.version = version
@@ -25,18 +22,22 @@ class Package:
         self.post_commands = []
 
     def __eq__(self, other):
-        return self.type == other.type and self.name == other.name and self.version == other.version
-    
+        return (
+            self.type == other.type
+            and self.name == other.name
+            and self.version == other.version
+        )
+
     def __ne__(self, other):
         return not self.__eq__(other)
-    
+
     @staticmethod
     def from_dict(data: dict) -> "Package":
         if data["type"] == PackageType.Poetry.value:
             return PoetryPackage.from_dict(data)
         else:
             raise ValueError(f"Unknown package type: {data['type']}")
-    
+
     def to_dict(self):
         return {
             "type": self.type.value,
@@ -45,23 +46,13 @@ class Package:
             "packages": [str(package) for package in self.packages],
             "commit_message": self.commit_message,
             "pre_commands": self.pre_commands,
-            "post_commands": self.post_commands
+            "post_commands": self.post_commands,
         }
 
+
 class PoetryPackage(Package):
-    def __init__(
-            self,
-            path: Path,
-            name: str, 
-            version: str, 
-            packages: List[Path]
-        ):
-        super().__init__(
-            PackageType.Poetry, 
-            name, 
-            version, 
-            packages
-        )
+    def __init__(self, path: Path, name: str, version: str, packages: List[Path]):
+        super().__init__(PackageType.Poetry, name, version, packages)
         self.path = path
         self.pre_commands = [
             f"cd {self.path}",
@@ -69,13 +60,11 @@ class PoetryPackage(Package):
             "git add pyproject.toml",
             f"git commit -m '{self.commit_message}'",
         ]
-        self.post_commands = [
-            "git push"
-        ]
+        self.post_commands = ["git push"]
 
     def __eq__(self, other):
         return super().__eq__(other) and self.path == other.path
-    
+
     def __ne__(self, other):
         return not self.__eq__(other)
 
@@ -83,28 +72,28 @@ class PoetryPackage(Package):
         data = super().to_dict()
         data["path"] = str(self.path)
         return data
-    
+
     @staticmethod
     def from_dict(data: dict) -> "PoetryPackage":
         package = PoetryPackage(
             Path(data["path"]),
             data["name"],
             data["version"],
-            [Path(package) for package in data["packages"]]
+            [Path(package) for package in data["packages"]],
         )
         package.commit_message = data["commit_message"]
         package.pre_commands = data["pre_commands"]
         package.post_commands = data["post_commands"]
         return package
-    
+
     @staticmethod
     def copy_artifacts(
-        destination_path: Path, 
-        project_path: Path, 
-        project_name: str, 
-        project_version: str
+        destination_path: Path,
+        project_path: Path,
+        project_name: str,
+        project_version: str,
     ):
-        dist_path = project_path / 'dist'
+        dist_path = project_path / "dist"
 
         if not dist_path.exists():
             print(f"❌ Dist path does not exist: {dist_path}")
@@ -120,9 +109,9 @@ class PoetryPackage(Package):
         source_archive_path = None
 
         for file in files:
-            if file.name.endswith('.whl'):
+            if file.name.endswith(".whl"):
                 wheel_archive_path = file
-            elif file.name.endswith('.tar.gz'):
+            elif file.name.endswith(".tar.gz"):
                 source_archive_path = file
 
         if wheel_archive_path is None or source_archive_path is None:
@@ -136,11 +125,15 @@ class PoetryPackage(Package):
         wheel_destination_path = project_destination_path / wheel_archive_path.name
         source_destination_path = project_destination_path / source_archive_path.name
 
-        if wheel_destination_path.exists() and not wheel_archive_path.stem.endswith("py3-none-any"):
+        if wheel_destination_path.exists() and not wheel_archive_path.stem.endswith(
+            "py3-none-any"
+        ):
             # If wheel archive already exists and it is not a universal wheel, we fail.
             print(f"❌ Wheel archive already exists: {wheel_destination_path}")
             exit(1)
-        elif wheel_destination_path.exists() and wheel_archive_path.stem.endswith("py3-none-any"):
+        elif wheel_destination_path.exists() and wheel_archive_path.stem.endswith(
+            "py3-none-any"
+        ):
             # If wheel archive already exists and it is a universal wheel, we ignore it.
             print(f"⚠️ Wheel archive already exists: {wheel_destination_path}")
 
@@ -164,7 +157,7 @@ class PoetryPackage(Package):
                 "version": project_version,
             }
             f.write(json.dumps(project_data, indent=2))
-    
+
     @staticmethod
     def packages(from_path: Path, packages: List["Package"]) -> List["Package"]:
         poetry_packages_path = from_path / PackageType.Poetry
@@ -173,13 +166,13 @@ class PoetryPackage(Package):
             print(f"ℹ️ Project: {project.name}")
 
             for file in project.iterdir():
-                if file.name == 'package.json':
-                    with open(file / "package.json", "r") as f:
+                if file.name == "package.json":
+                    with open(file, "r") as f:
                         project_data = json.load(f)
                         continue
 
             for file in project.iterdir():
-                if file.name == 'package.json':
+                if file.name == "package.json":
                     continue
 
                 packages_files = []
@@ -196,12 +189,9 @@ class PoetryPackage(Package):
             print(f"ℹ️ Version: {project_version}")
 
             package = PoetryPackage(
-                Path(project_path),
-                project_name, 
-                project_version, 
-                packages_files
+                Path(project_path), project_name, project_version, packages_files
             )
-            
+
             if package not in packages:
                 print(f"➕ Adding new package: {package.name} v{package.version}")
                 packages.append(package)
