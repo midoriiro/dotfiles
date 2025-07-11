@@ -171,11 +171,11 @@ class PoetryPackage(Package):
                         project_data = json.load(f)
                         continue
 
+            packages_files = []
+
             for file in project.iterdir():
                 if file.name == "package.json":
                     continue
-
-                packages_files = []
 
                 if file.is_file():
                     print(f"  - Package file: {file.name}")
