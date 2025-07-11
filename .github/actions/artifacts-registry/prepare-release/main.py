@@ -28,20 +28,7 @@ class Package:
     
     def __ne__(self, other: "Package"):
         return not self == other
-    
-    @staticmethod
-    def _from_dict(data: dict) -> "Package":
-        package = Package(
-            data["type"],
-            data["name"],
-            data["version"],
-            data["packages"]
-        )
-        package.commit_message = data["commit_message"]
-        package.pre_commands = data["pre_commands"]
-        package.post_commands = data["post_commands"]
-        return package
-    
+       
     @staticmethod
     def from_dict(data: dict) -> "Package":
         if data["type"] == PackageType.Poetry.value:
@@ -98,8 +85,15 @@ class PoetryPackage(Package):
     
     @staticmethod
     def from_dict(data: dict) -> "PoetryPackage":
-        package = Package._from_dict(data)
-        package.path = Path(data["path"])
+        package = PoetryPackage(
+            Path(data["path"]),
+            data["name"],
+            data["version"],
+            [Path(package) for package in data["packages"]]
+        )
+        package.commit_message = data["commit_message"]
+        package.pre_commands = data["pre_commands"]
+        package.post_commands = data["post_commands"]
         return package
 
 artifacts_registry_path = Path(os.getenv("ARTIFACTS_REGISTRY_PATH"))
