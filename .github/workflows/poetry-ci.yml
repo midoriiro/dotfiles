@@ -208,3 +208,14 @@ jobs:
       - name: Build Artifacts
         id: build-artifacts
         uses: ./.github/actions/python/poetry/build
+
+  prepare-release:
+    name: Prepare Package for Release
+    runs-on: ubuntu-latest
+    concurrency: ${{ github.workflow }}-prepare-release
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Prepare Artifacts Registry for Release
+        uses: ./.github/actions/artifacts-registry/prepare-release

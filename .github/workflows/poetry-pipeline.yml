@@ -1,4 +1,4 @@
-name: Poetry CI/CD Pipeline
+name: Poetry Pipeline
 
 on:
   workflow_call:
@@ -152,19 +152,4 @@ jobs:
             exit(0)
           else:
             print("CI failed")
-            exit(1)
-
-  cd:
-    name: CD
-    needs: [ci-result-aggregator]
-    if: ${{ always() && needs.ci-result-aggregator.result == 'success' }}
-    uses: ./.github/workflows/poetry-cd.yml
-
-  clean:
-    if: always()
-    name: Clean
-    needs: cd
-    uses: ./.github/workflows/clean.yml
-    secrets:
-      database-connection-uri: ${{ secrets.database-connection-uri }}
-      
+            exit(1)     

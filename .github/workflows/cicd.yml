@@ -43,13 +43,13 @@ jobs:
         shell: bash
         run: python .github/workflows/projects_matrix.py
 
-  poetry-cicd:
-    name: Poetry CI/CD - ${{ matrix.projects.name }}
+  poetry-pipeline:
+    name: ${{ matrix.projects.name }}
     needs: [matrix]
     if: ${{ needs.matrix.outputs.length > 0 }}
     strategy:
       matrix: ${{ fromJSON(needs.matrix.outputs.result) }}
-    uses: ./.github/workflows/poetry-cicd.yml
+    uses: ./.github/workflows/poetry-pipeline.yml
     with:
         supported-os: ${{ matrix.projects.inputs.supported-os }}
         supported-python-versions: ${{ matrix.projects.inputs.supported-python-versions }}
