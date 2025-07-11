@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 import sys
 
-sys.path.insert(0, Path.cwd().parent.parent / "utils") 
+sys.path.insert(0, Path.cwd().parent.parent) 
 
 from utils.packages import Package, PoetryPackage
 
