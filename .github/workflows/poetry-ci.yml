@@ -76,8 +76,16 @@ jobs:
           runner_os = "${{ inputs.os }}"
           python_version = "${{ inputs.python-version }}"
           runner_os = runner_os.lower()
+          if "ubuntu" in runner_os:
+            runner_os = "linux"
+          elif "macos" in runner_os:
+            runner_os = "macos"
+          elif "windows" in runner_os:
+            runner_os = "win"
+          else:
+            raise ValueError(f"Unknown runner OS: {runner_os}")
           python_version = python_version.lower().replace(".", "")
-          tag = f"{runner_os}-{python_version}"
+          tag = f"{runner_os}-py{python_version}"
           with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
             f.write(f"tag={tag}\n")
   

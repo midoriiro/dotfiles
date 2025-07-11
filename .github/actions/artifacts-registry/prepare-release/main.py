@@ -30,7 +30,7 @@ class Package:
         return not self == other
     
     @staticmethod
-    def from_dict(data: dict) -> "Package":
+    def _from_dict(data: dict) -> "Package":
         package = Package(
             data["type"],
             data["name"],
@@ -41,6 +41,13 @@ class Package:
         package.pre_commands = data["pre_commands"]
         package.post_commands = data["post_commands"]
         return package
+    
+    @staticmethod
+    def from_dict(data: dict) -> "Package":
+        if data["type"] == PackageType.Poetry.value:
+            return PoetryPackage.from_dict(data)
+        else:
+            raise ValueError(f"Unknown package type: {data['type']}")
     
     def to_dict(self):
         return {
@@ -91,7 +98,7 @@ class PoetryPackage(Package):
     
     @staticmethod
     def from_dict(data: dict) -> "PoetryPackage":
-        package = Package.from_dict(data)
+        package = Package._from_dict(data)
         package.path = Path(data["path"])
         return package
 
