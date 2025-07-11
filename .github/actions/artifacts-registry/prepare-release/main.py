@@ -28,6 +28,9 @@ class Package:
     
     def __ne__(self, other: "Package"):
         return not self == other
+    
+    def __hash__(self):
+        return hash((self.type, self.name, self.version))
        
     @staticmethod
     def from_dict(data: dict) -> "Package":
@@ -77,6 +80,9 @@ class PoetryPackage(Package):
     
     def __ne__(self, other: "PoetryPackage"):
         return not self.__eq__(other)
+    
+    def __hash__(self):
+        return hash((self.type, self.name, self.version, self.path))
 
     def to_dict(self):
         data = super().to_dict()
