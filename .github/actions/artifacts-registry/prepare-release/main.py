@@ -24,14 +24,12 @@ class Package:
         self.post_commands = []
 
     def __eq__(self, other):
+        print(f"🔍 Comparing {self.name} v{self.version} with {other.name} v{other.version}")
         return self.type == other.type and self.name == other.name and self.version == other.version
     
     def __ne__(self, other):
         return not self.__eq__(other)
     
-    def __hash__(self):
-        return hash((self.type, self.name, self.version))
-       
     @staticmethod
     def from_dict(data: dict) -> "Package":
         if data["type"] == PackageType.Poetry.value:
@@ -76,13 +74,11 @@ class PoetryPackage(Package):
         ]
 
     def __eq__(self, other):
+        print(f"🔍 Comparing {self.name} v{self.version} with {other.name} v{other.version}")
         return super().__eq__(other) and self.path == other.path
     
     def __ne__(self, other):
         return not self.__eq__(other)
-    
-    def __hash__(self):
-        return hash((self.type, self.name, self.version, self.path))
 
     def to_dict(self):
         data = super().to_dict()
