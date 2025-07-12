@@ -69,3 +69,9 @@ jobs:
     uses: ./.github/workflows/cd.yml
     with:
       python-version: ${{ matrix.projects.inputs.python-version }}
+
+  clean-up:
+    name: Clean Up
+    if: ${{ always() }}
+    needs: [poetry-pipeline, continuous-delivery]
+    uses: ./.github/workflows/clean-up.yml

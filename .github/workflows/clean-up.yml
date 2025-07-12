@@ -1,11 +1,10 @@
-name: Poetry CI/CD Pipeline
+name: Clean Up
 
 on:
   workflow_call
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  DATABASE_CONNECTION_URI: ${{ secrets.database-connection-uri }}
 
 permissions:
   contents: write
