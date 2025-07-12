@@ -2,7 +2,9 @@ name: 'Get Artifacts Registry Packages'
 description: 'Get artifacts registry packages'
 
 outputs:
-  result: ${{ steps.packages.outputs.result }}
+  result:
+    description: 'The packages'
+    value: ${{ steps.packages.outputs.result }}
 
 runs:
   using: composite
