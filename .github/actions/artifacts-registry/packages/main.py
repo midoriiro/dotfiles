@@ -20,9 +20,11 @@ if not packages_file_path.exists():
     exit(1)
 
 with open(packages_file_path, "r") as f:
-    packages = f.read()
+    packages = json.load(f)
+
+packages_data = json.dumps(packages, default=lambda o: o.to_dict())
 
 with open(os.environ["GITHUB_OUTPUT"], "a") as f:
-    f.write(f"result={packages}\n")
+    f.write(f"result={packages_data}\n")
 
 print(f"ℹ️ Packages: {packages}")
