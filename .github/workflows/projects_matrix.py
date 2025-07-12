@@ -3,47 +3,45 @@ import os
 from typing import Dict, List
 
 poetry_projects = []
-pipx_tools = 'poetry'
+pipx_tools = "poetry"
 supported_os = [
-    'ubuntu-latest',
+    "ubuntu-latest",
     # 'windows-latest',
     # 'macos-latest'
 ]
-last_supported_python_version = '3.13'
+last_supported_python_version = "3.13"
 supported_python_versions = [
     # '3.9',
     # '3.10',
     # '3.11',
-    '3.12',
+    # '3.12',
     last_supported_python_version
 ]
 
+
 def add_project(
-    projects: List[Dict], 
+    projects: List[Dict],
     project: Dict,
     project_name: str,
-    os: List[str], 
-    python_version: List[str]
+    os: List[str],
+    python_version: List[str],
 ):
-    project['supported-os'] = json.dumps(os)
-    project['supported-python-versions'] = json.dumps(python_version)
-    project['last-supported-python-version'] = last_supported_python_version
-    projects.append({
-        'name': project_name,
-        'inputs': project
-    })
+    project["supported-os"] = json.dumps(os)
+    project["supported-python-versions"] = json.dumps(python_version)
+    project["last-supported-python-version"] = last_supported_python_version
+    projects.append({"name": project_name, "inputs": project})
 
 
-poexy_core_project_changed = os.environ.get('POEXY_CORE_PROJECT_CHANGED', 'false')
-ignite_project_changed = os.environ.get('IGNITE_PROJECT_CHANGED', 'false')
+poexy_core_project_changed = os.environ.get("POEXY_CORE_PROJECT_CHANGED", "false")
+ignite_project_changed = os.environ.get("IGNITE_PROJECT_CHANGED", "false")
 
 print(f"POEXY_CORE_PROJECT_CHANGED: {poexy_core_project_changed}")
 print(f"IGNITE_PROJECT_CHANGED: {ignite_project_changed}")
 
-if poexy_core_project_changed == 'true':
+if poexy_core_project_changed == "true":
     print("Adding Poexy Core project to matrix")
     # add_project(
-    #     poetry_projects, 
+    #     poetry_projects,
     #     {
     #         'path': 'tools/poexy-core',
     #         'pipx-tools': pipx_tools,
@@ -52,28 +50,28 @@ if poexy_core_project_changed == 'true':
     #         'builds-registry-path': 'builds/',
     #         'builds-registry-key': 'builds-poexy-core',
     #         'use-poexy-core': 'false',
-    #     }, 
+    #     },
     #     "Poexy Core",
-    #     supported_os, 
+    #     supported_os,
     #     supported_python_versions
     # )
 
-if ignite_project_changed == 'true':
+if ignite_project_changed == "true":
     print("Adding Ignite project to matrix")
     add_project(
-        poetry_projects, 
+        poetry_projects,
         {
-            'path': 'tools/ignite',
-            'pipx-tools': pipx_tools,
-            'package-name': 'ignite',
-            'dependency-groups': 'main, dev, test',
-            'builds-registry-path': 'builds/',
-            'builds-registry-key': 'builds-ignite',
-            'use-poexy-core': 'true',
-        }, 
+            "path": "tools/ignite",
+            "pipx-tools": pipx_tools,
+            "package-name": "ignite",
+            "dependency-groups": "main, dev, test",
+            "builds-registry-path": "builds/",
+            "builds-registry-key": "builds-ignite",
+            "use-poexy-core": "true",
+        },
         "Ignite",
-        supported_os, 
-        supported_python_versions
+        supported_os,
+        supported_python_versions,
     )
 
 matrix = {
@@ -92,7 +90,7 @@ else:
 matrix_data = json.dumps(matrix)
 print(f"Final matrix JSON: {matrix_data}")
 
-with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+with open(os.environ["GITHUB_OUTPUT"], "a") as f:
     f.write(f"result={matrix_data}\n")
     f.write(f"length={len(poetry_projects)}\n")
 
