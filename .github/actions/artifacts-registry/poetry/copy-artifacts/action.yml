@@ -22,6 +22,10 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Restore Artifacts Registry
+      id: artifacts-registry
+      uses: ./.github/actions/artifacts-registry/restore
+
     - name: Copy Artifacts
       env:
         PROJECT_PATH: ${{ inputs.project-path }}
@@ -31,3 +35,6 @@ runs:
       shell: bash
       run: |
         python3 ${{ github.action_path }}/main.py
+
+    - name: Save Artifacts Registry
+      uses: ./.github/actions/artifacts-registry/save

@@ -10,13 +10,11 @@ class PackageType(str, Enum):
 
 
 class Package:
-    def __init__(
-        self, type: PackageType, name: str, version: str, packages: List[Path]
-    ):
+    def __init__(self, type: PackageType, name: str, version: str, assets: List[Path]):
         self.type = type
         self.name = name
         self.version = version
-        self.packages = packages
+        self.assets = assets
         self.commit_message = f"chore(release): bump '{name}' version to '{version}'"
         self.pre_commands = []
         self.post_commands = []
@@ -43,7 +41,7 @@ class Package:
             "type": self.type.value,
             "name": self.name,
             "version": self.version,
-            "packages": [str(package) for package in self.packages],
+            "assets": [str(asset) for asset in self.assets],
             "commit_message": self.commit_message,
             "pre_commands": self.pre_commands,
             "post_commands": self.post_commands,
@@ -51,16 +49,23 @@ class Package:
 
 
 class PoetryPackage(Package):
-    def __init__(self, path: Path, name: str, version: str, packages: List[Path]):
-        super().__init__(PackageType.Poetry, name, version, packages)
+    def __init__(self, path: Path, name: str, version: str, assets: List[Path]):
+        super().__init__(PackageType.Poetry, name, version, assets)
         self.path = path
         self.pre_commands = [
             f"cd {self.path}",
+            f"poetry publish --dry-run --dist-dir {self.assets[0].parent}",
             f"poetry version -- {self.version}",
             "git add pyproject.toml",
             f"git commit -m '{self.commit_message}'",
         ]
-        self.post_commands = ["git push"]
+        self.post_commands = [
+            f"cd {self.path}",
+            f"poetry publish --dist-dir {self.assets[0].parent}",
+            f"poetry version -- {self.version}",
+            "git add pyproject.toml",
+            f"git commit -m '{self.commit_message}'",
+        ]
 
     def __eq__(self, other):
         return super().__eq__(other) and self.path == other.path
@@ -79,7 +84,7 @@ class PoetryPackage(Package):
             Path(data["path"]),
             data["name"],
             data["version"],
-            [Path(package) for package in data["packages"]],
+            [Path(asset) for asset in data["assets"]],
         )
         package.commit_message = data["commit_message"]
         package.pre_commands = data["pre_commands"]
@@ -171,15 +176,15 @@ class PoetryPackage(Package):
                         project_data = json.load(f)
                         continue
 
-            packages_files = []
+            assets = []
 
             for file in project.iterdir():
                 if file.name == "package.json":
                     continue
 
                 if file.is_file():
-                    print(f"  - Package file: {file.name}")
-                    packages_files.append(file)
+                    print(f"  - Asset: {file.name}")
+                    assets.append(file)
 
             project_path = project_data["path"]
             project_name = project_data["name"]
@@ -187,10 +192,10 @@ class PoetryPackage(Package):
             print(f"ℹ️ Path: {project_path}")
             print(f"ℹ️ Name: {project_name}")
             print(f"ℹ️ Version: {project_version}")
-            print(f"ℹ️ Files: {[file.name for file in packages_files]}")
+            print(f"ℹ️ Assets: {[file.name for file in assets]}")
 
             package = PoetryPackage(
-                Path(project_path), project_name, project_version, packages_files
+                Path(project_path), project_name, project_version, assets
             )
 
             if package not in packages:

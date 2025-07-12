@@ -7,60 +7,193 @@ on:
         description: 'Python version to use'
         required: true
         type: string
-      pipx-tools:
-        description: 'Pipx tools to install'
-        required: true
-        type: string
-      poetry-project-path:
-        description: 'Path to the Poetry project'
-        required: true
-        type: string
-      poetry-dependency-groups:
-        description: 'Dependency groups to install'
-        required: true
-        type: string
-      builds-registry-path:
-        description: 'Path to the builds registry'
-        required: true
-        type: string
-      builds-registry-key:
-        description: 'Key to the builds registry'
-        required: true
-        type: string
-      is-single-artifact:
-        description: 'Whether the package is a single artifact'
-        required: true
-        type: boolean
-        default: false
 
 env:
   PYTHON_VERSION: ${{ inputs.python-version }}
-  # Some composite actions related to Poetry are sensitive to working-directory,
-  # but to simplify access to them, Poetry project path need to be set via an
-  # environment variable defined globally.
-  POETRY_PROJECT_PATH: ${{ inputs.poetry-project-path }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   
-jobs:
+jobs: 
+  packages:
+    name: Get Packages
+    runs-on: ubuntu-latest
+    outputs:
+      result: ${{ steps.packages.outputs.result }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Get Artifacts Registry Packages
+        id: packages
+        uses: ./.github/actions/artifacts-registry/packages
+
+  release-draft:
+    name: Create Release Draft
+    needs: [packages]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        packages: ${{ fromJSON(needs.packages.outputs.result) }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: ${{ matrix.packages.name }} - Set Release Tag
+        id: release-tag
+        shell: bash
+        run: |
+          RELEASE_TAG=${{ matrix.packages.name }}-v${{ matrix.packages.version }}
+          echo "result=${RELEASE_TAG}" >> $GITHUB_OUTPUT
+          echo "✅ Release tag set to ${RELEASE_TAG}"
+
+      - name: ${{ matrix.packages.name }} - Set Assets Path
+        id: assets-path
+        env: 
+          ASSETS: ${{ matrix.packages.assets }}
+        shell: python
+        run: |
+          import json
+          import os
+          assets = json.loads("${ASSETS}")
+          asset = assets[0]
+          asset_path = asset.parent
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+            f.write(f"result={asset_path}\n")
+          print(f"✅ Assets path set to {asset_path}")
+
+      - name: ${{ matrix.packages.name }} - Create Release
+        id: create-release
+        shell: bash
+        run: |
+          # gh release create ${{ steps.release-tag.outputs.result }} --draft
+          echo "✅ Release draft created with tag ${{ steps.release-tag.outputs.result }}"
+
+      - name: ${{ matrix.packages.name }} - Upload Artifacts to Release
+        id: upload-artifacts
+        env:
+          ASSETS: ${{ join(',', matrix.packages.assets) }}
+        shell: bash
+        run: |
+          IFS="," read -a ASSETS <<< ${{ env.ASSETS }}
+          for ASSET in "${ASSETS[@]}"; do
+            echo "✅ Asset Uploaded: ${ASSET}"
+          done
+          # gh release upload ${{ steps.release-tag.outputs.result }} \
+          #   ${{ matrix.packages.path }} \
+          #   --clobber
+
+      - name: ${{ matrix.packages.name }} - Setup Python Pipx Environment
+        id: setup-pipx
+        if: ${{ matrix.packages.type == 'poetry' }}
+        uses: ./.github/actions/python/setup-pipx
+        with:
+          tools: poetry
+
+      - name: ${{ matrix.packages.name }} - Dry-Run Pre-Release Commands
+        id: dry-run-release-commands
+        if: ${{ matrix.packages.type == 'poetry' }}
+        env:
+          COMMANDS: ${{ fromJSON(matrix.packages.pre_commands) }}
+        shell: python
+        run: |
+          import json
+          import os
+          commands = json.loads("${{ env.COMMANDS }}")
+          for command in commands:
+            print(f"ℹ️ Executing command: {command}")
+            os.system(command)
+          print(f"✅ Pre-release commands executed successfully")
+
+  clean-release-draft:
+    name: Clean Release Draft
+    if: ${{ always() && needs.release-draft.result == 'failure' }}
+    needs: [packages, release-draft]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        packages: ${{ fromJSON(needs.packages.outputs.result) }}
+    steps:
+      - name: ${{ matrix.packages.name }} - Set Release Tag
+        id: release-tag
+        shell: bash
+        run: |
+          RELEASE_TAG=${{ matrix.packages.name }}-v${{ matrix.packages.version }}
+          echo "result=${RELEASE_TAG}" >> $GITHUB_OUTPUT
+          echo "✅ Release tag set to ${RELEASE_TAG}"
+
+      - name: ${{ matrix.packages.name }} - Delete Release Assets
+        id: delete-release-assets
+        env:
+          ASSETS: ${{ join(',', matrix.packages.assets) }}
+        shell: bash
+        run: |
+          IFS="," read -a ASSETS <<< ${{ env.ASSETS }}
+          for ASSET in "${ASSETS[@]}"; do
+            echo "✅ Asset Deleted: ${ASSET}"
+          done
+          # gh release delete-asset ${{ steps.release-tag.outputs.result }} \
+          #   ${{ matrix.packages.path }} \
+          #   --yes
+
+      - name: ${{ matrix.packages.name }} - Delete Release Draft
+        id: delete-release-draft
+        shell: bash
+        run: |
+          # gh release delete ${{ steps.release-tag.outputs.result }} --yes --cleanup-tag
+          echo "✅ Release draft deleted with tag ${{ steps.release-tag.outputs.result }}"
+
   release:
     name: Release
+    if: ${{ always() && needs.release-draft.result == 'success' }}
+    needs: [packages, release-draft]
+    strategy:
+      matrix:
+        packages: ${{ fromJSON(needs.packages.outputs.result) }}
     runs-on: ubuntu-latest
-    # if: github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.base_ref == 'main'
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-        
-      - name: Commit Version Changes
+
+      - name: ${{ matrix.packages.name }} - Set Release Tag
+        id: release-tag
         shell: bash
         run: |
-          PROJECT_NAME=${{ steps.info.outputs.project-name }}
-          PROJECT_VERSION=${{ steps.info.outputs.project-version }}
-          echo "name: $PROJECT_NAME"
-          echo "version: $PROJECT_VERSION"
-          echo "commiting as ${{ github.actor }}"
-          # git config --local user.email "action@github.com"
-          # git config --local user.name "GitHub Action"
-          # git add ${{ env.POETRY_PROJECT_PATH }}/pyproject.toml
-          # git commit -m "chore(release): bump $PROJECT_NAME version to $PROJECT_VERSION"
-          # git push 
+          RELEASE_TAG=${{ matrix.packages.name }}-v${{ matrix.packages.version }}
+          echo "result=${RELEASE_TAG}" >> $GITHUB_OUTPUT
+          echo "✅ Release tag set to ${RELEASE_TAG}"
+
+      - name: ${{ matrix.packages.name }} - Edit Release
+        id: edit-release-draft
+        shell: bash
+        run: |
+          # gh release edit ${{ steps.release-tag.outputs.result }} --draft=false
+          echo "✅ Release edited with tag ${{ steps.release-tag.outputs.result }}"
+
+      - name: ${{ matrix.packages.name }} - Setup Python Pipx Environment
+        id: setup-pipx
+        if: ${{ matrix.packages.type == 'poetry' }}
+        uses: ./.github/actions/python/setup-pipx
+        with:
+          tools: poetry
+
+      - name: ${{ matrix.packages.name }} - Run Post-Release Commands
+        id: post-release-commands
+        if: ${{ matrix.packages.type == 'poetry' }}
+        env:
+          COMMANDS: ${{ fromJSON(matrix.packages.post_commands) }}
+        shell: python
+        run: |
+          import json
+          import os
+          commands = json.loads("${{ env.COMMANDS }}")
+          for command in commands:
+            print(f"ℹ️ Executing command: {command}")
+            # os.system(command)
+          print(f"✅ Post-release commands executed successfully")
+
+      - name: ${{ matrix.packages.name }} - Push Release
+        id: push-release
+        shell: bash
+        run: |
+          # git push
+          echo "✅ Release pushed"

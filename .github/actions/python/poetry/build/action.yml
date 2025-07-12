@@ -28,15 +28,6 @@ runs:
         echo "✅ Using default build command: $POETRY_CMD"
         $POETRY_CMD
 
-    - name: List Build Artifacts
-      shell: bash
-      run: |
-        ls -la ${{ env.POETRY_PROJECT_PATH }}/dist
-
-    - name: Restore Artifacts Registry
-      id: artifacts-registry
-      uses: ./.github/actions/artifacts-registry/restore
-
     - name: Copy Artifacts
       uses: ./.github/actions/artifacts-registry/poetry/copy-artifacts
       with:
@@ -44,6 +35,3 @@ runs:
         project-name: ${{ steps.poetry-info.outputs.project-name }}
         project-version: ${{ steps.poetry-info.outputs.project-version }}
         artifacts-registry-path: ${{ steps.artifacts-registry.outputs.path }}
-
-    - name: Save Artifacts Registry
-      uses: ./.github/actions/artifacts-registry/save

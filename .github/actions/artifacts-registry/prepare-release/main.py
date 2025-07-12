@@ -20,7 +20,7 @@ if packages_file_path.exists():
     with open(packages_file_path, "r") as f:
         packages = [Package.from_dict(package) for package in json.load(f)]
 else:
-    print(f"ℹ️ Packages file does not exist: {packages_file_path}")
+    print(f" Packages file does not exist: {packages_file_path}")
     packages = []
 
 PoetryPackage.packages(artifacts_registry_path, packages)

@@ -61,3 +61,11 @@ jobs:
         builds-registry-path: ${{ matrix.projects.inputs.builds-registry-path }}
         builds-registry-key: ${{ matrix.projects.inputs.builds-registry-key }}
         use-poexy-core: ${{ matrix.projects.inputs.use-poexy-core == 'true' }}
+
+  continuous-delivery:
+    # if: github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.base_ref == 'main'
+    name: Continuous Delivery
+    needs: [poetry-pipeline]
+    uses: ./.github/workflows/cd.yml
+    with:
+      python-version: ${{ matrix.projects.inputs.python-version }}
