@@ -22,7 +22,10 @@ if not packages_file_path.exists():
 with open(packages_file_path, "r") as f:
     packages = json.load(f)
 
-packages_data = json.dumps(packages, default=lambda o: o.to_dict())
+for package in packages:
+    package["assets"] = json.dumps(package["assets"])
+
+packages_data = json.dumps(packages)
 
 with open(os.environ["GITHUB_OUTPUT"], "a") as f:
     f.write(f"result={packages_data}\n")
