@@ -55,7 +55,7 @@ jobs:
       - name: Prepare Assets
         id: prepare-assets
         env:
-          ASSETS: ${{ matrix.packages.assets }}
+          ASSETS: ${{ fromJSON(matrix.packages.assets) }}
         shell: python
         run: |
           import json
