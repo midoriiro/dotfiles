@@ -27,7 +27,7 @@ jobs:
         uses: ./.github/actions/artifacts-registry/packages
 
   release-draft:
-    name: Create Release Draft
+    name: ${{ matrix.packages.name }} - Create Release Draft
     needs: [packages]
     runs-on: ubuntu-latest
     strategy:
@@ -37,7 +37,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: ${{ matrix.packages.name }} - Set Release Tag
+      - name: Set Release Tag
         id: release-tag
         shell: bash
         run: |
@@ -45,10 +45,10 @@ jobs:
           echo "result=${RELEASE_TAG}" >> $GITHUB_OUTPUT
           echo "✅ Release tag set to ${RELEASE_TAG}"
 
-      - name: ${{ matrix.packages.name }} - Set Assets Path
+      - name: Set Assets Path
         id: assets-path
         env: 
-          ASSETS: ${{ matrix.packages.assets }}
+          ASSETS: ${{ fromJSON(matrix.packages.assets) }}
         shell: python
         run: |
           import json
@@ -60,14 +60,14 @@ jobs:
             f.write(f"result={asset_path}\n")
           print(f"✅ Assets path set to {asset_path}")
 
-      - name: ${{ matrix.packages.name }} - Create Release
+      - name: Create Release
         id: create-release
         shell: bash
         run: |
           # gh release create ${{ steps.release-tag.outputs.result }} --draft
           echo "✅ Release draft created with tag ${{ steps.release-tag.outputs.result }}"
 
-      - name: ${{ matrix.packages.name }} - Upload Artifacts to Release
+      - name: Upload Artifacts to Release
         id: upload-artifacts
         env:
           ASSETS: ${{ join(',', matrix.packages.assets) }}
@@ -81,14 +81,14 @@ jobs:
           #   ${{ matrix.packages.path }} \
           #   --clobber
 
-      - name: ${{ matrix.packages.name }} - Setup Python Pipx Environment
+      - name: Setup Python Pipx Environment
         id: setup-pipx
         if: ${{ matrix.packages.type == 'poetry' }}
         uses: ./.github/actions/python/setup-pipx
         with:
           tools: poetry
 
-      - name: ${{ matrix.packages.name }} - Dry-Run Pre-Release Commands
+      - name: Dry-Run Pre-Release Commands
         id: dry-run-release-commands
         if: ${{ matrix.packages.type == 'poetry' }}
         env:
@@ -104,7 +104,7 @@ jobs:
           print(f"✅ Pre-release commands executed successfully")
 
   clean-release-draft:
-    name: Clean Release Draft
+    name: ${{ matrix.packages.name }} - Clean Release Draft
     if: ${{ always() && needs.release-draft.result == 'failure' }}
     needs: [packages, release-draft]
     runs-on: ubuntu-latest
@@ -112,7 +112,7 @@ jobs:
       matrix:
         packages: ${{ fromJSON(needs.packages.outputs.result) }}
     steps:
-      - name: ${{ matrix.packages.name }} - Set Release Tag
+      - name: Set Release Tag
         id: release-tag
         shell: bash
         run: |
@@ -120,7 +120,7 @@ jobs:
           echo "result=${RELEASE_TAG}" >> $GITHUB_OUTPUT
           echo "✅ Release tag set to ${RELEASE_TAG}"
 
-      - name: ${{ matrix.packages.name }} - Delete Release Assets
+      - name: Delete Release Assets
         id: delete-release-assets
         env:
           ASSETS: ${{ join(',', matrix.packages.assets) }}
@@ -134,7 +134,7 @@ jobs:
           #   ${{ matrix.packages.path }} \
           #   --yes
 
-      - name: ${{ matrix.packages.name }} - Delete Release Draft
+      - name: Delete Release Draft
         id: delete-release-draft
         shell: bash
         run: |
@@ -142,7 +142,7 @@ jobs:
           echo "✅ Release draft deleted with tag ${{ steps.release-tag.outputs.result }}"
 
   release:
-    name: Release
+    name: ${{ matrix.packages.name }} - Release
     if: ${{ always() && needs.release-draft.result == 'success' }}
     needs: [packages, release-draft]
     strategy:
@@ -154,7 +154,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: ${{ matrix.packages.name }} - Set Release Tag
+      - name: Set Release Tag
         id: release-tag
         shell: bash
         run: |
@@ -162,21 +162,21 @@ jobs:
           echo "result=${RELEASE_TAG}" >> $GITHUB_OUTPUT
           echo "✅ Release tag set to ${RELEASE_TAG}"
 
-      - name: ${{ matrix.packages.name }} - Edit Release
+      - name: Edit Release
         id: edit-release-draft
         shell: bash
         run: |
           # gh release edit ${{ steps.release-tag.outputs.result }} --draft=false
           echo "✅ Release edited with tag ${{ steps.release-tag.outputs.result }}"
 
-      - name: ${{ matrix.packages.name }} - Setup Python Pipx Environment
+      - name: Setup Python Pipx Environment
         id: setup-pipx
         if: ${{ matrix.packages.type == 'poetry' }}
         uses: ./.github/actions/python/setup-pipx
         with:
           tools: poetry
 
-      - name: ${{ matrix.packages.name }} - Run Post-Release Commands
+      - name: Run Post-Release Commands
         id: post-release-commands
         if: ${{ matrix.packages.type == 'poetry' }}
         env:
@@ -191,7 +191,7 @@ jobs:
             # os.system(command)
           print(f"✅ Post-release commands executed successfully")
 
-      - name: ${{ matrix.packages.name }} - Push Release
+      - name: Push Release
         id: push-release
         shell: bash
         run: |
