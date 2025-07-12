@@ -52,10 +52,24 @@ jobs:
           # gh release create ${{ steps.release-tag.outputs.result }} --draft
           echo "✅ Release draft created with tag ${{ steps.release-tag.outputs.result }}"
 
+      - name: Prepare Assets
+        id: prepare-assets
+        env:
+          ASSETS: ${{ toJSON(matrix.packages.assets) }}
+        shell: python
+        run: |
+          import json
+          import os
+          assets = json.loads("${{ env.ASSETS }}")
+          assets = ",".join(assets)
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+            f.write(f"result={assets}\n")
+          print(f"✅ Assets prepared: {assets}")
+
       - name: Upload Artifacts to Release
         id: upload-artifacts
         env:
-          ASSETS: ${{ toJSON(matrix.packages.assets) }}
+          ASSETS: ${{ steps.prepare-assets.outputs.result }}
         shell: bash
         run: |
           IFS="," read -a ASSETS <<< ${{ env.ASSETS }}
