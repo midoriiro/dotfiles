@@ -34,4 +34,3 @@ runs:
         project-path: ${{ env.POETRY_PROJECT_PATH }}
         project-name: ${{ steps.poetry-info.outputs.project-name }}
         project-version: ${{ steps.poetry-info.outputs.project-version }}
-        artifacts-registry-path: ${{ steps.artifacts-registry.outputs.path }}
