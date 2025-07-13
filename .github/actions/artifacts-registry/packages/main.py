@@ -24,6 +24,8 @@ with open(packages_file_path, "r") as f:
 
 for package in packages:
     package["assets"] = json.dumps(package["assets"])
+    package["pre_commands"] = json.dumps(package["pre_commands"])
+    package["post_commands"] = json.dumps(package["post_commands"])
 
 packages_data = json.dumps(packages)
 

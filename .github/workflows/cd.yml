@@ -91,7 +91,7 @@ jobs:
         id: dry-run-release-commands
         if: ${{ matrix.packages.type == 'poetry' }}
         env:
-          COMMANDS: ${{ toJSON(matrix.packages.pre_commands) }}
+          COMMANDS: ${{ matrix.packages.pre_commands }}
         shell: python
         run: |
           import json
