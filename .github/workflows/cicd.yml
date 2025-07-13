@@ -21,6 +21,7 @@ jobs:
     outputs:
       result: ${{ steps.set-matrix.outputs.result }}
       length: ${{ steps.set-matrix.outputs.length }}
+      last-supported-python-version: ${{ steps.set-matrix.outputs.last-supported-python-version }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -65,10 +66,10 @@ jobs:
   continuous-delivery:
     # if: github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.base_ref == 'main'
     name: Continuous Delivery
-    needs: [poetry-pipeline]
+    needs: [matrix, poetry-pipeline]
     uses: ./.github/workflows/cd.yml
     with:
-      python-version: ${{ matrix.projects.inputs.python-version }}
+      python-version: ${{ needs.matrix.outputs.last-supported-python-version }}
 
   clean-up:
     name: Clean Up

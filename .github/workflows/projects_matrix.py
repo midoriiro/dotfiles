@@ -93,5 +93,6 @@ print(f"Final matrix JSON: {matrix_data}")
 with open(os.environ["GITHUB_OUTPUT"], "a") as f:
     f.write(f"result={matrix_data}\n")
     f.write(f"length={len(poetry_projects)}\n")
+    f.write(f"last-supported-python-version={last_supported_python_version}\n")
 
 print("Matrix output written to GITHUB_OUTPUT")

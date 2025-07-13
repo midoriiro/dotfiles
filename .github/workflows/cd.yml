@@ -102,6 +102,12 @@ jobs:
             os.system(command)
           print(f"✅ Pre-release commands executed successfully")
 
+      - name: Git status
+        id: git-status
+        shell: bash
+        run: |
+          git status
+
   clean-release-draft:
     name: ${{ matrix.packages.name }} - Clean Release Draft
     if: ${{ always() && needs.release-draft.result == 'failure' }}
