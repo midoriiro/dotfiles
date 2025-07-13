@@ -55,7 +55,7 @@ class PoetryPackage(Package):
         self.pre_commands = [
             f"cd {self.path}",
             f"poetry version -- {self.version}",
-            f"twine check --strict {self.assets[0].parent}/*",
+            f"twine check --strict {' '.join([str(asset) for asset in self.assets])}",
             "git add pyproject.toml",
             f"git commit -m '{self.commit_message}'",
         ]
