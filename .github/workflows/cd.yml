@@ -118,7 +118,7 @@ jobs:
           COMMANDS: ${{ steps.prepare-pre-release-commands.outputs.result }}
         shell: bash
         run: |
-          source ${{ env.COMMANDS }}
+          bash ${{ env.COMMANDS }}
           echo "✅ Pre-release commands dry-run successfully"
 
       - name: Git status
