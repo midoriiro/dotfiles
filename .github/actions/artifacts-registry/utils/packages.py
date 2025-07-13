@@ -52,10 +52,11 @@ class PoetryPackage(Package):
     def __init__(self, path: Path, name: str, version: str, assets: List[Path]):
         super().__init__(PackageType.Poetry, name, version, assets)
         self.path = path
+        asset_base_path = self.assets[0].parent
         self.pre_commands = [
             f"cd {self.path}",
             f"poetry version -- {self.version}",
-            f"twine check --strict {' '.join([str(asset) for asset in self.assets])}",
+            f"twine check --strict {asset_base_path}/*.tar.gz {asset_base_path}/*.whl",
             "git add pyproject.toml",
             f"git commit -m '{self.commit_message}'",
         ]
