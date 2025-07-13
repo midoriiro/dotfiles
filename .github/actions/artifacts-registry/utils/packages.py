@@ -55,7 +55,7 @@ class PoetryPackage(Package):
         self.pre_commands = [
             f"cd {self.path}",
             f"poetry version -- {self.version}",
-            f"poetry publish --dry-run --dist-dir {self.assets[0].parent} -vvv",
+            f"twine check --strict {self.assets[0].parent}/*",
             "git add pyproject.toml",
             f"git commit -m '{self.commit_message}'",
         ]
