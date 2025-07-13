@@ -70,6 +70,7 @@ jobs:
     uses: ./.github/workflows/cd.yml
     with:
       python-version: ${{ needs.matrix.outputs.last-supported-python-version }}
+      pipx-tools: poetry, twine
 
   clean-up:
     name: Clean Up
