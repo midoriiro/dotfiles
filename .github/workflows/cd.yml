@@ -90,8 +90,8 @@ jobs:
         with:
           tools: poetry
 
-      - name: Dry-Run Pre-Release Commands
-        id: dry-run-release-commands
+      - name: Prepare Pre-Release Commands
+        id: prepare-pre-release-commands
         if: ${{ matrix.packages.type == 'poetry' }}
         env:
           COMMANDS: ${{ matrix.packages.pre_commands }}
@@ -99,11 +99,27 @@ jobs:
         run: |
           import json
           import os
+          import tempfile
           commands = json.loads(os.environ["COMMANDS"])
-          for command in commands:
-            print(f"ℹ️ Executing command: {command}")
-            os.system(command)
-          print(f"✅ Pre-release commands executed successfully")
+          with tempfile.NamedTemporaryFile(delete=False) as f:
+            f.write(f"#!/bin/bash\n")
+            f.write(f"set -e\n")
+            for command in commands:
+              f.write(f"{command}\n")
+            f.flush()
+            with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write(f"result={f}\n")
+          print(f"✅ Pre-release commands prepared successfully")
+
+      - name: Dry-Run Pre-Release Commands
+        id: dry-run-pre-release-commands
+        if: ${{ matrix.packages.type == 'poetry' }}
+        env:
+          COMMANDS: ${{ steps.prepare-pre-release-commands.outputs.result }}
+        shell: bash
+        run: |
+          source ${{ env.COMMANDS }}
+          echo "✅ Pre-release commands dry-run successfully"
 
       - name: Git status
         id: git-status
