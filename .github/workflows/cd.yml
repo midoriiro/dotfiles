@@ -101,14 +101,14 @@ jobs:
           import os
           import tempfile
           commands = json.loads(os.environ["COMMANDS"])
-          with tempfile.NamedTemporaryFile(delete=False) as f:
+          with tempfile.NamedTemporaryFile(mode="w", delete=False, delete_on_close=False) as f:
             f.write(f"#!/bin/bash\n")
             f.write(f"set -e\n")
             for command in commands:
               f.write(f"{command}\n")
             f.flush()
             with open(os.environ["GITHUB_OUTPUT"], "a") as f:
-              f.write(f"result={f}\n")
+              f.write(f"result={f.name}\n")
           print(f"✅ Pre-release commands prepared successfully")
 
       - name: Dry-Run Pre-Release Commands
