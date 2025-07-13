@@ -3,7 +3,7 @@ import os
 from typing import Dict, List
 
 poetry_projects = []
-pipx_tools = "poetry"
+pipx_tools = "poetry, twine"
 supported_os = [
     "ubuntu-latest",
     # 'windows-latest',

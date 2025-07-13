@@ -7,6 +7,10 @@ on:
         description: 'Python version to use'
         required: true
         type: string
+      pipx-tools:
+        description: 'Pipx tools to install'
+        required: true
+        type: string
 
 env:
   PYTHON_VERSION: ${{ inputs.python-version }}
@@ -88,7 +92,7 @@ jobs:
         if: ${{ matrix.packages.type == 'poetry' }}
         uses: ./.github/actions/python/setup-pipx
         with:
-          tools: poetry
+          tools: ${{ inputs.pipx-tools }}
 
       - name: Prepare Pre-Release Commands
         id: prepare-pre-release-commands
@@ -183,7 +187,7 @@ jobs:
         if: ${{ matrix.packages.type == 'poetry' }}
         uses: ./.github/actions/python/setup-pipx
         with:
-          tools: poetry
+          tools: ${{ inputs.pipx-tools }}
 
       - name: Run Post-Release Commands
         id: post-release-commands
