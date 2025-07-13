@@ -33,7 +33,7 @@ runs:
         tools = [tool.strip() for tool in tools]
         with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
           f.write(f"with-dashes={'-'.join(tools)}\n")
-          f.write(f"with-commas={','.join(tools)}\n")
+          f.write(f"with-spaces={' '.join(tools)}\n")
 
     - name: Generate Pipx Registry Environment Variables
       id: pipx-registry-env
@@ -68,11 +68,11 @@ runs:
       env:
         PIPX_HOME: ${{ steps.pipx-cache.outputs.path }}
         TOOLS_DASHES: ${{ steps.tools.outputs.with-dashes }}
-        TOOLS_COMMAS: ${{ steps.tools.outputs.with-commas }}
+        TOOLS_SPACES: ${{ steps.tools.outputs.with-spaces }}
       run: |        
         # Set pipx paths
         PIPX_BIN_DIR="$PIPX_HOME/bin"
-        PIPX_TOOLS="$TOOLS_COMMAS"
+        PIPX_TOOLS="$TOOLS_SPACES"
 
         mkdir --parents $PIPX_HOME/bin
         
