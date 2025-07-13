@@ -99,7 +99,7 @@ jobs:
         run: |
           import json
           import os
-          commands = json.loads('${{ env.COMMANDS }}')
+          commands = json.loads('${COMMANDS}')
           for command in commands:
             print(f"ℹ️ Executing command: {command}")
             os.system(command)
