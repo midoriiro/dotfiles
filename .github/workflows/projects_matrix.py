@@ -40,39 +40,39 @@ print(f"IGNITE_PROJECT_CHANGED: {ignite_project_changed}")
 
 if poexy_core_project_changed == "true":
     print("Adding Poexy Core project to matrix")
-    # add_project(
-    #     poetry_projects,
-    #     {
-    #         'path': 'tools/poexy-core',
-    #         'pipx-tools': pipx_tools,
-    #         'package-name': 'poexy-core',
-    #         'dependency-groups': 'main, dev, test',
-    #         'builds-registry-path': 'builds/',
-    #         'builds-registry-key': 'builds-poexy-core',
-    #         'use-poexy-core': 'false',
-    #     },
-    #     "Poexy Core",
-    #     supported_os,
-    #     supported_python_versions
-    # )
-
-if ignite_project_changed == "true":
-    print("Adding Ignite project to matrix")
     add_project(
         poetry_projects,
         {
-            "path": "tools/ignite",
+            "path": "tools/poexy-core",
             "pipx-tools": pipx_tools,
-            "package-name": "ignite",
+            "package-name": "poexy-core",
             "dependency-groups": "main, dev, test",
             "builds-registry-path": "builds/",
-            "builds-registry-key": "builds-ignite",
-            "use-poexy-core": "true",
+            "builds-registry-key": "builds-poexy-core",
+            "use-poexy-core": "false",
         },
-        "Ignite",
+        "Poexy Core",
         supported_os,
         supported_python_versions,
     )
+
+if ignite_project_changed == "true":
+    print("Adding Ignite project to matrix")
+    # add_project(
+    #     poetry_projects,
+    #     {
+    #         "path": "tools/ignite",
+    #         "pipx-tools": pipx_tools,
+    #         "package-name": "ignite",
+    #         "dependency-groups": "main, dev, test",
+    #         "builds-registry-path": "builds/",
+    #         "builds-registry-key": "builds-ignite",
+    #         "use-poexy-core": "true",
+    #     },
+    #     "Ignite",
+    #     supported_os,
+    #     supported_python_versions,
+    # )
 
 matrix = {
     "projects": poetry_projects,
