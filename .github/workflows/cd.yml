@@ -100,15 +100,16 @@ jobs:
         with:
           tools: ${{ inputs.pipx-tools }}
 
-      - name: Dry-Run Poetry Release
+      - name: Poetry Release (Dry Run)
         if: ${{ matrix.packages.type == 'poetry' }}
-        id: dry-run-poetry-publish
         shell: bash
         run: |
           cd ${{ matrix.packages.path }}
           poetry version -- ${{ matrix.packages.version }}
           poetry publish --dry-run --dist-dir ${{ matrix.packages.assets_path }}
           git add pyproject.toml
+          git config --local user.name 'Github Action'
+          git config --local user.email 'action@github.com'
           git commit -m '${{ matrix.packages.commit_message }}'
 
       - name: Git status
