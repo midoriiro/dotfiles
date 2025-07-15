@@ -1,0 +1,84 @@
+name: 'Check Poetry Environment'
+description: 'Check Poetry Environment'
+
+inputs:
+  available-commands:
+    description: 'Available commands to check separated by comma'
+    required: false
+    default: ''
+    type: string
+
+runs:
+  using: composite
+  steps:
+    - name: Check Python Environment
+      uses: ./.github/actions/python/check
+
+    - name: Check if Poetry Environment is set
+      shell: bash
+      run: |
+        if [ -z "$POETRY_PROJECT_PATH" ]; then
+          echo "❌ Error: POETRY_PROJECT_PATH is not set"
+          exit 1
+        fi
+
+    - name: Check if we are in a Poetry project
+      working-directory: ${{ env.POETRY_PROJECT_PATH }}
+      shell: bash
+      run: |
+        if [ ! -f "pyproject.toml" ]; then
+          echo "❌ Error: Not in a Poetry project"
+          exit 1
+        fi
+
+    - name: Check if Poetry is installed
+      shell: bash
+      run: |
+        if ! command -v poetry &> /dev/null; then
+          echo "❌ Error: Poetry is not installed"
+          exit 1
+        fi
+
+    - name: Check if available commands is provided
+      id: check-available-commands
+      env:
+        AVAILABLE_COMMANDS: ${{ inputs.available-commands }}
+      shell: bash
+      run: |
+        if [ -z "$AVAILABLE_COMMANDS" ]; then
+          echo "✅ No available commands provided"
+          echo "provided=false" >> $GITHUB_OUTPUT
+        else
+          echo "✅ Available commands provided"
+          echo "provided=true" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Check if available commands
+      if: ${{ steps.check-available-commands.outputs.provided == 'true' }}
+      env:
+        AVAILABLE_COMMANDS: ${{ inputs.available-commands }}
+      shell: python
+      run: |
+        import os
+
+        poetry_base_command = "poetry run"
+
+        available_commands = [command.strip() for command in AVAILABLE_COMMANDS.split(',')]
+        for command in available_commands:
+          if not command:
+            print(f"❌ Error: {command} is not installed")
+            exit(1)
+        
+          version_command = f"{poetry_base_command} {command} --version"
+          long_help_argument_command = f"{poetry_base_command} {command} --help"
+          short_help_argument_command = f"{poetry_base_command} {command} -h"
+
+          version_result = os.system(version_command)
+          long_help_argument_result = os.system(long_help_argument_command)
+          short_help_argument_result = os.system(short_help_argument_command)
+
+          if version_result != 0 and long_help_argument_result != 0 and short_help_argument_result != 0:
+            print(f"❌ Error: {command} is not installed")
+            exit(1)
+        
+        print("✅ All commands are installed")
