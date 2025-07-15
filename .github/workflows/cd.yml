@@ -116,7 +116,7 @@ jobs:
         id: git-status
         shell: bash
         run: |
-          git status
+          git log
 
   clean-release-draft:
     name: ${{ matrix.packages.name }} - Clean Release Draft
@@ -175,20 +175,17 @@ jobs:
         with:
           tools: ${{ inputs.pipx-tools }}
 
-      - name: Run Post-Release Commands
-        id: post-release-commands
+      - name: Poetry Release (Publish)
         if: ${{ matrix.packages.type == 'poetry' }}
-        env:
-          COMMANDS: ${{ matrix.packages.post_commands }}
-        shell: python
+        shell: bash
         run: |
-          import json
-          import os
-          commands = json.loads('${{ env.COMMANDS }}')
-          for command in commands:
-            print(f"ℹ️ Executing command: {command}")
-            # os.system(command)
-          print(f"✅ Post-release commands executed successfully")
+          cd ${{ matrix.packages.path }}
+          poetry version -- ${{ matrix.packages.version }}
+          poetry publish --dry-run --dist-dir ${{ matrix.packages.assets_path }}
+          git add pyproject.toml
+          git config --local user.name 'Github Action'
+          git config --local user.email 'action@github.com'
+          git commit -m '${{ matrix.packages.commit_message }}'
 
       - name: Push Release
         id: push-release
