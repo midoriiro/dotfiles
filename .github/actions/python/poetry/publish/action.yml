@@ -48,4 +48,4 @@ runs:
           POETRY_CMD="$POETRY_CMD --dist-dir $DIST_DIR"
         fi
         echo "✅ Using default publish command: $POETRY_CMD"
-        # $POETRY_CMD
+        $POETRY_CMD
