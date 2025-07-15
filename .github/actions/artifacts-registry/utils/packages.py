@@ -54,10 +54,11 @@ class PoetryPackage(Package):
         self.path = path
         asset_base_path = self.assets[0].parent
         self.pre_commands = [
-            f"cd {asset_base_path}",
-            "twine check --strict *.tar.gz *.whl",
+            # f"cd {asset_base_path}",
+            # "twine check --strict *.tar.gz *.whl",
             f"cd {self.path}",
             f"poetry version -- {self.version}",
+            f"poetry publish --dry-run --dist-dir {self.assets[0].parent}",
             "git add pyproject.toml",
             f"git commit -m '{self.commit_message}'",
         ]
