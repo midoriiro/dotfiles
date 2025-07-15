@@ -161,6 +161,12 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Restore Artifacts Registry
+        id: restore-artifacts-registry
+        uses: ./.github/actions/artifacts-registry/restore
+        with:
+          fail-on-cache-miss: true
+
       - name: Edit Release
         id: edit-release-draft
         shell: bash
