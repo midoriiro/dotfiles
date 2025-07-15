@@ -100,37 +100,16 @@ jobs:
         with:
           tools: ${{ inputs.pipx-tools }}
 
-      - name: Prepare Pre-Release Commands
-        id: prepare-pre-release-commands
+      - name: Dry-Run Poetry Release
         if: ${{ matrix.packages.type == 'poetry' }}
-        env:
-          COMMANDS: ${{ matrix.packages.pre_commands }}
-        shell: python
-        run: |
-          import json
-          import os
-          import tempfile
-          commands = json.loads(os.environ["COMMANDS"])
-          script = tempfile.NamedTemporaryFile(mode="w", delete=False, delete_on_close=False)
-          script.write(f"#!/bin/bash\n")
-          script.write(f"set -e\n")
-          for command in commands:
-            script.write(f"{command}\n")
-          script.flush()
-          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
-            f.write(f"result={script.name}\n")
-          print(f"✅ Pre-release commands prepared successfully")
-
-      - name: Dry-Run Pre-Release Commands
-        id: dry-run-pre-release-commands
-        if: ${{ matrix.packages.type == 'poetry' }}
-        env:
-          COMMANDS: ${{ steps.prepare-pre-release-commands.outputs.result }}
+        id: dry-run-poetry-publish
         shell: bash
         run: |
-          cat ${{ env.COMMANDS }}
-          bash ${{ env.COMMANDS }}
-          echo "✅ Pre-release commands dry-run successfully"
+          cd ${{ matrix.packages.path }}
+          poetry version -- ${{ matrix.packages.version }}
+          poetry publish --dry-run --dist-dir ${{ matrix.packages.assets_path }}
+          git add pyproject.toml
+          git commit -m '${{ matrix.packages.commit_message }}'
 
       - name: Git status
         id: git-status

@@ -23,6 +23,7 @@ with open(packages_file_path, "r") as f:
     packages = json.load(f)
 
 for package in packages:
+    package["assets_path"] = str(Path(package["assets"][0]).parent)
     package["assets"] = json.dumps(package["assets"])
     package["pre_commands"] = json.dumps(package["pre_commands"])
     package["post_commands"] = json.dumps(package["post_commands"])

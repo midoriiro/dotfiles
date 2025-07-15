@@ -222,6 +222,11 @@ jobs:
         id: build-artifacts
         uses: ./.github/actions/python/poetry/build
 
+      - name: Publish Artifacts (Dry Run)
+        uses: ./.github/actions/python/poetry/publish
+        with:
+          dry-run: true
+
   prepare-package:
     name: ${{ needs.runner-tag.outputs.tag }} - Prepare Package
     needs: [runner-tag, build]
