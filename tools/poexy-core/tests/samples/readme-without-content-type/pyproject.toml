@@ -1,0 +1,11 @@
+[project]
+name = "readme-without-content-type"
+version = "1.0.0"
+readme = "README.md"
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.readme_without_content_type]
+source = "src"

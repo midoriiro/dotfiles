@@ -1,0 +1,11 @@
+[project]
+name = "license-deprecated-text"
+version = "1.0.0"
+license = { text = "MIT" }
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.license_deprecated_text]
+source = "src"
