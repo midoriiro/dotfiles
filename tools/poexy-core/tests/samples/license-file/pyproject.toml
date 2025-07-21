@@ -1,0 +1,11 @@
+[project]
+name = "license-file"
+version = "1.0.0"
+license-files = ["LICENSE"]
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.license_file]
+source = "src"

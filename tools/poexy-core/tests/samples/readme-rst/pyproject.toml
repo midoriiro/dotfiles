@@ -1,0 +1,11 @@
+[project]
+name = "readme-rst"
+version = "1.0.0"
+readme = { file = "README.rst", content-type = "text/x-rst" }
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.readme_rst]
+source = "src"

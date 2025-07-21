@@ -1,0 +1,11 @@
+[project]
+name = "readme-markdown"
+version = "1.0.0"
+readme = { file = "README.md", content-type = "text/markdown" }
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.readme_markdown]
+source = "src"

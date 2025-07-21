@@ -1,0 +1,11 @@
+[project]
+name = "readme-undetermined-suffix"
+version = "1.0.0"
+readme = { file = "README.txt" }
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.readme_undetermined_suffix]
+source = "src"

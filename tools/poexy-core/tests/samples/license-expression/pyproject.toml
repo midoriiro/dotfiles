@@ -1,0 +1,11 @@
+[project]
+name = "license-expression"
+version = "1.0.0"
+license = "MIT"
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.license_expression]
+source = "src"

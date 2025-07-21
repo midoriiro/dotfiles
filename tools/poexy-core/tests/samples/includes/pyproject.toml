@@ -1,0 +1,25 @@
+[project]
+name = "includes"
+version = "1.0.0"
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.includes]
+source = "src"
+
+[tool.poexy.sdist]
+includes = [
+    "docs",
+    "module.py"
+]
+
+[tool.poexy.wheel]
+includes = [
+    { path = "docs", destination = "share" }
+]
+excludes = [
+    "docs/**/*.rst",
+    "*.txt"
+]
