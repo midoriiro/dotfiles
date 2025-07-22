@@ -1,9 +1,9 @@
 import pytest
-from pydantic import ValidationError
 from assertpy import assert_that
+from pydantic import ValidationError
 
-from ignite.models.container import Runtime, Users, Env, EnvType, Mount, MountType
 from ignite.models.common import Identifier
+from ignite.models.container import Env, EnvType, Mount, MountType, Runtime, Users
 from ignite.models.fs import AbsolutePath
 
 
@@ -52,9 +52,7 @@ class TestValidRuntime:
     def test_runtime_with_single_mount(self):
         """Test that runtime with single mount is accepted."""
         mount = Mount(
-            source="/home/user/data",
-            target="/workspace/data",
-            type=MountType.BIND
+            source="/home/user/data", target="/workspace/data", type=MountType.BIND
         )
         runtime = Runtime(mounts=[mount])
         assert_that(runtime.user).is_none()
@@ -64,15 +62,9 @@ class TestValidRuntime:
     def test_runtime_with_multiple_mounts(self):
         """Test that runtime with multiple mounts is accepted."""
         mount1 = Mount(
-            source="/home/user/data",
-            target="/workspace/data",
-            type=MountType.BIND
+            source="/home/user/data", target="/workspace/data", type=MountType.BIND
         )
-        mount2 = Mount(
-            source="cache-volume",
-            target="/cache",
-            type=MountType.VOLUME
-        )
+        mount2 = Mount(source="cache-volume", target="/cache", type=MountType.VOLUME)
         runtime = Runtime(mounts=[mount1, mount2])
         assert_that(runtime.user).is_none()
         assert_that(runtime.env).is_none()
@@ -83,9 +75,7 @@ class TestValidRuntime:
         users = Users(remote="developer", container="appuser")
         env = Env(key="DATABASE_URL", value="postgresql://localhost:5432/mydb")
         mount = Mount(
-            source="/home/user/data",
-            target="/workspace/data",
-            type=MountType.BIND
+            source="/home/user/data", target="/workspace/data", type=MountType.BIND
         )
         runtime = Runtime(user=users, env=[env], mounts=[mount])
         assert_that(runtime.user).is_equal_to(users)
@@ -106,10 +96,7 @@ class TestRuntimeCompose:
         """Test that runtime with single user composes correctly."""
         runtime = Runtime(user="developer")
         result = runtime.compose()
-        expected = {
-            "remoteUser": "developer",
-            "containerUser": "developer"
-        }
+        expected = {"remoteUser": "developer", "containerUser": "developer"}
         assert_that(result).is_equal_to(expected)
 
     def test_compose_runtime_with_users_object(self):
@@ -117,25 +104,28 @@ class TestRuntimeCompose:
         users = Users(remote="developer", container="appuser")
         runtime = Runtime(user=users)
         result = runtime.compose()
-        expected = {
-            "remoteUser": "developer",
-            "containerUser": "appuser"
-        }
+        expected = {"remoteUser": "developer", "containerUser": "appuser"}
         assert_that(result).is_equal_to(expected)
 
     def test_compose_runtime_with_single_remote_env(self):
         """Test that runtime with single remote environment variable composes correctly."""
-        env = Env(key="DATABASE_URL", value="postgresql://localhost:5432/mydb", type=EnvType.REMOTE)
+        env = Env(
+            key="DATABASE_URL",
+            value="postgresql://localhost:5432/mydb",
+            type=EnvType.REMOTE,
+        )
         runtime = Runtime(env=[env])
         result = runtime.compose()
-        expected = {
-            "remoteEnv": {"DATABASE_URL": "postgresql://localhost:5432/mydb"}
-        }
+        expected = {"remoteEnv": {"DATABASE_URL": "postgresql://localhost:5432/mydb"}}
         assert_that(result).is_equal_to(expected)
 
     def test_compose_runtime_with_single_container_env(self):
         """Test that runtime with single container environment variable composes correctly."""
-        env = Env(key="DATABASE_URL", value="postgresql://localhost:5432/mydb", type=EnvType.CONTAINER)
+        env = Env(
+            key="DATABASE_URL",
+            value="postgresql://localhost:5432/mydb",
+            type=EnvType.CONTAINER,
+        )
         runtime = Runtime(env=[env])
         result = runtime.compose()
         expected = {
@@ -145,36 +135,42 @@ class TestRuntimeCompose:
 
     def test_compose_runtime_with_multiple_env_same_type(self):
         """Test that runtime with multiple environment variables of same type composes correctly."""
-        env1 = Env(key="DATABASE_URL", value="postgresql://localhost:5432/mydb", type=EnvType.REMOTE)
+        env1 = Env(
+            key="DATABASE_URL",
+            value="postgresql://localhost:5432/mydb",
+            type=EnvType.REMOTE,
+        )
         env2 = Env(key="DEBUG", value="true", type=EnvType.REMOTE)
         runtime = Runtime(env=[env1, env2])
         result = runtime.compose()
         expected = {
             "remoteEnv": {
                 "DATABASE_URL": "postgresql://localhost:5432/mydb",
-                "DEBUG": "true"
+                "DEBUG": "true",
             }
         }
         assert_that(result).is_equal_to(expected)
 
     def test_compose_runtime_with_multiple_env_different_types(self):
         """Test that runtime with multiple environment variables of different types composes correctly."""
-        env1 = Env(key="DATABASE_URL", value="postgresql://localhost:5432/mydb", type=EnvType.REMOTE)
+        env1 = Env(
+            key="DATABASE_URL",
+            value="postgresql://localhost:5432/mydb",
+            type=EnvType.REMOTE,
+        )
         env2 = Env(key="DEBUG", value="true", type=EnvType.CONTAINER)
         runtime = Runtime(env=[env1, env2])
         result = runtime.compose()
         expected = {
             "remoteEnv": {"DATABASE_URL": "postgresql://localhost:5432/mydb"},
-            "containerEnv": {"DEBUG": "true"}
+            "containerEnv": {"DEBUG": "true"},
         }
         assert_that(result).is_equal_to(expected)
 
     def test_compose_runtime_with_single_mount(self):
         """Test that runtime with single mount composes correctly."""
         mount = Mount(
-            source="/home/user/data",
-            target="/workspace/data",
-            type=MountType.BIND
+            source="/home/user/data", target="/workspace/data", type=MountType.BIND
         )
         runtime = Runtime(mounts=[mount])
         result = runtime.compose()
@@ -189,33 +185,29 @@ class TestRuntimeCompose:
             source="/home/user/data",
             target="/workspace/data",
             type=MountType.BIND,
-            options=["ro", "noexec"]
+            options=["ro", "noexec"],
         )
         runtime = Runtime(mounts=[mount])
         result = runtime.compose()
         expected = {
-            "mounts": ["source=/home/user/data,target=/workspace/data,type=bind,options=ro,noexec"]
+            "mounts": [
+                "source=/home/user/data,target=/workspace/data,type=bind,options=ro,noexec"
+            ]
         }
         assert_that(result).is_equal_to(expected)
 
     def test_compose_runtime_with_multiple_mounts(self):
         """Test that runtime with multiple mounts composes correctly."""
         mount1 = Mount(
-            source="/home/user/data",
-            target="/workspace/data",
-            type=MountType.BIND
+            source="/home/user/data", target="/workspace/data", type=MountType.BIND
         )
-        mount2 = Mount(
-            source="cache-volume",
-            target="/cache",
-            type=MountType.VOLUME
-        )
+        mount2 = Mount(source="cache-volume", target="/cache", type=MountType.VOLUME)
         runtime = Runtime(mounts=[mount1, mount2])
         result = runtime.compose()
         expected = {
             "mounts": [
                 "source=/home/user/data,target=/workspace/data,type=bind",
-                "source=cache-volume,target=/cache,type=volume"
+                "source=cache-volume,target=/cache,type=volume",
             ]
         }
         assert_that(result).is_equal_to(expected)
@@ -223,12 +215,14 @@ class TestRuntimeCompose:
     def test_compose_runtime_with_all_components(self):
         """Test that runtime with all components composes correctly."""
         users = Users(remote="developer", container="appuser")
-        env1 = Env(key="DATABASE_URL", value="postgresql://localhost:5432/mydb", type=EnvType.REMOTE)
+        env1 = Env(
+            key="DATABASE_URL",
+            value="postgresql://localhost:5432/mydb",
+            type=EnvType.REMOTE,
+        )
         env2 = Env(key="DEBUG", value="true", type=EnvType.CONTAINER)
         mount = Mount(
-            source="/home/user/data",
-            target="/workspace/data",
-            type=MountType.BIND
+            source="/home/user/data", target="/workspace/data", type=MountType.BIND
         )
         runtime = Runtime(user=users, env=[env1, env2], mounts=[mount])
         result = runtime.compose()
@@ -237,7 +231,7 @@ class TestRuntimeCompose:
             "containerUser": "appuser",
             "remoteEnv": {"DATABASE_URL": "postgresql://localhost:5432/mydb"},
             "containerEnv": {"DEBUG": "true"},
-            "mounts": ["source=/home/user/data,target=/workspace/data,type=bind"]
+            "mounts": ["source=/home/user/data,target=/workspace/data,type=bind"],
         }
         assert_that(result).is_equal_to(expected)
 
@@ -247,12 +241,16 @@ class TestRuntimeEdgeCases:
 
     def test_runtime_with_empty_env_list(self):
         """Test that runtime with empty environment list raises ValidationError."""
-        with pytest.raises(ValueError, match="At least one env variable must be set in Runtime."):
+        with pytest.raises(
+            ValueError, match="At least one env variable must be set in Runtime."
+        ):
             Runtime(env=[])
 
     def test_runtime_with_empty_mounts_list(self):
         """Test that runtime with empty mounts list raises ValidationError."""
-        with pytest.raises(ValueError, match="At least one mount must be set in Runtime."):
+        with pytest.raises(
+            ValueError, match="At least one mount must be set in Runtime."
+        ):
             Runtime(mounts=[])
 
     def test_runtime_with_env_without_value(self):
@@ -260,33 +258,24 @@ class TestRuntimeEdgeCases:
         env = Env(key="DEBUG")
         runtime = Runtime(env=[env])
         result = runtime.compose()
-        expected = {
-            "remoteEnv": {"DEBUG": None}
-        }
+        expected = {"remoteEnv": {"DEBUG": None}}
         assert_that(result).is_equal_to(expected)
 
     def test_runtime_with_volume_mount(self):
         """Test that runtime with volume mount composes correctly."""
         mount = Mount(
-            source="data-volume",
-            target="/workspace/data",
-            type=MountType.VOLUME
+            source="data-volume", target="/workspace/data", type=MountType.VOLUME
         )
         runtime = Runtime(mounts=[mount])
         result = runtime.compose()
-        expected = {
-            "mounts": ["source=data-volume,target=/workspace/data,type=volume"]
-        }
+        expected = {"mounts": ["source=data-volume,target=/workspace/data,type=volume"]}
         assert_that(result).is_equal_to(expected)
 
     def test_runtime_with_minimal_user_identifier(self):
         """Test that runtime with minimal user identifier is accepted."""
         runtime = Runtime(user="a")
         result = runtime.compose()
-        expected = {
-            "remoteUser": "a",
-            "containerUser": "a"
-        }
+        expected = {"remoteUser": "a", "containerUser": "a"}
         assert_that(result).is_equal_to(expected)
 
     def test_runtime_with_long_user_identifier(self):
@@ -294,10 +283,7 @@ class TestRuntimeEdgeCases:
         long_user = "a" * 256
         runtime = Runtime(user=long_user)
         result = runtime.compose()
-        expected = {
-            "remoteUser": long_user,
-            "containerUser": long_user
-        }
+        expected = {"remoteUser": long_user, "containerUser": long_user}
         assert_that(result).is_equal_to(expected)
 
 
@@ -330,10 +316,8 @@ class TestRuntimeFeatureInheritance:
         result = runtime_with_env.compose()
         assert_that(result).is_instance_of(dict)
 
-        runtime_with_mounts = Runtime(mounts=[Mount(
-            source="/test",
-            target="/test",
-            type=MountType.BIND
-        )])
+        runtime_with_mounts = Runtime(
+            mounts=[Mount(source="/test", target="/test", type=MountType.BIND)]
+        )
         result = runtime_with_mounts.compose()
         assert_that(result).is_instance_of(dict)

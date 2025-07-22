@@ -1,11 +1,14 @@
 from enum import Enum
 from typing import Dict, Union
+
 from pydantic import BaseModel, Field, RootModel, model_validator
+
 
 class ReservedPolicyKeys(str, Enum):
     CONTAINER = "container"
     FOLDER = "folder"
     FILE = "file"
+
 
 class Policy(BaseModel):
     """
@@ -27,10 +30,12 @@ class Policy(BaseModel):
         policy implementations that inherit from this base class.
     """
 
+
 class FolderCreatePolicy(str, Enum):
     ALWAYS = "always"
     NEVER = "never"
     ASK = "ask"
+
 
 class FolderPolicy(Policy):
     """
@@ -63,7 +68,9 @@ class FolderPolicy(Policy):
         created, or whether user confirmation is required.
     """
 
-    create: FolderCreatePolicy = Field(FolderCreatePolicy.ASK, description="The folder create policy")
+    create: FolderCreatePolicy = Field(
+        FolderCreatePolicy.ASK, description="The folder create policy"
+    )
 
 
 class FileWritePolicy(str, Enum):
@@ -71,6 +78,7 @@ class FileWritePolicy(str, Enum):
     OVERWRITE = "overwrite"
     SKIP = "skip"
     ASK = "ask"
+
 
 class FilePolicy(Policy):
     """
@@ -106,13 +114,16 @@ class FilePolicy(Policy):
         overwritten, skipped if they exist, or whether user confirmation is required.
     """
 
-    write: FileWritePolicy = Field(FileWritePolicy.ASK, description="The file write policy")
+    write: FileWritePolicy = Field(
+        FileWritePolicy.ASK, description="The file write policy"
+    )
 
 
 class ContainerBackendPolicy(str, Enum):
     DOCKER = "docker"
     PODMAN = "podman"
     ANY = "any"
+
 
 class ContainerPolicy(Policy):
     """
@@ -147,7 +158,9 @@ class ContainerPolicy(Policy):
         and system configuration.
     """
 
-    backend: ContainerBackendPolicy = Field(ContainerBackendPolicy.ANY, description="The container backend policy")
+    backend: ContainerBackendPolicy = Field(
+        ContainerBackendPolicy.ANY, description="The container backend policy"
+    )
 
 
 class Policies(RootModel[Dict[str, Union[ContainerPolicy, FolderPolicy, FilePolicy]]]):

@@ -1,21 +1,24 @@
 import pytest
-from pydantic import ValidationError
 from assertpy import assert_that
+from pydantic import ValidationError
 
-from ignite.models.container import Env, EnvType
 from ignite.models.common import Identifier
+from ignite.models.container import Env, EnvType
 
 
 class TestValidEnv:
     """Test cases for valid environment variable configurations."""
 
-    @pytest.mark.parametrize("key,value", [
-        ("DATABASE_URL", "postgresql://localhost:5432/mydb"),
-        ("API_KEY", "secret-key-123"),
-        ("DEBUG", "true"),
-        ("PORT", "8080"),
-        ("NODE_ENV", "production"),
-    ])
+    @pytest.mark.parametrize(
+        "key,value",
+        [
+            ("DATABASE_URL", "postgresql://localhost:5432/mydb"),
+            ("API_KEY", "secret-key-123"),
+            ("DEBUG", "true"),
+            ("PORT", "8080"),
+            ("NODE_ENV", "production"),
+        ],
+    )
     def test_valid_env_with_value(self, key, value):
         """Test that valid environment variables with values are accepted."""
         env = Env(key=key, value=value)
@@ -23,13 +26,16 @@ class TestValidEnv:
         assert_that(env.value).is_equal_to(value)
         assert_that(env.type).is_equal_to(EnvType.REMOTE)
 
-    @pytest.mark.parametrize("key", [
-        "DATABASE_URL",
-        "API_KEY",
-        "DEBUG",
-        "PORT",
-        "NODE_ENV",
-    ])
+    @pytest.mark.parametrize(
+        "key",
+        [
+            "DATABASE_URL",
+            "API_KEY",
+            "DEBUG",
+            "PORT",
+            "NODE_ENV",
+        ],
+    )
     def test_valid_env_without_value(self, key):
         """Test that valid environment variables without values are accepted."""
         env = Env(key=key)
@@ -39,14 +45,22 @@ class TestValidEnv:
 
     def test_env_with_container_type(self):
         """Test that environment variables with container type are accepted."""
-        env = Env(key="DATABASE_URL", value="postgresql://localhost:5432/mydb", type=EnvType.CONTAINER)
+        env = Env(
+            key="DATABASE_URL",
+            value="postgresql://localhost:5432/mydb",
+            type=EnvType.CONTAINER,
+        )
         assert_that(env.key).is_equal_to("DATABASE_URL")
         assert_that(env.value).is_equal_to("postgresql://localhost:5432/mydb")
         assert_that(env.type).is_equal_to(EnvType.CONTAINER)
 
     def test_env_with_remote_type_explicit(self):
         """Test that environment variables with explicit remote type are accepted."""
-        env = Env(key="DATABASE_URL", value="postgresql://localhost:5432/mydb", type=EnvType.REMOTE)
+        env = Env(
+            key="DATABASE_URL",
+            value="postgresql://localhost:5432/mydb",
+            type=EnvType.REMOTE,
+        )
         assert_that(env.key).is_equal_to("DATABASE_URL")
         assert_that(env.value).is_equal_to("postgresql://localhost:5432/mydb")
         assert_that(env.type).is_equal_to(EnvType.REMOTE)
@@ -88,7 +102,11 @@ class TestEnvCompose:
 
     def test_compose_remote_env_with_value(self):
         """Test that remote environment variables with values are composed correctly."""
-        env = Env(key="DATABASE_URL", value="postgresql://localhost:5432/mydb", type=EnvType.REMOTE)
+        env = Env(
+            key="DATABASE_URL",
+            value="postgresql://localhost:5432/mydb",
+            type=EnvType.REMOTE,
+        )
         result = env.compose()
         expected = {"remoteEnv": {"DATABASE_URL": "postgresql://localhost:5432/mydb"}}
         assert_that(result).is_equal_to(expected)
@@ -102,9 +120,15 @@ class TestEnvCompose:
 
     def test_compose_container_env_with_value(self):
         """Test that container environment variables with values are composed correctly."""
-        env = Env(key="DATABASE_URL", value="postgresql://localhost:5432/mydb", type=EnvType.CONTAINER)
+        env = Env(
+            key="DATABASE_URL",
+            value="postgresql://localhost:5432/mydb",
+            type=EnvType.CONTAINER,
+        )
         result = env.compose()
-        expected = {"containerEnv": {"DATABASE_URL": "postgresql://localhost:5432/mydb"}}
+        expected = {
+            "containerEnv": {"DATABASE_URL": "postgresql://localhost:5432/mydb"}
+        }
         assert_that(result).is_equal_to(expected)
 
     def test_compose_container_env_without_value(self):
