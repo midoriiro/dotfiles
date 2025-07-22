@@ -1,6 +1,7 @@
 name: Poetry Pipeline
 
 on:
+  workflow_dispatch: {}
   workflow_call:
     inputs:
       supported-os:
