@@ -42,7 +42,13 @@
   ],
   "python.defaultInterpreterPath": "${poetry env info --executable}",
   "python.testing.pytestArgs": [
-    "tests"
+    "tests",
+    "--cov=poexy_core",
+    "--cov-report=term-missing",
+    "--numprocesses=auto",
+    "--exitfirst",
+    "--capture=no",
+    "--show-capture=no"
   ],
   "python.testing.pytestEnabled": true,
   "python.testing.unittestEnabled": false,
