@@ -1,7 +1,7 @@
 name: Clean Up
 
 on:
-  workflow_call
+  workflow_dispatch: {}
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
