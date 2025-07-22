@@ -1,38 +1,35 @@
-[tool.poetry]
+[project]
 name = "ignite"
-version = "0.1.0"
+version = "2025.6.0"
 description = "CLI tool to initialize and manage development environment configuration from a workspace.yml file"
-packages = [{include = "ignite"}]
-exclude = ["ignite", "scripts", "build", "dist", "tests"]
-include = [
-    { path = "files", format = ["sdist", "wheel"] },
-    { path = "ignite", format = ["sdist"] }
+requires-python = ">=3.9,<3.14"
+dependencies = [
+    "typer>=0.16.0",
+    "pydantic>=2.11.7",
+    "jsonschema>=4.22.0",
+    "pyyaml>=6.0.2",
+    "python-dotenv>=1.1.1"
 ]
 
-[tool.poetry.dependencies]
-python = ">=3.9,<3.14"
-typer = "^0.16.0"
-pydantic = "^2.11.7"
-jsonschema = "^4.22.0"
-pyyaml = "^6.0.2"
+[project.scripts]
+ignite = "ignite.main:cli"
+build = "scripts.build:run"
+build-executable = "scripts.pyinstaller:build"
+package-executable = "scripts.package:add"
 
 [tool.poetry.group.dev.dependencies]
+black = "^25.1.0"
+isort = "^6.0.1"
+flake8 = "^7.3.0"
+pyinstaller = "^6.14.1"
+
+[tool.poetry.group.test.dependencies]
 pytest = "^8.4.1"
 pytest-cov = "^6.2.1"
 pytest-mock = "^3.14.0"
 pytest-xdist = "^3.7.0"
 assertpy = "^1.1"
 coverage = "^7.3.2"
-black = "^25.1.0"
-isort = "^6.0.1"
-flake8 = "^7.3.0"
-pyinstaller = "^6.14.1"
-
-[tool.poetry.scripts]
-ignite = "ignite.main:app"
-build = "scripts.build:run"
-build-executable = "scripts.pyinstaller:build"
-package-executable = "scripts.package:add"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
