@@ -1,21 +1,24 @@
 import pytest
-from pydantic import ValidationError
 from assertpy import assert_that
+from pydantic import ValidationError
 
-from ignite.models.container import Socket, Mount, MountType
+from ignite.models.container import Mount, MountType, Socket
 from ignite.models.fs import AbsolutePath
 
 
 class TestValidSocket:
     """Test cases for valid socket configurations."""
 
-    @pytest.mark.parametrize("host_path,container_path", [
-        ("/tmp/docker.sock", "/var/run/docker.sock"),
-        ("/var/run/docker.sock", "/var/run/docker.sock"),
-        ("/tmp/mysql.sock", "/var/run/mysqld/mysqld.sock"),
-        ("/tmp/postgres.sock", "/var/run/postgresql/.s.PGSQL.5432"),
-        ("/tmp/redis.sock", "/tmp/redis.sock"),
-    ])
+    @pytest.mark.parametrize(
+        "host_path,container_path",
+        [
+            ("/tmp/docker.sock", "/var/run/docker.sock"),
+            ("/var/run/docker.sock", "/var/run/docker.sock"),
+            ("/tmp/mysql.sock", "/var/run/mysqld/mysqld.sock"),
+            ("/tmp/postgres.sock", "/var/run/postgresql/.s.PGSQL.5432"),
+            ("/tmp/redis.sock", "/tmp/redis.sock"),
+        ],
+    )
     def test_valid_socket_paths(self, host_path, container_path):
         """Test that valid socket paths are accepted."""
         socket = Socket(host=host_path, container=container_path)
@@ -122,8 +125,7 @@ class TestSocketStringRepresentation:
     def test_socket_string_representation_with_nested_paths(self):
         """Test that socket string representation works with nested paths."""
         socket = Socket(
-            host="/var/run/docker/docker.sock",
-            container="/var/run/docker/docker.sock"
+            host="/var/run/docker/docker.sock", container="/var/run/docker/docker.sock"
         )
         result = str(socket)
         expected = "source=/var/run/docker/docker.sock,target=/var/run/docker/docker.sock,type=bind"
@@ -185,12 +187,12 @@ class TestSocketIntegration:
         """Test that socket creates a valid mount object when converted to string."""
         socket = Socket(host="/tmp/docker.sock", container="/var/run/docker.sock")
         mount_string = str(socket)
-        
+
         # Verify the mount string can be parsed back into a mount object
         mount = Mount(
             source="/tmp/docker.sock",
             target="/var/run/docker.sock",
-            type=MountType.BIND
+            type=MountType.BIND,
         )
         expected_mount_string = str(mount)
         assert_that(mount_string).is_equal_to(expected_mount_string)

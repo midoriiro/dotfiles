@@ -2,7 +2,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "${projectName}: Run Tests",
+            "label": "${project-name}: Run Tests",
             "type": "shell",
             "command": "poetry run pytest",
             "problemMatcher": [
@@ -14,9 +14,9 @@
             }
         },
         {
-            "label": "${projectName}: Run Tests with Coverage",
+            "label": "${project-name}: Run Tests with Coverage",
             "type": "shell",
-            "command": "poetry run pytest --cov=${projectName}",
+            "command": "poetry run pytest --cov=${project-name}",
             "problemMatcher": [
                 "$python"
             ],

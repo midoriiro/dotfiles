@@ -2,7 +2,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "${projectName}: Build",
+            "label": "${project-name}: Build",
             "type": "shell",
             "command": "poetry build",
             "problemMatcher": [],

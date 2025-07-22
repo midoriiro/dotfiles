@@ -1,6 +1,6 @@
 import pytest
-from pydantic import ValidationError
 from assertpy import assert_that
+from pydantic import ValidationError
 
 from ignite.models.container import Image
 
@@ -44,7 +44,7 @@ class TestImageComposeMethod:
         """Test that compose method works correctly with name only."""
         image = Image(name="test-image")
         result = image.compose()
-        
+
         expected = {"image": "test-image"}
         assert_that(result).is_equal_to(expected)
 
@@ -52,7 +52,7 @@ class TestImageComposeMethod:
         """Test that compose method works correctly with repository and name."""
         image = Image(repository="docker.io", name="test-image")
         result = image.compose()
-        
+
         expected = {"image": "docker.io/test-image"}
         assert_that(result).is_equal_to(expected)
 
@@ -60,7 +60,7 @@ class TestImageComposeMethod:
         """Test that compose method works correctly with name and tag."""
         image = Image(name="test-image", tag="latest")
         result = image.compose()
-        
+
         expected = {"image": "test-image:latest"}
         assert_that(result).is_equal_to(expected)
 
@@ -68,7 +68,7 @@ class TestImageComposeMethod:
         """Test that compose method works correctly with repository, name and tag."""
         image = Image(repository="docker.io", name="test-image", tag="v1.0.0")
         result = image.compose()
-        
+
         expected = {"image": "docker.io/test-image:v1.0.0"}
         assert_that(result).is_equal_to(expected)
 
@@ -76,7 +76,7 @@ class TestImageComposeMethod:
         """Test that compose method returns the correct structure."""
         image = Image(name="test-image")
         result = image.compose()
-        
+
         # Check that the structure is correct
         assert_that(result).contains_key("image")
         assert_that(result["image"]).is_instance_of(str)
@@ -189,9 +189,9 @@ class TestImageInheritance:
         image = Image(name="test-image")
         assert_that(image).is_instance_of(Image)
         # Check that it has the compose method
-        assert_that(hasattr(image, 'compose')).is_true()
+        assert_that(hasattr(image, "compose")).is_true()
         # Check that it has the feature_name class method
-        assert_that(hasattr(Image, 'feature_name')).is_true()
+        assert_that(hasattr(Image, "feature_name")).is_true()
 
     def test_image_compose_returns_dict(self):
         """Test that Image.compose() returns a dictionary."""

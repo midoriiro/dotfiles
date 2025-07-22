@@ -1,55 +1,103 @@
 {
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "label": "Ignite: Install",
-            "type": "shell",
-            "command": "poetry install",
-            "problemMatcher": [],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
-        },
-        {
-            "label": "Ignite: Run Tests",
-            "type": "shell",
-            "command": "poetry run pytest",
-            "problemMatcher": [
-                "$python"
-            ],
-            "group": {
-                "kind": "test",
-                "isDefault": true
-            }
-        },
-        {
-            "label": "Ignite: Run Tests with Coverage",
-            "type": "shell",
-            "command": "poetry run pytest --cov=merge",
-            "problemMatcher": [
-                "$python"
-            ],
-            "group": {
-                "kind": "test",
-                "isDefault": true
-            }
-        },
-        {
-            "label": "Ignite: Run Lint",
-            "type": "shell",
-            "command": "poetry run flake8",
-            "problemMatcher": [
-                "$python"
-            ]
-        },
-        {
-            "label": "Ignite: Run Type Check",
-            "type": "shell",
-            "command": "poetry run mypy .",
-            "problemMatcher": [
-                "$python"
-            ]
-        }
-    ]
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Ignite: Install",
+      "type": "shell",
+      "command": "poetry install",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Ignite: Build",
+      "type": "shell",
+      "command": "poetry build",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Ignite: Remove Environment",
+      "type": "shell",
+      "command": "poetry env remove",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Ignite: Remove All Environments",
+      "type": "shell",
+      "command": "poetry env remove --all",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Ignite: Run Tests",
+      "type": "shell",
+      "command": "poetry run pytest",
+      "problemMatcher": [
+        "$python"
+      ],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Ignite: Run Tests with Coverage",
+      "type": "shell",
+      "command": "poetry run pytest --cov=Ignite",
+      "problemMatcher": [
+        "$python"
+      ],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Ignite: Lock",
+      "type": "shell",
+      "command": "poetry lock",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Ignite: Run Lint (flake8)",
+      "type": "shell",
+      "command": "poetry run flake8",
+      "problemMatcher": [
+        "$python"
+      ]
+    },
+    {
+      "label": "Ignite: Run Lint (pylint)",
+      "type": "shell",
+      "command": "poetry run pylint",
+      "problemMatcher": [
+        "$python"
+      ]
+    },
+    {
+      "label": "Ignite: Run Format (black)",
+      "type": "shell",
+      "command": "poetry run black",
+      "problemMatcher": [
+        "$python"
+      ]
+    }
+  ]
 }

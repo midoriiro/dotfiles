@@ -1,8 +1,10 @@
-import pytest
+import json
 from pathlib import Path
 from typing import Dict
+
+import pytest
 import yaml
-import json
+from assertpy import assert_that
 from jsonschema import SchemaError, ValidationError
 
 from ignite.utils import load_yaml_config
@@ -15,18 +17,20 @@ class TestLoadYamlConfigFileErrors:
         """Test that FileNotFoundError is raised when file doesn't exist."""
         non_existent_file = tmp_path / "non_existent.yml"
         schema = {"type": "object"}
-        
+
         with pytest.raises(FileNotFoundError) as exc_info:
             load_yaml_config(non_existent_file, schema)
-        
-        assert str(exc_info.value) == f"Configuration file not found: {non_existent_file}"
+
+        assert_that(str(exc_info.value)).is_equal_to(
+            f"Configuration file not found: {non_existent_file}"
+        )
 
     def test_invalid_yaml_file(self, tmp_path):
         """Test that yaml.YAMLError is raised when YAML is invalid."""
         invalid_yaml_file = tmp_path / "invalid.yml"
         invalid_yaml_file.write_text("invalid: yaml: content: [")
         schema = {"type": "object"}
-        
+
         with pytest.raises(yaml.YAMLError):
             load_yaml_config(invalid_yaml_file, schema)
 
@@ -35,9 +39,10 @@ class TestLoadYamlConfigFileErrors:
         empty_yaml_file = tmp_path / "empty.yml"
         empty_yaml_file.write_text("")
         schema = {"type": "object"}
-        
+
         with pytest.raises(ValidationError):
             load_yaml_config(empty_yaml_file, schema)
+
 
 class TestLoadYamlConfigSchemaErrors:
     """Test schema-related errors in load_yaml_config function."""
@@ -47,7 +52,7 @@ class TestLoadYamlConfigSchemaErrors:
         yaml_file = tmp_path / "test.yml"
         yaml_file.write_text("key: value")
         empty_schema = {}
-        
+
         with pytest.raises(SchemaError):
             load_yaml_config(yaml_file, empty_schema)
 
@@ -56,7 +61,7 @@ class TestLoadYamlConfigSchemaErrors:
         yaml_file = tmp_path / "test.yml"
         yaml_file.write_text("key: value")
         invalid_schema = {"type": "invalid_type"}
-        
+
         with pytest.raises(SchemaError):
             load_yaml_config(yaml_file, invalid_schema)
 
@@ -65,7 +70,7 @@ class TestLoadYamlConfigSchemaErrors:
         yaml_file = tmp_path / "test.yml"
         yaml_file.write_text("key: value")
         schema = {"type": "object", "properties": {"key": {"type": "integer"}}}
-        
+
         with pytest.raises(ValidationError):
             load_yaml_config(yaml_file, schema)
 
@@ -76,9 +81,9 @@ class TestLoadYamlConfigSchemaErrors:
         schema = {
             "type": "object",
             "properties": {"required_key": {"type": "string"}},
-            "required": ["required_key"]
+            "required": ["required_key"],
         }
-        
+
         with pytest.raises(ValidationError):
             load_yaml_config(yaml_file, schema)
 
@@ -91,9 +96,9 @@ class TestLoadYamlConfigSuccessCases:
         yaml_file = tmp_path / "test.yml"
         yaml_file.write_text("key: value")
         schema = {"type": "object"}
-        
+
         result = load_yaml_config(yaml_file, schema)
-        assert result == {"key": "value"}
+        assert_that(result).is_equal_to({"key": "value"})
 
     def test_valid_yaml_with_complex_schema(self, tmp_path):
         """Test loading valid YAML with complex schema."""
@@ -115,22 +120,19 @@ class TestLoadYamlConfigSuccessCases:
                     "type": "object",
                     "properties": {
                         "debug": {"type": "boolean"},
-                        "port": {"type": "integer"}
-                    }
-                }
-            }
+                        "port": {"type": "integer"},
+                    },
+                },
+            },
         }
-        
+
         result = load_yaml_config(yaml_file, schema)
         expected = {
             "name": "test",
             "version": "1.0",
-            "settings": {
-                "debug": True,
-                "port": 8080
-            }
+            "settings": {"debug": True, "port": 8080},
         }
-        assert result == expected
+        assert_that(result).is_equal_to(expected)
 
     def test_yaml_with_arrays(self, tmp_path):
         """Test loading YAML with arrays."""
@@ -152,21 +154,18 @@ class TestLoadYamlConfigSuccessCases:
                         "type": "object",
                         "properties": {
                             "name": {"type": "string"},
-                            "value": {"type": "integer"}
-                        }
-                    }
+                            "value": {"type": "integer"},
+                        },
+                    },
                 }
-            }
+            },
         }
-        
+
         result = load_yaml_config(yaml_file, schema)
         expected = {
-            "items": [
-                {"name": "item1", "value": 10},
-                {"name": "item2", "value": 20}
-            ]
+            "items": [{"name": "item1", "value": 10}, {"name": "item2", "value": 20}]
         }
-        assert result == expected
+        assert_that(result).is_equal_to(expected)
 
 
 class TestLoadYamlConfigEdgeCases:
@@ -181,9 +180,9 @@ class TestLoadYamlConfigEdgeCases:
         """
         yaml_file.write_text(yaml_content)
         schema = {"type": "object"}
-        
+
         result = load_yaml_config(yaml_file, schema)
-        assert result == {"key": "value"}
+        assert_that(result).is_equal_to({"key": "value"})
 
     def test_yaml_with_multiline_strings(self, tmp_path):
         """Test loading YAML with multiline strings."""
@@ -196,24 +195,64 @@ class TestLoadYamlConfigEdgeCases:
         """
         yaml_file.write_text(yaml_content)
         schema = {"type": "object"}
-        
+
         result = load_yaml_config(yaml_file, schema)
         expected = {
             "description": "This is a multiline\nstring that spans\nmultiple lines\n"
         }
-        assert result == expected
+        assert_that(result).is_equal_to(expected)
 
     def test_yaml_with_null_values(self, tmp_path):
         """Test loading YAML with null values."""
         yaml_file = tmp_path / "test.yml"
         yaml_content = """
-        key1: value
-        key2: null
-        key3: ~
+        key1: null
+        key2: ~
+        key3: 
         """
         yaml_file.write_text(yaml_content)
         schema = {"type": "object"}
-        
+
+        result = load_yaml_config(yaml_file, schema)
+        expected = {"key1": None, "key2": None, "key3": None}
+        assert_that(result).is_equal_to(expected)
+
+    def test_yaml_with_boolean_values(self, tmp_path):
+        """Test loading YAML with boolean values."""
+        yaml_file = tmp_path / "test.yml"
+        yaml_content = """
+        true_value: true
+        false_value: false
+        yes_value: yes
+        no_value: no
+        on_value: on
+        off_value: off
+        """
+        yaml_file.write_text(yaml_content)
+        schema = {"type": "object"}
+
+        result = load_yaml_config(yaml_file, schema)
+        expected = {
+            "true_value": True,
+            "false_value": False,
+            "yes_value": True,
+            "no_value": False,
+            "on_value": True,
+            "off_value": False,
+        }
+        assert_that(result).is_equal_to(expected)
+
+    def test_yaml_with_numeric_values(self, tmp_path):
+        """Test loading YAML with numeric values."""
+        yaml_file = tmp_path / "test.yml"
+        yaml_content = """
+        key1: value
+        key2: ~
+        key3: 
+        """
+        yaml_file.write_text(yaml_content)
+        schema = {"type": "object"}
+
         result = load_yaml_config(yaml_file, schema)
         expected = {"key1": "value", "key2": None, "key3": None}
         assert result == expected

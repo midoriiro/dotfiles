@@ -1,8 +1,8 @@
 import pytest
-from pydantic import ValidationError
 from assertpy import assert_that
+from pydantic import ValidationError
 
-from ignite.models.container import Expose, Socket, URL, URLScheme
+from ignite.models.container import URL, Expose, Socket, URLScheme
 
 
 class TestValidExpose:
@@ -44,17 +44,23 @@ class TestExposeValidation:
         """Test that Expose with both socket and address is rejected."""
         socket = Socket(host="/tmp/docker.sock", container="/var/run/docker.sock")
         address = URL(scheme=URLScheme.SSH, host="localhost", port=22)
-        with pytest.raises(ValidationError, match="Exactly one of 'socket' or 'address' must be set"):
+        with pytest.raises(
+            ValidationError, match="Exactly one of 'socket' or 'address' must be set"
+        ):
             Expose(socket=socket, address=address)
 
     def test_expose_with_neither_socket_nor_address(self):
         """Test that Expose with neither socket nor address is rejected."""
-        with pytest.raises(ValidationError, match="Exactly one of 'socket' or 'address' must be set"):
+        with pytest.raises(
+            ValidationError, match="Exactly one of 'socket' or 'address' must be set"
+        ):
             Expose(socket=None, address=None)
 
     def test_expose_with_empty_socket_and_address(self):
         """Test that Expose with empty socket and address is rejected."""
-        with pytest.raises(ValidationError, match="Exactly one of 'socket' or 'address' must be set"):
+        with pytest.raises(
+            ValidationError, match="Exactly one of 'socket' or 'address' must be set"
+        ):
             Expose()
 
 
@@ -66,7 +72,7 @@ class TestExposeCompose:
         socket = Socket(host="/tmp/docker.sock", container="/var/run/docker.sock")
         expose = Expose(socket=socket)
         result = expose.compose()
-        
+
         expected = {
             "mounts": ["source=/tmp/docker.sock,target=/var/run/docker.sock,type=bind"]
         }
@@ -77,10 +83,8 @@ class TestExposeCompose:
         address = URL(scheme=URLScheme.SSH, host="localhost", port=22)
         expose = Expose(address=address)
         result = expose.compose()
-        
-        expected = {
-            "remoteEnv": {"CONTAINER_HOST": "ssh://localhost:22"}
-        }
+
+        expected = {"remoteEnv": {"CONTAINER_HOST": "ssh://localhost:22"}}
         assert_that(result).is_equal_to(expected)
 
     def test_expose_compose_with_address_without_port(self):
@@ -88,10 +92,8 @@ class TestExposeCompose:
         address = URL(scheme=URLScheme.TCP, host="example.com")
         expose = Expose(address=address)
         result = expose.compose()
-        
-        expected = {
-            "remoteEnv": {"CONTAINER_HOST": "tcp://example.com"}
-        }
+
+        expected = {"remoteEnv": {"CONTAINER_HOST": "tcp://example.com"}}
         assert_that(result).is_equal_to(expected)
 
 
@@ -100,13 +102,17 @@ class TestExposeFeatureInheritance:
 
     def test_expose_inherits_from_feature(self):
         """Test that Expose inherits from Feature base class."""
-        expose = Expose(socket=Socket(host="/tmp/docker.sock", container="/var/run/docker.sock"))
+        expose = Expose(
+            socket=Socket(host="/tmp/docker.sock", container="/var/run/docker.sock")
+        )
         assert_that(expose).is_instance_of(Expose)
-        assert_that(hasattr(expose, 'compose')).is_true()
+        assert_that(hasattr(expose, "compose")).is_true()
 
     def test_expose_feature_name(self):
         """Test that Expose has correct feature name."""
-        expose = Expose(socket=Socket(host="/tmp/docker.sock", container="/var/run/docker.sock"))
+        expose = Expose(
+            socket=Socket(host="/tmp/docker.sock", container="/var/run/docker.sock")
+        )
         assert_that(Expose.feature_name()).is_equal_to("expose")
 
 
