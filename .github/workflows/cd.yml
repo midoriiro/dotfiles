@@ -1,6 +1,7 @@
 name: Python Poetry CD Pipeline
 
 on:
+  workflow_dispatch: {}
   workflow_call:
     inputs:
       python-version:

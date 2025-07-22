@@ -1,6 +1,7 @@
 name: Python Poetry CI Pipeline
 
 on:
+  workflow_dispatch: {}
   workflow_call:
     inputs:
       os:
