@@ -1,0 +1,12 @@
+name: 'Clean All Registries'
+description: 'Clean all registries'
+
+runs:
+  using: composite
+  steps:
+    - name: Delete All Registries
+      env:
+        GH_TOKEN: ${{ env.GITHUB_TOKEN }}
+      shell: bash
+      run: |
+        gh cache delete --all --succeed-on-no-caches
