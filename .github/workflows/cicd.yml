@@ -56,6 +56,7 @@ jobs:
       matrix: ${{ fromJSON(needs.matrix.outputs.result) }}
     uses: ./.github/workflows/poetry-pipeline.yml
     with:
+        has-changed: ${{ matrix.projects.inputs.has-changed == 'true' }}
         supported-os: ${{ matrix.projects.inputs.supported-os }}
         supported-python-versions: ${{ matrix.projects.inputs.supported-python-versions }}
         last-supported-python-version: ${{ matrix.projects.inputs.last-supported-python-version }}
