@@ -1,10 +1,14 @@
 name: CI/CD Pipeline
 
 on:
-  push:
-    branches: [ main, ci-cd-pipeline ]
   pull_request:
-    branches: [ main, ci-cd-pipeline ]
+    branches:
+      - 'main'
+  push:
+    branches:
+      - 'main'
+      - 'devops'
+      - 'releases/**'
 
 concurrency:
   group: ${{ github.workflow }}
@@ -79,6 +83,7 @@ jobs:
           event_name = "${{ github.event_name }}"
           pull_request_merged = "${{ github.event.pull_request.merged }}"
           base_ref = "${{ github.base_ref }}"
+          ref_name = "${{ github.ref_name }}"
 
           def set_dry_run_output(value: bool):
             with open(os.environ["GITHUB_OUTPUT"], "a") as f:
@@ -97,9 +102,14 @@ jobs:
             set_dry_run_output(False)
             print("✅ Pull request event merged into main -> release mode")
           elif event_name == 'push':
-            print("📤 Push event -> dry-run mode")
-            set_dry_run_output(True)
-            exit(0)
+            if ref_name.startswith('releases/'):
+              print("📤 Push event on release branch -> release mode")
+              set_dry_run_output(False)
+              exit(0)
+            else:
+              print("📤 Push event on non-release branch -> dry-run mode")
+              set_dry_run_output(True)
+              exit(0)
           else:
             print("❓ Unknown event -> dry-run mode")
             set_dry_run_output(True)
