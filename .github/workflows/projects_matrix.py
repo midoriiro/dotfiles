@@ -14,6 +14,8 @@ supported_python_versions = [
     last_supported_python_version,
 ]
 
+ref_name = os.environ.get("GITHUB_REF_NAME")
+
 
 def add_project(
     projects: List[Dict],
@@ -22,6 +24,9 @@ def add_project(
     operating_systems: List[str],
     python_versions: List[str],
 ):
+    if ref_name.startswith("releases/") and project_name in ref_name:
+        project["has-changed"] = "true"
+
     project["supported-os"] = json.dumps(operating_systems)
     project["supported-python-versions"] = json.dumps(python_versions)
     project["last-supported-python-version"] = last_supported_python_version

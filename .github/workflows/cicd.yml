@@ -43,6 +43,7 @@ jobs:
       - name: Set Matrix
         id: set-matrix
         env:
+          GITHUB_REF_NAME: ${{ github.ref_name }}
           POEXY_CORE_PROJECT_CHANGED: ${{ steps.filter.outputs.poexy-core }}
           IGNITE_PROJECT_CHANGED: ${{ steps.filter.outputs.ignite }}
         shell: bash
