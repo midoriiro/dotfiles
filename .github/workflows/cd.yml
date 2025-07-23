@@ -128,10 +128,11 @@ jobs:
           poetry version -- ${{ matrix.packages.version }}
           poetry config pypi-token.pypi ${{ env.PYPI_API_TOKEN }}
           poetry publish --dry-run --dist-dir ${{ matrix.packages.assets_path }}
+          git checkout main
           git add pyproject.toml
           git config --local user.name 'Github Action'
           git config --local user.email 'action@github.com'
-          git commit -m '${{ matrix.packages.commit_message }}'
+          git commit --message '${{ matrix.packages.commit_message }}'
 
   clean-release-draft:
     name: ${{ matrix.packages.name }} - Clean Release Draft
@@ -172,6 +173,10 @@ jobs:
           else
             echo "✅ Release draft deleted with tag ${{ needs.release-draft.outputs.tag }} (dry run)"
           fi
+
+      - name: Delete Release Branch
+        if: ${{ always() && inputs.dry-run == false }}
+        run: git push origin --delete ${{ github.ref_name }}
 
   release:
     name: ${{ matrix.packages.name }} - Release
@@ -222,10 +227,11 @@ jobs:
           poetry version -- ${{ matrix.packages.version }}
           poetry config pypi-token.pypi ${{ env.PYPI_API_TOKEN }}
           poetry publish --dist-dir ${{ matrix.packages.assets_path }}
+          git checkout main
           git add pyproject.toml
           git config --local user.name 'Github Action'
           git config --local user.email 'action@github.com'
-          git commit -m '${{ matrix.packages.commit_message }}'
+          git commit --message '${{ matrix.packages.commit_message }}'
 
       - name: Push Release
         id: push-release
@@ -239,3 +245,7 @@ jobs:
           else
             echo "✅ Release pushed (dry run)"
           fi
+
+      - name: Delete Release Branch
+        if: ${{ always() && inputs.dry-run == false }}
+        run: git push origin --delete ${{ github.ref_name }}
