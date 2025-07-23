@@ -4,18 +4,14 @@ from typing import Dict, List
 
 poetry_projects = []
 pipx_tools = "poetry"
-supported_os = [
-    "ubuntu-latest",
-    # 'windows-latest',
-    # 'macos-latest'
-]
+supported_os = ["ubuntu-latest", "windows-latest", "macos-latest"]
 last_supported_python_version = "3.13"
 supported_python_versions = [
-    # '3.9',
-    # '3.10',
-    # '3.11',
-    # '3.12',
-    last_supported_python_version
+    "3.9",
+    "3.10",
+    "3.11",
+    "3.12",
+    last_supported_python_version,
 ]
 
 
@@ -23,11 +19,11 @@ def add_project(
     projects: List[Dict],
     project: Dict,
     project_name: str,
-    os: List[str],
-    python_version: List[str],
+    operating_systems: List[str],
+    python_versions: List[str],
 ):
-    project["supported-os"] = json.dumps(os)
-    project["supported-python-versions"] = json.dumps(python_version)
+    project["supported-os"] = json.dumps(operating_systems)
+    project["supported-python-versions"] = json.dumps(python_versions)
     project["last-supported-python-version"] = last_supported_python_version
     projects.append({"name": project_name, "inputs": project})
 
@@ -53,8 +49,8 @@ if poexy_core_project_changed == "true":
             "code-coverage-threshold": 85,
         },
         "Poexy Core",
-        supported_os,
-        supported_python_versions,
+        ["ubuntu-latest"],
+        [last_supported_python_version],
     )
 
 if ignite_project_changed == "true":
@@ -92,7 +88,7 @@ else:
 matrix_data = json.dumps(matrix)
 print(f"Final matrix JSON: {matrix_data}")
 
-with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as f:
     f.write(f"result={matrix_data}\n")
     f.write(f"length={len(poetry_projects)}\n")
     f.write(f"last-supported-python-version={last_supported_python_version}\n")
