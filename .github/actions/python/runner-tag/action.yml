@@ -1,0 +1,41 @@
+name: 'Runner Tag'
+description: 'Runner Tag'
+
+inputs:
+  os:
+    description: 'Operating System'
+    type: string
+    required: true
+  python-version:
+    description: 'Python Version'
+    type: string
+    required: true
+
+outputs:
+  tag:
+    value: ${{ steps.runner-tag.outputs.tag }}
+    description: 'Runner Tag'
+
+runs:
+  using: composite
+  steps:
+    - name: Set Runner Tag
+      id: runner-tag
+      shell: python
+      run: |
+        import os
+        runner_os = "${{ inputs.os }}"
+        python_version = "${{ inputs.python-version }}"
+        runner_os = runner_os.lower()
+        if "ubuntu" in runner_os:
+          runner_os = "linux"
+        elif "macos" in runner_os:
+          runner_os = "macos"
+        elif "windows" in runner_os:
+          runner_os = "win"
+        else:
+          raise ValueError(f"Unknown runner OS: {runner_os}")
+        python_version = python_version.lower().replace(".", "")
+        tag = f"{runner_os}-py{python_version}"
+        with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+          f.write(f"tag={tag}\n")
