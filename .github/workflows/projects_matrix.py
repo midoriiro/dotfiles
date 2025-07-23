@@ -21,6 +21,7 @@ def add_project(
     projects: List[Dict],
     project: Dict,
     project_name: str,
+    pretty_project_name: str,
     operating_systems: List[str],
     python_versions: List[str],
 ):
@@ -30,7 +31,7 @@ def add_project(
     project["supported-os"] = json.dumps(operating_systems)
     project["supported-python-versions"] = json.dumps(python_versions)
     project["last-supported-python-version"] = last_supported_python_version
-    projects.append({"name": project_name, "inputs": project})
+    projects.append({"name": pretty_project_name, "inputs": project})
 
 
 poexy_core_project_changed = os.environ.get("POEXY_CORE_PROJECT_CHANGED", "false")
@@ -53,6 +54,7 @@ add_project(
         "use-poexy-core": "false",
         "code-coverage-threshold": 85,
     },
+    "poexy-core",
     "Poexy Core",
     ["ubuntu-latest"],
     [last_supported_python_version],
@@ -72,6 +74,7 @@ add_project(
         "use-poexy-core": "true",
         "code-coverage-threshold": 95,
     },
+    "ignite",
     "Ignite",
     supported_os,
     supported_python_versions,
