@@ -17,6 +17,9 @@ on:
         required: true
         type: boolean
         default: true
+    secrets:
+      pypi-api-token:
+        description: 'PyPI API token'
 
 env:
   PYTHON_VERSION: ${{ inputs.python-version }}
@@ -117,10 +120,13 @@ jobs:
 
       - name: Poetry Release (Dry Run)
         if: ${{ matrix.packages.type == 'poetry' }}
+        env:
+          PYPI_API_TOKEN: ${{ secrets.pypi-api-token }}
         shell: bash
         run: |
           cd ${{ matrix.packages.path }}
           poetry version -- ${{ matrix.packages.version }}
+          poetry config pypi-token.pypi ${{ env.PYPI_API_TOKEN }}
           poetry publish --dry-run --dist-dir ${{ matrix.packages.assets_path }}
           git add pyproject.toml
           git config --local user.name 'Github Action'
@@ -208,11 +214,14 @@ jobs:
 
       - name: Poetry Release (Publish)
         if: ${{ matrix.packages.type == 'poetry' }}
+        env:
+          PYPI_API_TOKEN: ${{ secrets.pypi-api-token }}
         shell: bash
         run: |
           cd ${{ matrix.packages.path }}
           poetry version -- ${{ matrix.packages.version }}
-          poetry publish --dry-run --dist-dir ${{ matrix.packages.assets_path }}
+          poetry config pypi-token.pypi ${{ env.PYPI_API_TOKEN }}
+          poetry publish --dist-dir ${{ matrix.packages.assets_path }}
           git add pyproject.toml
           git config --local user.name 'Github Action'
           git config --local user.email 'action@github.com'

@@ -62,7 +62,7 @@ permissions:
 
 jobs:
   matrix-analysis:
-    if: ${{ inputs.has-changed == 'true' }}
+    if: ${{ inputs.has-changed == true }}
     name: Analyze Matrix Definitions
     runs-on: ubuntu-latest
     outputs:
@@ -96,7 +96,7 @@ jobs:
   ci-single:
     name: CI - Single Shot
     needs: [matrix-analysis]
-    if: ${{ inputs.has-changed == 'true' && needs.matrix-analysis.outputs.as-matrix == 'false' }}
+    if: ${{ inputs.has-changed == true && needs.matrix-analysis.outputs.as-matrix == 'false' }}
     uses: ./.github/workflows/poetry-ci.yml
     with:
         os: ${{ needs.matrix-analysis.outputs.supported-os }}
@@ -113,7 +113,7 @@ jobs:
   ci-matrix:
     name: CI - Matrix
     needs: [matrix-analysis]
-    if: ${{ inputs.has-changed == 'true' && needs.matrix-analysis.outputs.as-matrix == 'true' }}
+    if: ${{ inputs.has-changed == true && needs.matrix-analysis.outputs.as-matrix == 'true' }}
     strategy:
       matrix:
         os: ${{ fromJSON(needs.matrix-analysis.outputs.supported-os) }}
@@ -132,10 +132,10 @@ jobs:
         code-coverage-threshold: ${{ inputs.code-coverage-threshold }}
 
   ci-result-aggregator:
-    name: CI Result Aggregator
+    name: Aggregate CI Result
     runs-on: ubuntu-latest
     needs: [ci-single, ci-matrix]
-    if: ${{ inputs.has-changed == 'true' && always() }}
+    if: ${{ inputs.has-changed == true && always() }}
     steps:
       - env:
           CI_SINGLE_RESULT: ${{ needs.ci-single.result }}

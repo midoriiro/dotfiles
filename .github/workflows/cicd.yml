@@ -43,6 +43,7 @@ jobs:
       - name: Set Matrix
         id: set-matrix
         env:
+          GITHUB_REF_NAME: ${{ github.ref_name }}
           POEXY_CORE_PROJECT_CHANGED: ${{ steps.filter.outputs.poexy-core }}
           IGNITE_PROJECT_CHANGED: ${{ steps.filter.outputs.ignite }}
         shell: bash
@@ -123,6 +124,8 @@ jobs:
       python-version: ${{ needs.matrix.outputs.last-supported-python-version }}
       pipx-tools: poetry
       dry-run: ${{ needs.prepare-release-mode.outputs.dry-run == 'true' }}
+    secrets:
+      pypi-api-token: ${{ secrets.PYPI_API_KEY }}
 
   clean-up:
     name: Clean Up
