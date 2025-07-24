@@ -1,6 +1,8 @@
+import logging
 import pathlib
+import re
 from enum import Enum
-from typing import Annotated, Callable, Dict, List, Literal, Union
+from typing import Annotated, Any, Dict, List, Literal, Optional, Union
 
 from pydantic import (
     BaseModel,
@@ -13,6 +15,9 @@ from pydantic import (
 
 from ignite.mergers import FileMerger, IniFileMerger, JsonFileMerger, YamlFileMerger
 from ignite.models.common import Identifier, IdentifierPattern
+from ignite.models.variables import ResolvedVariables
+
+logger = logging.getLogger(__name__)
 
 
 class ReservedFileName(str, Enum):
@@ -112,6 +117,39 @@ class FileTemplateVariables(BaseModel):
         ..., min_length=1, max_length=50, description="The name of the project."
     )
 
+    variables: Optional[ResolvedVariables] = Field(
+        None, description="The variables to apply to the resolved content."
+    )
+
+    __variables_counter: Optional[Dict[str, int]] = None
+
+    def model_post_init(self, __context: Any) -> None:
+        if self.variables:
+            self.__variables_counter = {}
+            for key, _ in self.variables.items():
+                self.__variables_counter[key] = 0
+        else:
+            self.__variables_counter = None
+
+    def __resolve_variables(self, template: str) -> str:
+        pattern = re.compile(r"\$\{([^}]+)\}")
+        matches = pattern.findall(template)
+
+        for var in matches:
+            placeholder = f"${{{var}}}"
+            if var in self.variables:
+                value = self.variables[var]
+                template = template.replace(placeholder, value)
+                self.__variables_counter[var] = self.__variables_counter.get(var) + 1
+
+        return template
+
+    def check_variables_usage(self) -> None:
+        if self.__variables_counter:
+            for key, counter in self.__variables_counter.items():
+                if counter == 0:
+                    logger.warning(f"Variable was not used : {key}")
+
     def resolve(self, template: str) -> str:
         """
         Resolve template variables by replacing placeholders with actual values.
@@ -156,6 +194,8 @@ class FileTemplateVariables(BaseModel):
         resolved = template
         if self.project_name:
             resolved = resolved.replace("${project-name}", self.project_name)
+        if self.variables:
+            resolved = self.__resolve_variables(resolved)
         return resolved
 
 
