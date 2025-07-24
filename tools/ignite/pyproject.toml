@@ -13,15 +13,12 @@ dependencies = [
 
 [project.scripts]
 ignite = "ignite.main:cli"
-build = "scripts.build:run"
-build-executable = "scripts.pyinstaller:build"
-package-executable = "scripts.package:add"
 
 [tool.poetry.group.dev.dependencies]
 black = "^25.1.0"
 isort = "^6.0.1"
 flake8 = "^7.3.0"
-pyinstaller = "^6.14.1"
+flake8-pyproject = "^1.2.3"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^8.4.1"
@@ -32,8 +29,8 @@ assertpy = "^1.1"
 coverage = "^7.3.2"
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api" 
+requires = ["poexy-core>=2025"]
+build-backend = "poexy_core.api" 
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -64,3 +61,11 @@ exclude_lines = [
 
 [tool.coverage.paths]
 source = ["ignite"]
+
+[tool.flake8]
+max-line-length = 88
+exclude = [
+    ".git",
+    "__pycache__",
+    "dist"
+]
