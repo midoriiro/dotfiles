@@ -1,0 +1,5 @@
+{
+    "python.testing.pytestArgs": [
+        "--cov=${pytest-package-name}"
+    ]
+}
