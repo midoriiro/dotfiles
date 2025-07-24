@@ -2,16 +2,6 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Ignite: Install",
-      "type": "shell",
-      "command": "poetry install",
-      "problemMatcher": [],
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      }
-    },
-    {
       "label": "Ignite: Build",
       "type": "shell",
       "command": "poetry build",
@@ -42,33 +32,17 @@
       }
     },
     {
-      "label": "Ignite: Run Tests",
+      "label": "Ignite: Run Format (black)",
       "type": "shell",
-      "command": "poetry run pytest",
+      "command": "poetry run black",
       "problemMatcher": [
         "$python"
-      ],
-      "group": {
-        "kind": "test",
-        "isDefault": true
-      }
+      ]
     },
     {
-      "label": "Ignite: Run Tests with Coverage",
+      "label": "Ignite: Install",
       "type": "shell",
-      "command": "poetry run pytest --cov=Ignite",
-      "problemMatcher": [
-        "$python"
-      ],
-      "group": {
-        "kind": "test",
-        "isDefault": true
-      }
-    },
-    {
-      "label": "Ignite: Lock",
-      "type": "shell",
-      "command": "poetry lock",
+      "command": "poetry install",
       "problemMatcher": [],
       "group": {
         "kind": "build",
@@ -92,12 +66,38 @@
       ]
     },
     {
-      "label": "Ignite: Run Format (black)",
+      "label": "Ignite: Lock",
       "type": "shell",
-      "command": "poetry run black",
+      "command": "poetry lock",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Ignite: Run Tests",
+      "type": "shell",
+      "command": "poetry run pytest",
       "problemMatcher": [
         "$python"
-      ]
+      ],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Ignite: Run Tests with Coverage",
+      "type": "shell",
+      "command": "poetry run pytest --cov=Ignite",
+      "problemMatcher": [
+        "$python"
+      ],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
     }
   ]
 }

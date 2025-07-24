@@ -2,16 +2,6 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Poexy: Install",
-      "type": "shell",
-      "command": "poetry install",
-      "problemMatcher": [],
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      }
-    },
-    {
       "label": "Poexy: Build",
       "type": "shell",
       "command": "poetry build",
@@ -42,33 +32,17 @@
       }
     },
     {
-      "label": "Poexy: Run Tests",
+      "label": "Poexy: Run Format (black)",
       "type": "shell",
-      "command": "poetry run pytest",
+      "command": "poetry run black",
       "problemMatcher": [
         "$python"
-      ],
-      "group": {
-        "kind": "test",
-        "isDefault": true
-      }
+      ]
     },
     {
-      "label": "Poexy: Run Tests with Coverage",
+      "label": "Poexy: Install",
       "type": "shell",
-      "command": "poetry run pytest --cov=Poexy",
-      "problemMatcher": [
-        "$python"
-      ],
-      "group": {
-        "kind": "test",
-        "isDefault": true
-      }
-    },
-    {
-      "label": "Poexy: Lock",
-      "type": "shell",
-      "command": "poetry lock",
+      "command": "poetry install",
       "problemMatcher": [],
       "group": {
         "kind": "build",
@@ -92,12 +66,38 @@
       ]
     },
     {
-      "label": "Poexy: Run Format (black)",
+      "label": "Poexy: Lock",
       "type": "shell",
-      "command": "poetry run black",
+      "command": "poetry lock",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Poexy: Run Tests",
+      "type": "shell",
+      "command": "poetry run pytest",
       "problemMatcher": [
         "$python"
-      ]
+      ],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Poexy: Run Tests with Coverage",
+      "type": "shell",
+      "command": "poetry run pytest --cov=Poexy",
+      "problemMatcher": [
+        "$python"
+      ],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
     }
   ]
 }
