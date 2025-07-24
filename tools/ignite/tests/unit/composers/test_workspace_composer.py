@@ -1,22 +1,16 @@
 import json
-import logging
-import os
 import pathlib
 from pathlib import Path
-from typing import Any, Dict
 from unittest.mock import Mock, patch
 
 import pytest
 from assertpy import assert_that
 
 from ignite.composers import WorkspaceComposer
-from ignite.logging import FilesystemMessage
 from ignite.models.fs import (
     File,
-    FileTemplateVariables,
     Folder,
     ResolvedFile,
-    ResolvedFolder,
 )
 from ignite.models.policies import (
     ContainerBackendPolicy,
@@ -35,11 +29,8 @@ from ignite.models.projects import (
     UserProject,
 )
 from ignite.models.settings import VSCodeFolder
+from ignite.models.variables import StringVariable, Variables
 from ignite.models.workspace import Workspace as WorkspaceModel
-from ignite.models.workspace import (
-    WorkspaceFileSpecification,
-    WorkspaceFolderSpecification,
-)
 from ignite.resolvers import PathResolver
 
 
@@ -77,6 +68,7 @@ class TestWorkspaceComposerCompose:
     def test_compose_with_minimal_workspace(self, minimal_workspace_configuration):
         """Test composing a minimal workspace configuration."""
         path_resolver = Mock(spec=PathResolver)
+        path_resolver.user_context = Path(".")
         path_resolver.resolve.return_value = []
 
         composer = WorkspaceComposer(minimal_workspace_configuration, path_resolver)
@@ -335,6 +327,114 @@ class TestWorkspaceComposerResolveProjectFiles:
         )
         assert_that(resolved_files[1].content).is_not_empty()
 
+    def test_resolve_project_files_with_project_variables(self, path_resolver):
+        """Test _resolve_project_files with project variables."""
+        workspace = WorkspaceModel(
+            policies=Policies(
+                {
+                    "container": ContainerPolicy(backend=ContainerBackendPolicy.ANY),
+                    "folder": FolderPolicy(create=FolderCreatePolicy.ALWAYS),
+                    "file": FilePolicy(write=FileWritePolicy.OVERWRITE),
+                }
+            ),
+            projects=Projects(
+                {
+                    "test-project": UserProject(
+                        path="tools",
+                        variables=Variables(
+                            {
+                                "pytest-capture": StringVariable("no"),
+                            }
+                        ),
+                        vscode=VSCodeFolder(
+                            settings=[
+                                Folder(
+                                    {"python": [Folder({"pytest": [File("capture")]})]}
+                                )
+                            ]
+                        ),
+                    ),
+                }
+            ),
+        )
+
+        composer = WorkspaceComposer(workspace, path_resolver)
+        resolved_files = composer._resolve_project_files()
+
+        assert_that(resolved_files).is_length(1)
+        assert_that(resolved_files[0].path).is_equal_to(
+            str(pathlib.Path("tools", "test-project", ".vscode", "settings.json"))
+        )
+        assert_that(resolved_files[0].content).is_not_empty()
+        assert_that(resolved_files[0].content).contains('"--capture=no"')
+
+    def test_resolve_project_files_with_ref_project_variables(self, path_resolver):
+        """Test _resolve_project_files with ref project variables."""
+        workspace = WorkspaceModel(
+            policies=Policies(
+                {
+                    "container": ContainerPolicy(backend=ContainerBackendPolicy.ANY),
+                    "folder": FolderPolicy(create=FolderCreatePolicy.ALWAYS),
+                    "file": FilePolicy(write=FileWritePolicy.OVERWRITE),
+                }
+            ),
+            projects=Projects(
+                {
+                    "ref": RepositoryProject(
+                        variables=Variables(
+                            {
+                                "pytest-capture": StringVariable("no"),
+                            }
+                        ),
+                        vscode=VSCodeFolder(
+                            settings=[
+                                Folder(
+                                    {"python": [Folder({"pytest": [File("capture")]})]}
+                                )
+                            ]
+                        ),
+                    ),
+                    "test-project": UserProject(
+                        path="tools",
+                        variables=Variables(
+                            {
+                                "pytest-show-capture": StringVariable("no"),
+                            }
+                        ),
+                        vscode=VSCodeFolder(
+                            settings=[
+                                Folder(
+                                    {
+                                        "python": [
+                                            Folder(
+                                                {
+                                                    "pytest": [
+                                                        File("$ref"),
+                                                        File("show-capture"),
+                                                    ]
+                                                }
+                                            )
+                                        ]
+                                    }
+                                )
+                            ]
+                        ),
+                    ),
+                }
+            ),
+        )
+
+        composer = WorkspaceComposer(workspace, path_resolver)
+        resolved_files = composer._resolve_project_files()
+
+        assert_that(resolved_files).is_length(1)
+        assert_that(resolved_files[0].path).is_equal_to(
+            str(pathlib.Path("tools", "test-project", ".vscode", "settings.json"))
+        )
+        assert_that(resolved_files[0].content).is_not_empty()
+        assert_that(resolved_files[0].content).contains('"--capture=no"')
+        assert_that(resolved_files[0].content).contains('"--show-capture=no"')
+
 
 class TestWorkspaceComposerSave:
     """Test WorkspaceComposer save functionality."""
@@ -359,6 +459,7 @@ class TestWorkspaceComposerSave:
     def test_save_creates_files(self, minimal_workspace_configuration, tmp_path):
         """Test that save creates the workspace file."""
         path_resolver = Mock(spec=PathResolver)
+        path_resolver.user_context = Path(".")
         path_resolver.resolve.return_value = []
         policies = Policies.model_construct(
             root={

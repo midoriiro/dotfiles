@@ -95,15 +95,41 @@ class TestPathResolver:
             repository_context=repository_context, user_context=user_context
         )
 
-        path = Path("vscode") / "settings" / "python" / ReservedFileName.REF.value
-        ref_paths = [Path("vscode") / "settings" / "python" / "base"]
-        paths = [path]
+        ref_paths = [
+            Path("vscode") / "settings" / "python" / "base",
+            Path("vscode") / "settings" / "python" / "pytest" / "base",
+        ]
+        paths = [
+            Path("vscode") / "settings" / "python" / ReservedFileName.REF.value,
+            Path("vscode")
+            / "settings"
+            / "python"
+            / "pytest"
+            / ReservedFileName.REF.value,
+            Path("vscode") / "settings" / "python" / "pytest" / "capture",
+        ]
 
         result = resolver.resolve(paths, ref_paths)
 
-        assert_that(result).is_length(1)
+        assert_that(result).is_length(3)
         assert_that(result[0]).is_equal_to(
             repository_context / "vscode" / "settings" / "python" / "base.json"
+        )
+        assert_that(result[1]).is_equal_to(
+            repository_context
+            / "vscode"
+            / "settings"
+            / "python"
+            / "pytest"
+            / "base.json"
+        )
+        assert_that(result[2]).is_equal_to(
+            repository_context
+            / "vscode"
+            / "settings"
+            / "python"
+            / "pytest"
+            / "capture.json"
         )
 
     def test_resolve_with_ref_paths_no_match(self, repository_context, user_context):
@@ -184,7 +210,7 @@ class TestPathResolver:
         ref_paths = [Path("base")]
         paths = [Path(ReservedFileName.REF)]
 
-        resolver._resolve_ref(ref_paths, paths)
+        paths = resolver._resolve_ref(ref_paths, paths)
 
         # The $ref should be replaced with matching ref_paths
         assert_that(paths).is_length(1)
@@ -239,7 +265,7 @@ class TestPathResolver:
 
         result = resolver.resolve(paths, ref_paths)
 
-        assert_that(result).is_length(4)
+        assert_that(result).is_length(5)
         assert_that(result).contains(user_file)
         assert_that(result).contains(
             repository_context / "vscode" / "settings" / "coverage-gutters.json"

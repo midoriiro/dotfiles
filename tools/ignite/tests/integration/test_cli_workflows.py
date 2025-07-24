@@ -31,8 +31,9 @@ from ignite.models.policies import (
     FolderPolicy,
     Policies,
 )
-from ignite.models.projects import Projects, UserProject
+from ignite.models.projects import Projects, RepositoryProject, UserProject
 from ignite.models.settings import VSCodeFolder
+from ignite.models.variables import StringVariable, Variables
 from ignite.models.workspace import Workspace as WorkspaceModel
 from tests.conftest import AssertFile, AssertLogs, Dumper, Runner
 
@@ -85,6 +86,14 @@ def test_complete_workflow_with_complex_configuration(
                     ),
                     "backend": UserProject(path="tools"),
                     "shared": UserProject(path="tools"),
+                    "ref": RepositoryProject(
+                        variables=Variables(
+                            {
+                                "pytest-capture": StringVariable("no"),
+                                "pytest-show-capture": StringVariable("no"),
+                            }
+                        ),
+                    ),
                 }
             ),
         ),

@@ -422,15 +422,25 @@ class WorkspaceComposer(Composer):
             variable substitution for each project.
         """
         resolved_project_files: List[ResolvedFile] = []
+        original_cwd = Path.cwd()
+        try:
+            os.chdir(self.__path_resolver.user_context)
+            resolved_project_variables = self.__workspace.resolve_project_variables()
+        finally:
+            os.chdir(original_cwd)
         resolved_project_folders = self.__workspace.resolve_project_folders(
             self.__path_resolver
         )
         for project_name, resolved_folders in resolved_project_folders.items():
-            file_content_variables = FileTemplateVariables(project_name=project_name)
+            variables = resolved_project_variables.get(project_name, None)
+            file_content_variables = FileTemplateVariables(
+                project_name=project_name, variables=variables
+            )
             for resolved_folder in resolved_folders:
                 resolved_project_files.append(
                     resolved_folder.resolve(file_content_variables)
                 )
+            file_content_variables.check_variables_usage()
         return resolved_project_files
 
     def _resolve_file_specification(self) -> ResolvedFile:
