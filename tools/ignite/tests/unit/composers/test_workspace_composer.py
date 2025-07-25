@@ -7,11 +7,7 @@ import pytest
 from assertpy import assert_that
 
 from ignite.composers import WorkspaceComposer
-from ignite.models.fs import (
-    File,
-    Folder,
-    ResolvedFile,
-)
+from ignite.models.fs import File, Folder, ResolvedFile
 from ignite.models.policies import (
     ContainerBackendPolicy,
     ContainerPolicy,
@@ -101,6 +97,7 @@ class TestWorkspaceComposerCompose:
         )
 
         path_resolver = Mock(spec=PathResolver)
+        path_resolver.user_context = Path(".")
         path_resolver.resolve.return_value = []
 
         composer = WorkspaceComposer(workspace, path_resolver)
@@ -136,6 +133,7 @@ class TestWorkspaceComposerCompose:
         )
 
         path_resolver = Mock(spec=PathResolver)
+        path_resolver.user_context = Path(".")
         path_resolver.resolve.return_value = []
 
         composer = WorkspaceComposer(workspace, path_resolver)
@@ -247,6 +245,7 @@ class TestWorkspaceComposerResolveProjectFiles:
     ):
         """Test _resolve_project_files with no projects."""
         path_resolver = Mock(spec=PathResolver)
+        path_resolver.user_context = Path(".")
         path_resolver.resolve.return_value = []
 
         composer = WorkspaceComposer(minimal_workspace_configuration, path_resolver)
@@ -481,6 +480,7 @@ class TestWorkspaceComposerSave:
     def test_save_writes_valid_json(self, minimal_workspace_configuration, tmp_path):
         """Test that save writes valid JSON content."""
         path_resolver = Mock(spec=PathResolver)
+        path_resolver.user_context = Path(".")
         path_resolver.resolve.return_value = []
         policies = Policies.model_construct(
             root={
@@ -552,6 +552,7 @@ class TestWorkspaceComposerSave:
     ):
         """Test that save uses the workspace policies for file operations."""
         path_resolver = Mock(spec=PathResolver)
+        path_resolver.user_context = Path(".")
         path_resolver.resolve.return_value = []
         policies = Policies.model_construct(
             root={
@@ -583,6 +584,7 @@ class TestWorkspaceComposerSave:
     ):
         """Test that save creates directories when needed."""
         path_resolver = Mock(spec=PathResolver)
+        path_resolver.user_context = Path(".")
         path_resolver.resolve.return_value = []
         policies = Policies.model_construct(
             root={
