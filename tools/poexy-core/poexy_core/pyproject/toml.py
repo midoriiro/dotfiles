@@ -41,7 +41,8 @@ class PyProjectTOML(BaseModel):
             poetry = self.poetry
             pyproject = poetry.pyproject
             package = poetry.package
-            if package.name == "poexy-backend":
+            # TODO better way to retrieve package name?
+            if package.name == "poexy-core":
                 dependencies = package.requires
             else:
                 dependencies = poetry.build_system_dependencies
