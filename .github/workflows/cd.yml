@@ -118,6 +118,11 @@ jobs:
         with:
           tools: ${{ inputs.pipx-tools }}
 
+      - name: Checkout Code Main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
       - name: Poetry Release (Dry Run)
         if: ${{ matrix.packages.type == 'poetry' }}
         env:
@@ -128,7 +133,6 @@ jobs:
           poetry version -- ${{ matrix.packages.version }}
           poetry config pypi-token.pypi ${{ env.PYPI_API_TOKEN }}
           poetry publish --dry-run --dist-dir ${{ matrix.packages.assets_path }}
-          git checkout main
           git add pyproject.toml
           git config --local user.name 'Github Action'
           git config --local user.email 'action@github.com'
@@ -217,6 +221,11 @@ jobs:
         with:
           tools: ${{ inputs.pipx-tools }}
 
+      - name: Checkout Code Main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
       - name: Poetry Release (Publish)
         if: ${{ matrix.packages.type == 'poetry' }}
         env:
@@ -227,7 +236,6 @@ jobs:
           poetry version -- ${{ matrix.packages.version }}
           poetry config pypi-token.pypi ${{ env.PYPI_API_TOKEN }}
           poetry publish --dist-dir ${{ matrix.packages.assets_path }}
-          git checkout main
           git add pyproject.toml
           git config --local user.name 'Github Action'
           git config --local user.email 'action@github.com'
