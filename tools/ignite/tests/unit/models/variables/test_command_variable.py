@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from unittest.mock import Mock, patch
 
@@ -164,7 +165,13 @@ class TestCommandVariableResolve:
 
         assert_that(result).is_equal_to("hello world")
         mock_run.assert_called_once_with(
-            ["bash", "-c", '"echo', "hello", 'world"'], text=True, capture_output=True
+            ["bash", "-c", '"echo', "hello", 'world"'],
+            text=True,
+            capture_output=True,
+            env={
+                "PATH": os.environ["PATH"],
+            },
+            shell=False,
         )
 
     @patch("ignite.models.variables.subprocess.run")
@@ -181,7 +188,13 @@ class TestCommandVariableResolve:
 
         assert_that(result).is_equal_to("/home/user")
         mock_run.assert_called_once_with(
-            ["sh", "-c", '"pwd"'], text=True, capture_output=True
+            ["sh", "-c", '"pwd"'],
+            text=True,
+            capture_output=True,
+            env={
+                "PATH": os.environ["PATH"],
+            },
+            shell=False,
         )
 
     @patch("ignite.models.variables.subprocess.run")
@@ -198,7 +211,13 @@ class TestCommandVariableResolve:
 
         assert_that(result).is_equal_to("C:\\Users\\test")
         mock_run.assert_called_once_with(
-            ["pwsh", "-command", '"Get-Location"'], text=True, capture_output=True
+            ["pwsh", "-command", '"Get-Location"'],
+            text=True,
+            capture_output=True,
+            env={
+                "PATH": os.environ["PATH"],
+            },
+            shell=False,
         )
 
     @patch("ignite.models.variables.subprocess.run")
@@ -215,7 +234,13 @@ class TestCommandVariableResolve:
 
         assert_that(result).is_equal_to("test output")
         mock_run.assert_called_once_with(
-            ["echo", "test", "output"], text=True, capture_output=True, shell=False
+            "echo test output",
+            text=True,
+            capture_output=True,
+            env={
+                "PATH": os.environ["PATH"],
+            },
+            shell=True,
         )
 
     @patch("ignite.models.variables.subprocess.run")
@@ -235,6 +260,10 @@ class TestCommandVariableResolve:
             ["bash", "-c", '"echo', "hello", "world", 'test"'],
             text=True,
             capture_output=True,
+            env={
+                "PATH": os.environ["PATH"],
+            },
+            shell=False,
         )
 
     @patch("ignite.models.variables.subprocess.run")
@@ -268,7 +297,11 @@ class TestCommandVariableResolve:
             ["sh", "-c", '"pwd"'],
             text=True,
             capture_output=True,
+            env={
+                "PATH": os.environ["PATH"],
+            },
             cwd=Path("/home/user"),
+            shell=False,
         )
 
 
@@ -328,9 +361,9 @@ class TestCommandVariableEdgeCases:
         mock_run.return_value = mock_process
 
         variable = CommandVariable("$(true)")
-        result = variable.resolve()
 
-        assert_that(result).is_equal_to("")
+        with pytest.raises(ValueError, match="stdout is empty"):
+            variable.resolve()
 
     @patch("ignite.models.variables.subprocess.run")
     def test_resolve_multiline_output(self, mock_run):
