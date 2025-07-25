@@ -43,6 +43,8 @@ class Poexy(BaseModel):
     @model_validator(mode="after")
     def validate_model(self) -> "Poexy":
         if self.wheel is None:
+            # We need a default wheel package configuration to build a wheel.
+            # This is useful in api.py to determine which builder to use (whl or binary)
             self.wheel = WheelPackage()
         return self
 
