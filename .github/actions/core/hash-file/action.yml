@@ -1,0 +1,40 @@
+name: 'Hash File'
+description: 'Hash a file'
+
+inputs:
+  path:
+    description: 'The file path to hash'
+    required: true
+
+outputs:
+  hash: 
+    description: 'The hash of the file'
+    value: ${{ steps.hash-file.outputs.hash }}
+  short-hash:
+    description: 'The short hash of the file'
+    value: ${{ steps.hash-file.outputs.short-hash }}
+
+runs:
+  using: composite
+  steps:
+    - name: Hash file
+      id: hash-file
+      shell: python
+      run: |
+        from pathlib import Path
+        import hashlib
+        import os
+
+        raw_input_path = r"${{ inputs.path }}"
+        normalized_path = Path(raw_input_path.replace("\\", "/"))
+        path = Path(normalized_path)
+
+        with open(path, "rb") as f:
+            file_hash = hashlib.sha256(f.read()).hexdigest()
+
+        print(f"File hash: {file_hash}")
+        print(f"File short hash: {file_hash[:8]}")
+
+        with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+            f.write(f"hash={file_hash}\n")
+            f.write(f"short-hash={file_hash[:8]}\n")

@@ -46,10 +46,6 @@ runs:
         REGISTRY_KEY="registry-${{ github.run_id }}-${{ env.REGISTRY_KEY }}"
         SELF_REGISTRY_PATH="$REGISTRY_HOME/self"
         SELF_REGISTRY_KEY="registry-${{ github.run_id }}-self"
-        
-        # Create directories if they don't exist
-        mkdir --parents "$REGISTRY_PATH"
-        mkdir --parents "$SELF_REGISTRY_PATH"
 
         # Set environment variables
         echo "path=$REGISTRY_PATH" >> $GITHUB_OUTPUT
@@ -63,3 +59,15 @@ runs:
         echo "✅ REGISTRY_KEY: $REGISTRY_KEY"
         echo "✅ SELF_REGISTRY_PATH: $SELF_REGISTRY_PATH"
         echo "✅ SELF_REGISTRY_KEY: $SELF_REGISTRY_KEY"
+
+    - name: Create Registry Path Directory
+      uses: ./.github/actions/core/create-directory
+      with:
+        path: ${{ steps.registry.outputs.path }}
+        parents: true
+
+    - name: Create Self Registry Path Directory
+      uses: ./.github/actions/core/create-directory
+      with:
+        path: ${{ steps.registry.outputs.self-path }}
+        parents: true

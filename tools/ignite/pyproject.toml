@@ -32,6 +32,10 @@ coverage = "^7.3.2"
 requires = ["poexy-core>=2025"]
 build-backend = "poexy_core.api" 
 
+[tool.poexy.binary]
+name = "ignite"
+entry_point = "ignite.main"
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]

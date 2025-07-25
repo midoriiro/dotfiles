@@ -68,6 +68,12 @@ runs:
         path: ${{ steps.registry.outputs.self-path }}
         key: ${{ steps.registry.outputs.self-key }}
 
+    - name: Create Self Registry Clean Directory
+      uses: ./.github/actions/core/create-directory
+      with:
+        path: ${{ steps.registry.outputs.self-path }}/clean
+        parents: true
+
     - name: Add Registry to Clean Operation List
       if: ${{ inputs.clean == 'true' }}
       env:
@@ -75,7 +81,6 @@ runs:
         REGISTRY_KEY: ${{ steps.registry.outputs.key }}
       shell: bash
       run: |
-        mkdir --parents ${{ env.REGISTRY_PATH }}
         touch ${{ env.REGISTRY_PATH }}/${{ env.REGISTRY_KEY }}
         echo "✅ Added registry to clean operation list with key: ${{ env.REGISTRY_KEY }}"
 

@@ -40,13 +40,11 @@ runs:
           exit 1
         fi
 
-    - name: Get pyproject.toml hash
-      id: pyproject-toml-hash
-      working-directory: ${{ env.POETRY_PROJECT_PATH }}
-      shell: bash
-      run: |
-        PYPROJECT_TOML_HASH=$(cat pyproject.toml | sha256sum | awk '{print $1}')
-        echo "hash=$PYPROJECT_TOML_HASH" >> $GITHUB_OUTPUT
+    - name: Hash pyproject.toml
+      id: pyproject-toml
+      uses: ./.github/actions/core/hash-file
+      with:
+        path: ${{ env.POETRY_PROJECT_PATH }}/pyproject.toml
 
     - name: Get dependency groups
       id: dependency-groups
@@ -66,7 +64,7 @@ runs:
       env:
         DEPENDENCY_GROUPS_DASHES: ${{ steps.dependency-groups.outputs.with-dashes }}
         DEPENDENCY_GROUPS_COMMAS: ${{ steps.dependency-groups.outputs.with-commas }}
-        PYPROJECT_TOML_HASH: ${{ steps.pyproject-toml-hash.outputs.hash }}
+        PYPROJECT_TOML_HASH: ${{ steps.pyproject-toml.outputs.short-hash }}
         USE_POEXY_CORE: ${{ env.USE_POEXY_CORE }}
       run: |  
         # Set poetry paths

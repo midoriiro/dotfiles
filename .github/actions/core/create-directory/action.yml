@@ -17,7 +17,9 @@ runs:
       shell: python
       run: |
         from pathlib import Path
-        path = Path("${{ inputs.path }}")
+        raw_input_path = r"${{ inputs.path }}"
+        normalized_path = Path(raw_input_path.replace("\\", "/"))
+        path = Path(normalized_path)
         if "${{ inputs.parents }}" == "true":
             path.mkdir(parents=True, exist_ok=True)
         else:
