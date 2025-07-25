@@ -1,0 +1,16 @@
+[project]
+name = "binary-entrypoint"
+version = "1.0.0"
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.binary_entrypoint]
+source = "src"
+
+[tool.poexy.wheel]
+format = ["binary"]
+
+[tool.poexy.binary]
+entry_point = "src.__init__"

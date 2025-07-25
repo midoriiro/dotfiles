@@ -1,0 +1,13 @@
+[project]
+name = "binary-without-config"
+version = "1.0.0"
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.binary_without_config]
+source = "src"
+
+[tool.poexy.wheel]
+format = ["binary"]
