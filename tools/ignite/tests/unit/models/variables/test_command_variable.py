@@ -300,7 +300,7 @@ class TestCommandVariableResolve:
             env={
                 "PATH": os.environ["PATH"],
             },
-            cwd=Path("/home/user"),
+            cwd=Path("/home/user").resolve(),
             shell=False,
         )
 
