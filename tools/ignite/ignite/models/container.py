@@ -245,7 +245,7 @@ class Mount(BaseModel):
             >>> str(mount)
             'source=/home/user/data,target=/workspace/data,type=bind,options=ro'
         """
-        options_str = f",options={",".join(self.options)}" if self.options else ""
+        options_str = f",options={','.join(self.options)}" if self.options else ""
         return f"source={self.source},target={self.target},type={self.type.value}{options_str}"
 
     @override
