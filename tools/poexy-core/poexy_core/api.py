@@ -11,6 +11,8 @@ from poexy_core.builders.wheel import WheelBuilder
 from poexy_core.packages.format import PackageFormat, WheelFormat
 from poexy_core.pyproject.toml import PyProjectTOML
 
+# pylint: disable=no-member
+
 console = Console()
 
 
@@ -87,7 +89,8 @@ def __get_wheel_builder(
             return binary_builder
         raise PoexyBuilderError("Wheel package format is not valid")
     raise PoexyBuilderError(
-        "Wheel package format is not defined in pyproject.toml at " "[tool.poexy.wheel]"
+        "Wheel package format is not defined in pyproject.toml at "
+        "[tool.poexy.wheel] or [tool.poexy.binary]"
     )
 
 
