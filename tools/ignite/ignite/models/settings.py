@@ -1,5 +1,10 @@
 import pathlib
-from typing import Dict, List, Optional, Union, override
+from typing import Dict, List, Optional, Union
+
+try:
+    from typing import override
+except ImportError:
+    from typing_extensions import override
 
 from pydantic import BaseModel, Field, model_validator
 

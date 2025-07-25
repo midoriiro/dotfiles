@@ -2,7 +2,12 @@ import os
 import pathlib
 import re
 from enum import Enum
-from typing import Annotated, Any, Dict, List, Optional, Union, override
+from typing import Annotated, Any, Dict, List, Optional, Union
+
+try:
+    from typing import override
+except ImportError:
+    from typing_extensions import override
 
 from pydantic import BaseModel, Field, RootModel, StringConstraints, model_validator
 
