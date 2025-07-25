@@ -54,7 +54,7 @@ class BinaryPackage:
         if executable_name is None:
             package_name = config.get("name", None)
             if package_name is None:
-                raise PyProjectError("[project] section must contain a name")
+                raise PyProjectError("[tool.poexy.binary] section must contain a name")
             executable_name = package_name.replace("_", "-")
             binary_config["name"] = executable_name
         else:
@@ -77,11 +77,16 @@ class BinaryPackage:
         if binary_config is None:
             binary_config = {"name": None}
             config["binary"] = binary_config
+        elif binary_config.get("name", None) is None:
+            package_config = config.get("package", None)
+            if package_config is None:
+                raise PyProjectError("[tool.poexy.package] section not found")
+            assert isinstance(package_config, dict)
+            package_name = package_config.get("name", None)
+            if package_name is None:
+                raise PyProjectError("[tool.poexy.package] section must contain a name")
+            binary_config["name"] = package_name.replace("_", "-")
         assert isinstance(binary_config, dict)
         if len(binary_config.keys()) == 0:
             raise PyProjectError("[tool.poexy.binary] section not found")
-        if len(binary_config.keys()) > 1:
-            raise PyProjectError(
-                "[tool.poexy.binary] section must contain only one binary definition"
-            )
         return BinaryPackage.__transform_config(config)
