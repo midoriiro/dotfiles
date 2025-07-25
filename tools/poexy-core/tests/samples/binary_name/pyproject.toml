@@ -1,0 +1,16 @@
+[project]
+name = "binary-name"
+version = "1.0.0"
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.binary_name]
+source = "src"
+
+[tool.poexy.wheel]
+format = ["binary"]
+
+[tool.poexy.binary]
+name = "binary-name"
