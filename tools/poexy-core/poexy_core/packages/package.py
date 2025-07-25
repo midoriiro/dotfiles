@@ -125,6 +125,15 @@ class BinaryPackage(BasePackage):
 
     entry_point: Optional[str] = Field(
         default=None,
-        pattern=r"^([a-zA-Z][a-zA-Z0-9_.]+|\.)(:[a-zA-Z0-9_]+)?$",
+        pattern=r"^([a-zA-Z][a-zA-Z0-9_.]+|\.)?$",
         description="Entry point of the package",
     )
+
+    @model_validator(mode="after")
+    def validate_binary_package(self) -> "BinaryPackage":
+        if self.entry_point is not None:
+            entry_point = Path(self.entry_point.replace(".", "/") + ".py")
+            if not entry_point.exists():
+                raise ValueError(f"Entry point {entry_point} does not exist")
+            self.entry_point = str(entry_point)
+        return self

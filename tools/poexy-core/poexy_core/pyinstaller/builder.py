@@ -80,10 +80,7 @@ class PyinstallerBuilder:
             if not file.is_file():
                 continue
             if PyinstallerBuilder.__has_main_block(file):
-                relative_path = file.relative_to(base_path)
-                file_name = relative_path.stem
-                path = str(file.parent).replace("/", ".")
-                return f"{path}:{file_name}"
+                return str(file)
         raise PyinstallerBuilderError("No entry point found")
 
     def build(
@@ -98,8 +95,15 @@ class PyinstallerBuilder:
             self.__entry_point = PyinstallerBuilder.__find_entry_point(
                 self.__package_source_path
             )
-        entry_point = self.__entry_point.replace(".", "/").replace(":", "/")
-        path_to_entry_point = str(self.__project_path / f"{entry_point}.py")
+        path_to_entry_point = Path(self.__project_path) / self.__entry_point
+        if not path_to_entry_point.is_file():
+            raise PyinstallerBuilderError(
+                f"Entry point {self.__entry_point} is not a file"
+            )
+        if not path_to_entry_point.exists():
+            raise PyinstallerBuilderError(
+                f"Entry point {self.__entry_point} does not exist"
+            )
         spec_path = str(build_path or self.__project_path / "build" / "spec")
         if dist_path is None:
             dist_path = self.__project_path / "dist"
