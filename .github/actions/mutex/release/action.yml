@@ -1,0 +1,31 @@
+name: 'Mutex Release'
+description: 'Release Mutex'
+
+inputs:
+  database-uri:
+    description: 'The database URI'
+    required: true
+    type: string
+  key:
+    description: 'The key to wait for'
+    required: true
+    type: string
+  holder:
+    description: 'The holder to wait for'
+    required: true
+    type: string
+
+runs:
+  using: composite
+  steps:
+    - name: Setup CLI
+      uses: ./.github/actions/mutex/setup
+
+    - name: Release Mutex
+      env: 
+        DATABASE_URI: ${{ inputs.database-uri }}
+      shell: bash
+      run: |
+        mutex-cli release \
+          --key ${{ inputs.key }} \
+          --holder ${{ inputs.holder }}

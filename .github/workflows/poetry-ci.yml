@@ -46,6 +46,10 @@ on:
         required: true
         type: number
         default: 95
+    secrets:
+      mutex-database-uri:
+        description: 'The mutex database URI'
+        required: true
 
 env:
   PYTHON_VERSION: ${{ inputs.python-version }}
@@ -78,18 +82,30 @@ jobs:
     name: ${{ needs.runner-tag.outputs.tag }} - Setup Environment
     runs-on: ${{ inputs.os }}
     needs: [runner-tag]
-    concurrency: 
-      group: ${{ github.workflow }}-setup-environment
-      cancel-in-progress: false
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+
+      - name: Wait for Mutex
+        uses: ./.github/actions/mutex/wait
+        with:
+          database-uri: ${{ secrets.mutex-database-uri }}
+          key: setup-environment
+          holder: ${{ github.workflow }}
+          timeout: 600
 
       - name: Setup Environment
         uses: ./.github/actions/python/setup-python-pipx-poetry
         with:
           pipx-tools: ${{ inputs.pipx-tools }}
           poetry-dependency-groups: ${{ inputs.poetry-dependency-groups }}
+
+      - name: Release Mutex
+        uses: ./.github/actions/mutex/release
+        with:
+          database-uri: ${{ secrets.mutex-database-uri }}
+          key: setup-environment
+          holder: ${{ github.workflow }}
         
   tests:
     name: ${{ needs.runner-tag.outputs.tag }} - Tests

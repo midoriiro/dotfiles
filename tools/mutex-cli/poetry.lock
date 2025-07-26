@@ -445,7 +445,7 @@ files = [
 [[package]]
 name = "mutex"
 version = "2025.6.0"
-description = "CLI tool to manage mutexes"
+description = "Mutex core library to manage mutexes"
 optional = false
 python-versions = ">=3.9,<3.14"
 groups = ["main"]
@@ -455,7 +455,6 @@ develop = false
 [package.dependencies]
 asyncpg = ">=0.30.0"
 pydantic = ">=2.11.7"
-typer = ">=0.16.0"
 
 [package.source]
 type = "directory"
@@ -557,8 +556,8 @@ files = [
 
 [[package]]
 name = "poexy-core"
-version = "2025.6.0"
-description = "Poexy Python build backend based on Poetry"
+version = "2025.7.2"
+description = "Unified Python packaging backend for wheels, sdist, and executables"
 optional = false
 python-versions = ">=3.9,<3.14"
 groups = ["dev"]
@@ -1063,4 +1062,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.9,<3.14"
-content-hash = "7e34104c0f0b910bf7af86ed3ead2d3ba76d538aacf56b875a9d25011bb954db"
+content-hash = "992a241b9c557d1b6182184989215160888b6f3d6888346fe97f30a693beea67"
