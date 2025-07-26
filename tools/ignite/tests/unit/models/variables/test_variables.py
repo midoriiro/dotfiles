@@ -238,9 +238,10 @@ class TestVariablesResolve:
         )
 
         # We'll mock the resolve methods to ensure predictable output
-        with patch.object(
-            StringVariable, "resolve", return_value="string result"
-        ), patch.object(CommandVariable, "resolve", return_value="command result"):
+        with (
+            patch.object(StringVariable, "resolve", return_value="string result"),
+            patch.object(CommandVariable, "resolve", return_value="command result"),
+        ):
 
             result = variables.resolve()
 
