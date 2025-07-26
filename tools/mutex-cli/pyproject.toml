@@ -30,6 +30,13 @@ coverage = "^7.3.2"
 requires = ["poexy-core @ ../poexy-core"]
 build-backend = "poexy_core.api" 
 
+[tool.poexy.wheel]
+format = ["binary"]
+
+[tool.poexy.binary]
+name = "mutex-cli"
+entrypoint = "mutex_cli.main:main"
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
