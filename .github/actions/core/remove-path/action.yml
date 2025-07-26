@@ -1,0 +1,22 @@
+name: 'Remove Path'
+description: 'Remove a path'
+
+inputs:
+  path:
+    description: 'The path to remove'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Remove path
+      shell: python
+      run: |
+        from pathlib import Path
+        raw_input_path = r"${{ inputs.path }}"
+        normalized_path = Path(raw_input_path.replace("\\", "/"))
+        path = Path(normalized_path)
+        if path.is_file():
+            path.unlink()
+        elif path.is_dir():
+            path.rmdir()
