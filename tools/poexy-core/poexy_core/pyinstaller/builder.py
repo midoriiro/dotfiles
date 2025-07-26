@@ -126,8 +126,6 @@ class PyinstallerBuilder:
         logger.info(f"  - Clean: {clean}")
 
         command = [
-            "poetry",
-            "run",
             "pyinstaller",
             path_to_entry_point,
             build_type_argument,
