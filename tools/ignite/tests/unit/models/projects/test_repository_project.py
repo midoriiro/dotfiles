@@ -8,6 +8,8 @@ from ignite.models.fs import ResolvedFolder
 from ignite.models.projects import RepositoryProject
 from ignite.models.settings import File, Folder, VSCodeFolder
 
+# pylint: disable=no-member
+
 
 class TestValidRepositoryProject:
     """Test cases for valid RepositoryProject configurations."""
@@ -53,17 +55,24 @@ class TestRepositoryProjectValidation:
     """Test cases for RepositoryProject validation."""
 
     def test_repository_project_with_invalid_vscode_settings_raises_error(self):
-        """Test that repository project with invalid VSCode settings raises validation error."""
+        """
+        Test that repository project with invalid VSCode settings raises validation
+        error.
+        """
         with pytest.raises(ValidationError):
             RepositoryProject(vscode="invalid-vscode")
 
     def test_repository_project_with_empty_vscode_settings_raises_error(self):
-        """Test that repository project with empty VSCode settings raises validation error."""
+        """
+        Test that repository project with empty VSCode settings raises validation error.
+        """
         with pytest.raises(ValidationError):
             RepositoryProject(vscode=VSCodeFolder(settings=[]))
 
     def test_repository_project_with_empty_vscode_tasks_raises_error(self):
-        """Test that repository project with empty VSCode tasks raises validation error."""
+        """
+        Test that repository project with empty VSCode tasks raises validation error.
+        """
         with pytest.raises(ValidationError):
             RepositoryProject(vscode=VSCodeFolder(tasks=[]))
 
@@ -203,7 +212,9 @@ class TestRepositoryProjectEdgeCases:
         assert_that(resolved_folders).is_empty()
 
     def test_repository_project_with_complex_vscode_configuration(self):
-        """Test that repository project with complex VSCode configuration works correctly."""
+        """
+        Test that repository project with complex VSCode configuration works correctly.
+        """
         vscode_folder = VSCodeFolder(
             settings=[
                 Folder({"python": [File("base"), File("black")]}),
@@ -254,7 +265,10 @@ class TestRepositoryProjectEdgeCases:
         )
 
     def test_repository_project_with_direct_files(self):
-        """Test that repository project with direct files in VSCode configuration works correctly."""
+        """
+        Test that repository project with direct files in VSCode configuration works
+        correctly.
+        """
         vscode_folder = VSCodeFolder(settings=[File("base")], tasks=[File("build")])
         repository_project = RepositoryProject(vscode=vscode_folder)
 
@@ -349,7 +363,9 @@ class TestRepositoryProjectComparison:
         assert_that(project1).is_equal_to(project2)
 
     def test_repository_project_inequality_with_different_config(self):
-        """Test that two RepositoryProject instances with different config are not equal."""
+        """
+        Test that two RepositoryProject instances with different config are not equal.
+        """
         vscode1 = VSCodeFolder(settings=[Folder({"python": [File("base")]})])
         vscode2 = VSCodeFolder(tasks=[Folder({"poetry": [File("build")]})])
 

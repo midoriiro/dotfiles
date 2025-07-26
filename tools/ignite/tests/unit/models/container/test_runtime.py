@@ -1,10 +1,7 @@
 import pytest
 from assertpy import assert_that
-from pydantic import ValidationError
 
-from ignite.models.common import Identifier
 from ignite.models.container import Env, EnvType, Mount, MountType, Runtime, Users
-from ignite.models.fs import AbsolutePath
 
 
 class TestValidRuntime:
@@ -108,7 +105,9 @@ class TestRuntimeCompose:
         assert_that(result).is_equal_to(expected)
 
     def test_compose_runtime_with_single_remote_env(self):
-        """Test that runtime with single remote environment variable composes correctly."""
+        """
+        Test that runtime with single remote environment variable composes correctly.
+        """
         env = Env(
             key="DATABASE_URL",
             value="postgresql://localhost:5432/mydb",
@@ -120,7 +119,9 @@ class TestRuntimeCompose:
         assert_that(result).is_equal_to(expected)
 
     def test_compose_runtime_with_single_container_env(self):
-        """Test that runtime with single container environment variable composes correctly."""
+        """
+        Test that runtime with single container environment variable composes correctly.
+        """
         env = Env(
             key="DATABASE_URL",
             value="postgresql://localhost:5432/mydb",
@@ -134,7 +135,10 @@ class TestRuntimeCompose:
         assert_that(result).is_equal_to(expected)
 
     def test_compose_runtime_with_multiple_env_same_type(self):
-        """Test that runtime with multiple environment variables of same type composes correctly."""
+        """
+        Test that runtime with multiple environment variables of same type composes
+        correctly.
+        """
         env1 = Env(
             key="DATABASE_URL",
             value="postgresql://localhost:5432/mydb",
@@ -152,7 +156,10 @@ class TestRuntimeCompose:
         assert_that(result).is_equal_to(expected)
 
     def test_compose_runtime_with_multiple_env_different_types(self):
-        """Test that runtime with multiple environment variables of different types composes correctly."""
+        """
+        Test that runtime with multiple environment variables of different types
+        composes correctly.
+        """
         env1 = Env(
             key="DATABASE_URL",
             value="postgresql://localhost:5432/mydb",
@@ -191,7 +198,8 @@ class TestRuntimeCompose:
         result = runtime.compose()
         expected = {
             "mounts": [
-                "source=/home/user/data,target=/workspace/data,type=bind,options=ro,noexec"
+                "source=/home/user/data,target=/workspace/data,type=bind,options=ro,"
+                "noexec"
             ]
         }
         assert_that(result).is_equal_to(expected)
@@ -254,7 +262,9 @@ class TestRuntimeEdgeCases:
             Runtime(mounts=[])
 
     def test_runtime_with_env_without_value(self):
-        """Test that runtime with environment variable without value composes correctly."""
+        """
+        Test that runtime with environment variable without value composes correctly.
+        """
         env = Env(key="DEBUG")
         runtime = Runtime(env=[env])
         result = runtime.compose()

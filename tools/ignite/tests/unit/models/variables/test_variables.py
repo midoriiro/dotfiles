@@ -1,4 +1,4 @@
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
 from assertpy import assert_that
@@ -255,8 +255,9 @@ class TestVariablesErrorHandling:
 
     def test_resolve_with_invalid_variable_type(self):
         """Test that resolve raises ValueError for invalid variable types."""
-        # This is a bit of a hack since we can't normally create Variables with invalid types
-        # due to Pydantic validation, but we test the runtime error handling
+        # This is a bit of a hack since we can't normally create Variables with
+        # invalid types due to Pydantic validation, but we test the runtime
+        # error handling
         variables = Variables({"test": StringVariable("test value")})
 
         # Manually insert an invalid type to test error handling

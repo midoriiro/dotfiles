@@ -1,13 +1,8 @@
-import json
-import logging
 import os
 from pathlib import Path
-from typing import Any, Dict
 
-import pytest
 import yaml
 from assertpy import assert_that
-from typer.testing import CliRunner
 
 from ignite.cli import REPOSITORY_CONTEXT_ENV_VAR
 from ignite.logging import (
@@ -18,7 +13,6 @@ from ignite.logging import (
     PydanticValidationErrorMessage,
     PydanticValidationErrorMessageList,
 )
-from ignite.main import cli
 from ignite.models.config import Configuration
 from ignite.models.container import Container, Image, Mount, MountType, Runtime
 from ignite.models.container import Workspace as ContainerWorkspace
@@ -46,7 +40,10 @@ def test_complete_workflow_with_complex_configuration(
     assert_logs: AssertLogs,
     assert_file: AssertFile,
 ):
-    """Test complete workflow with a complex configuration including multiple projects and custom settings."""
+    """
+    Test complete workflow with a complex configuration including multiple projects
+    and custom settings.
+    """
     # Create complex configuration
     complex_config = Configuration(
         container=Container(
@@ -124,7 +121,8 @@ def test_complete_workflow_with_complex_configuration(
         {
             "name": "complex-workspace",
             "workspaceFolder": "/workspace",
-            "workspaceMount": "source=complex-workspace-volume,target=/workspace,type=volume",
+            "workspaceMount": "source=complex-workspace-volume,target=/workspace,"
+            "type=volume",
             "image": "python:3.11-slim",
             "mounts": ["source=host-data,target=/data,type=volume"],
         },
@@ -239,9 +237,11 @@ def test_cli_with_validation_error(
                         input={"container": "non-root", "remote": "non-root"},
                     ),
                     PydanticValidationErrorMessage.model_construct(
-                        location="container.runtime.user.function-after[check_users(), Users]",
+                        location="container.runtime.user.function-after[check_users(), "
+                        "Users]",
                         error_type="value_error",
-                        error_message="Value error, Remote and container users cannot be the same.",
+                        error_message="Value error, Remote and container users cannot "
+                        "be the same.",
                         input={"container": "non-root", "remote": "non-root"},
                     ),
                 ]
@@ -286,12 +286,16 @@ def test_cli_with_composer_error(
             ComposerMessage.model_construct(
                 composer_type="ContainerComposer",
                 error_type="ValueError",
-                error_message=f"Folder '{str(Path(user_context, '.devcontainer'))}' does not exist and policy is set to never.",
+                error_message=f"Folder '{str(Path(user_context, '.devcontainer'))}' "
+                "does not exist and policy is set to never.",
             ),
             ComposerMessage.model_construct(
                 composer_type="WorkspaceComposer",
                 error_type="ValueError",
-                error_message=f"File '{str(Path(user_context, 'workspace.code-workspace'))}' already exists and policy is set to never.",
+                error_message=f"File '{str(Path(
+                    user_context,
+                    'workspace.code-workspace'
+                ))}' already exists and policy is set to never.",
             ),
         ]
     )
@@ -328,7 +332,7 @@ def test_cli_with_nonexistent_configuration_file(
     nonexistent_file = Path("nonexistent", "workspace.yml")
     result = runner("--configuration", str(nonexistent_file), str(user_context))
     assert_that(result.exit_code).is_equal_to(2)
-    assert_that(result.output).contains(f"Error: Invalid value for '--configuration'")
+    assert_that(result.output).contains("Error: Invalid value for '--configuration'")
 
 
 def test_cli_with_nonexistent_context_directory(
@@ -344,7 +348,7 @@ def test_cli_with_nonexistent_context_directory(
         "--configuration", str(configuration_file), str(nonexistent_context)
     )
     assert_that(result.exit_code).is_equal_to(2)
-    assert_that(result.output).contains(f"Error: Invalid value for '[CONTEXT]'")
+    assert_that(result.output).contains("Error: Invalid value for '[CONTEXT]'")
 
 
 def test_cli_help_output(runner: Runner):

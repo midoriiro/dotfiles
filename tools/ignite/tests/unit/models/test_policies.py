@@ -78,7 +78,10 @@ class TestPoliciesValidation:
             )
 
     def test_policies_with_mixed_valid_and_invalid_policies_raises_error(self):
-        """Test that policies with mixed valid and invalid policies raises validation error."""
+        """
+        Test that policies with mixed valid and invalid policies raises validation
+        error.
+        """
         with pytest.raises(ValidationError):
             Policies(
                 {
@@ -115,7 +118,9 @@ class TestPoliciesValidation:
             )
 
     def test_policies_with_special_characters_in_keys_raises_error(self):
-        """Test that policies with special characters in keys raises validation error."""
+        """
+        Test that policies with special characters in keys raises validation error.
+        """
         with pytest.raises(ValueError, match="Invalid policy key: container-policy"):
             Policies(
                 {
@@ -199,137 +204,6 @@ class TestPoliciesModelValidation:
                 }
             )
 
-
-class TestPoliciesAccess:
-    """Test cases for accessing policies data."""
-
-    def test_access_policies_by_key(self):
-        """Test that policies can be accessed by key."""
-        policies = Policies(
-            {
-                "container": ContainerPolicy(backend=ContainerBackendPolicy.DOCKER),
-                "folder": FolderPolicy(create=FolderCreatePolicy.ALWAYS),
-                "file": FilePolicy(write=FileWritePolicy.OVERWRITE),
-            }
-        )
-        assert_that(policies.root["container"]).is_instance_of(ContainerPolicy)
-        assert_that(policies.root["folder"]).is_instance_of(FolderPolicy)
-        assert_that(policies.root["file"]).is_instance_of(FilePolicy)
-
-    def test_policies_keys(self):
-        """Test that policies keys can be accessed."""
-        policies = Policies(
-            {
-                "container": ContainerPolicy(backend=ContainerBackendPolicy.DOCKER),
-                "folder": FolderPolicy(create=FolderCreatePolicy.ALWAYS),
-                "file": FilePolicy(write=FileWritePolicy.OVERWRITE),
-            }
-        )
-        keys = list(policies.root.keys())
-        assert_that(keys).contains("container")
-        assert_that(keys).contains("folder")
-        assert_that(keys).contains("file")
-        assert_that(keys).is_length(3)
-
-    def test_policies_values(self):
-        """Test that policies values can be accessed."""
-        policies = Policies(
-            {
-                "container": ContainerPolicy(backend=ContainerBackendPolicy.DOCKER),
-                "folder": FolderPolicy(create=FolderCreatePolicy.ALWAYS),
-                "file": FilePolicy(write=FileWritePolicy.OVERWRITE),
-            }
-        )
-        values = list(policies.root.values())
-        assert_that(values).is_length(3)
-        assert_that(values[0]).is_instance_of(ContainerPolicy)
-        assert_that(values[1]).is_instance_of(FolderPolicy)
-        assert_that(values[2]).is_instance_of(FilePolicy)
-
-
-class TestPoliciesEdgeCases:
-    """Test cases for edge cases in policies."""
-
-    def test_policies_with_all_required_policies(self):
-        """Test that policies with all required policies is valid."""
-        policies = Policies(
-            {
-                "container": ContainerPolicy(backend=ContainerBackendPolicy.ANY),
-                "folder": FolderPolicy(create=FolderCreatePolicy.ASK),
-                "file": FilePolicy(write=FileWritePolicy.ASK),
-            }
-        )
-        assert_that(policies.root).is_length(3)
-        assert_that(policies.root["container"].backend).is_equal_to(
-            ContainerBackendPolicy.ANY
-        )
-        assert_that(policies.root["folder"].create).is_equal_to(FolderCreatePolicy.ASK)
-        assert_that(policies.root["file"].write).is_equal_to(FileWritePolicy.ASK)
-
-    def test_policies_with_multiple_same_type_policies_raises_error(self):
-        """Test that policies with multiple same type policies raises validation error."""
-        with pytest.raises(ValueError, match="Invalid policy key: container1"):
-            Policies(
-                {
-                    "container1": ContainerPolicy(
-                        backend=ContainerBackendPolicy.DOCKER
-                    ),
-                    "container2": ContainerPolicy(
-                        backend=ContainerBackendPolicy.PODMAN
-                    ),
-                    "container3": ContainerPolicy(backend=ContainerBackendPolicy.ANY),
-                    "folder": FolderPolicy(),
-                    "file": FilePolicy(),
-                }
-            )
-
-
-class TestPoliciesInheritance:
-    """Test cases for Policies inheritance and type checking."""
-
-    def test_policies_inherits_from_root_model(self):
-        """Test that Policies inherits from RootModel."""
-        policies = Policies(
-            {
-                "container": ContainerPolicy(backend=ContainerBackendPolicy.DOCKER),
-                "folder": FolderPolicy(create=FolderCreatePolicy.ALWAYS),
-                "file": FilePolicy(write=FileWritePolicy.OVERWRITE),
-            }
-        )
-        assert_that(policies).is_instance_of(Policies)
-
-    def test_policies_root_is_dict(self):
-        """Test that policies root is a dictionary."""
-        policies = Policies(
-            {
-                "container": ContainerPolicy(backend=ContainerBackendPolicy.DOCKER),
-                "folder": FolderPolicy(create=FolderCreatePolicy.ALWAYS),
-                "file": FilePolicy(write=FileWritePolicy.OVERWRITE),
-            }
-        )
-        assert_that(policies.root).is_instance_of(dict)
-
-    def test_policies_model_dump(self):
-        """Test that policies can be dumped to dict."""
-        policies = Policies(
-            {
-                "container": ContainerPolicy(backend=ContainerBackendPolicy.DOCKER),
-                "folder": FolderPolicy(create=FolderCreatePolicy.ALWAYS),
-                "file": FilePolicy(write=FileWritePolicy.OVERWRITE),
-            }
-        )
-        dumped = policies.model_dump()
-        assert_that(dumped).contains_key("container")
-        assert_that(dumped).contains_key("folder")
-        assert_that(dumped).contains_key("file")
-        assert_that(dumped["container"]["backend"]).is_equal_to("docker")
-        assert_that(dumped["folder"]["create"]).is_equal_to("always")
-        assert_that(dumped["file"]["write"]).is_equal_to("overwrite")
-
-
-class TestPoliciesModelValidation:
-    """Test cases for model validation methods."""
-
     def test_check_policies_with_valid_policies(self):
         """Test that check_policies method works with valid policies."""
         policies = Policies(
@@ -412,6 +286,135 @@ class TestPoliciesModelValidation:
                     "folder": FolderPolicy(create=FolderCreatePolicy.ALWAYS),
                 }
             )
+
+
+class TestPoliciesAccess:
+    """Test cases for accessing policies data."""
+
+    def test_access_policies_by_key(self):
+        """Test that policies can be accessed by key."""
+        policies = Policies(
+            {
+                "container": ContainerPolicy(backend=ContainerBackendPolicy.DOCKER),
+                "folder": FolderPolicy(create=FolderCreatePolicy.ALWAYS),
+                "file": FilePolicy(write=FileWritePolicy.OVERWRITE),
+            }
+        )
+        assert_that(policies.root["container"]).is_instance_of(ContainerPolicy)
+        assert_that(policies.root["folder"]).is_instance_of(FolderPolicy)
+        assert_that(policies.root["file"]).is_instance_of(FilePolicy)
+
+    def test_policies_keys(self):
+        """Test that policies keys can be accessed."""
+        policies = Policies(
+            {
+                "container": ContainerPolicy(backend=ContainerBackendPolicy.DOCKER),
+                "folder": FolderPolicy(create=FolderCreatePolicy.ALWAYS),
+                "file": FilePolicy(write=FileWritePolicy.OVERWRITE),
+            }
+        )
+        keys = list(policies.root.keys())
+        assert_that(keys).contains("container")
+        assert_that(keys).contains("folder")
+        assert_that(keys).contains("file")
+        assert_that(keys).is_length(3)
+
+    def test_policies_values(self):
+        """Test that policies values can be accessed."""
+        policies = Policies(
+            {
+                "container": ContainerPolicy(backend=ContainerBackendPolicy.DOCKER),
+                "folder": FolderPolicy(create=FolderCreatePolicy.ALWAYS),
+                "file": FilePolicy(write=FileWritePolicy.OVERWRITE),
+            }
+        )
+        values = list(policies.root.values())
+        assert_that(values).is_length(3)
+        assert_that(values[0]).is_instance_of(ContainerPolicy)
+        assert_that(values[1]).is_instance_of(FolderPolicy)
+        assert_that(values[2]).is_instance_of(FilePolicy)
+
+
+class TestPoliciesEdgeCases:
+    """Test cases for edge cases in policies."""
+
+    def test_policies_with_all_required_policies(self):
+        """Test that policies with all required policies is valid."""
+        policies = Policies(
+            {
+                "container": ContainerPolicy(backend=ContainerBackendPolicy.ANY),
+                "folder": FolderPolicy(create=FolderCreatePolicy.ASK),
+                "file": FilePolicy(write=FileWritePolicy.ASK),
+            }
+        )
+        assert_that(policies.root).is_length(3)
+        assert_that(policies.root["container"].backend).is_equal_to(
+            ContainerBackendPolicy.ANY
+        )
+        assert_that(policies.root["folder"].create).is_equal_to(FolderCreatePolicy.ASK)
+        assert_that(policies.root["file"].write).is_equal_to(FileWritePolicy.ASK)
+
+    def test_policies_with_multiple_same_type_policies_raises_error(self):
+        """
+        Test that policies with multiple same type policies raises validation error.
+        """
+        with pytest.raises(ValueError, match="Invalid policy key: container1"):
+            Policies(
+                {
+                    "container1": ContainerPolicy(
+                        backend=ContainerBackendPolicy.DOCKER
+                    ),
+                    "container2": ContainerPolicy(
+                        backend=ContainerBackendPolicy.PODMAN
+                    ),
+                    "container3": ContainerPolicy(backend=ContainerBackendPolicy.ANY),
+                    "folder": FolderPolicy(),
+                    "file": FilePolicy(),
+                }
+            )
+
+
+class TestPoliciesInheritance:
+    """Test cases for Policies inheritance and type checking."""
+
+    def test_policies_inherits_from_root_model(self):
+        """Test that Policies inherits from RootModel."""
+        policies = Policies(
+            {
+                "container": ContainerPolicy(backend=ContainerBackendPolicy.DOCKER),
+                "folder": FolderPolicy(create=FolderCreatePolicy.ALWAYS),
+                "file": FilePolicy(write=FileWritePolicy.OVERWRITE),
+            }
+        )
+        assert_that(policies).is_instance_of(Policies)
+
+    def test_policies_root_is_dict(self):
+        """Test that policies root is a dictionary."""
+        policies = Policies(
+            {
+                "container": ContainerPolicy(backend=ContainerBackendPolicy.DOCKER),
+                "folder": FolderPolicy(create=FolderCreatePolicy.ALWAYS),
+                "file": FilePolicy(write=FileWritePolicy.OVERWRITE),
+            }
+        )
+        assert_that(policies.root).is_instance_of(dict)
+
+    def test_policies_model_dump(self):
+        """Test that policies can be dumped to dict."""
+        policies = Policies(
+            {
+                "container": ContainerPolicy(backend=ContainerBackendPolicy.DOCKER),
+                "folder": FolderPolicy(create=FolderCreatePolicy.ALWAYS),
+                "file": FilePolicy(write=FileWritePolicy.OVERWRITE),
+            }
+        )
+        dumped = policies.model_dump()
+        assert_that(dumped).contains_key("container")
+        assert_that(dumped).contains_key("folder")
+        assert_that(dumped).contains_key("file")
+        assert_that(dumped["container"]["backend"]).is_equal_to("docker")
+        assert_that(dumped["folder"]["create"]).is_equal_to("always")
+        assert_that(dumped["file"]["write"]).is_equal_to("overwrite")
 
 
 class TestReservedPolicyKeys:

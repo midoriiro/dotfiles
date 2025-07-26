@@ -1,4 +1,3 @@
-import configparser
 import json
 import logging
 import os
@@ -6,7 +5,6 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List
 
 import pytest
-import typer
 import yaml
 from assertpy import assert_that
 from click.testing import Result
@@ -30,6 +28,8 @@ from ignite.models.policies import (
 from ignite.models.projects import Projects, UserProject
 from ignite.models.workspace import Workspace as WorkspaceModel
 from ignite.resolvers import PathResolver
+
+# pylint: disable=redefined-outer-name
 
 Runner = Callable[[List[str]], Result]
 Dumper = Callable[[Configuration, Path], None]
@@ -163,7 +163,6 @@ def assert_logs(caplog: pytest.LogCaptureFixture) -> AssertLogs:
                 raise AssertionError(
                     f"Record '{record.message}' does not have a 'type' attribute"
                 )
-            type = record.type
             message = BaseMessage.from_record(record)
             assert_that(expected_messages).contains(message)
 
@@ -187,7 +186,7 @@ def assert_file(user_context: Path) -> AssertFile:
         except json.JSONDecodeError:
             pass
         try:
-            content = yaml.load(path.read_text())
+            content = yaml.load(path.read_text(), Loader=yaml.SafeLoader)
             _assert_file_content(content, expected_content)
         except yaml.YAMLError:
             pass

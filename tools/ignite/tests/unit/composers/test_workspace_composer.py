@@ -29,12 +29,17 @@ from ignite.models.variables import StringVariable, Variables
 from ignite.models.workspace import Workspace as WorkspaceModel
 from ignite.resolvers import PathResolver
 
+# pylint: disable=protected-access
+
 
 class TestWorkspaceComposerInitialization:
     """Test WorkspaceComposer initialization and basic properties."""
 
     def test_workspace_composer_initialization(self, minimal_workspace_configuration):
-        """Test that WorkspaceComposer initializes correctly with a workspace and path resolver."""
+        """
+        Test that WorkspaceComposer initializes correctly with a workspace and path
+        resolver.
+        """
         path_resolver = Mock(spec=PathResolver)
         composer = WorkspaceComposer(minimal_workspace_configuration, path_resolver)
 

@@ -1,4 +1,3 @@
-import pytest
 from assertpy import assert_that
 
 from ignite.utils import merge_dicts

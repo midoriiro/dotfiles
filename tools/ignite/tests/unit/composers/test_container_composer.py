@@ -1,16 +1,12 @@
 import json
-import logging
 from collections import OrderedDict
 from pathlib import Path
-from typing import Any, Dict
 
 import pytest
 from assertpy import assert_that
 
 from ignite.composers import ContainerComposer
-from ignite.logging import FilesystemMessage
 from ignite.models.container import (
-    URL,
     Build,
     Container,
     Env,
@@ -18,12 +14,9 @@ from ignite.models.container import (
     Expose,
     Extensions,
     Image,
-    Mount,
-    MountType,
     Network,
     Runtime,
     Socket,
-    URLScheme,
     Users,
 )
 from ignite.models.container import Workspace as ContainerWorkspace
@@ -35,6 +28,8 @@ from ignite.models.policies import (
     Policies,
     ReservedPolicyKeys,
 )
+
+# pylint: disable=protected-access
 
 
 class TestContainerComposerInitialization:
@@ -88,7 +83,11 @@ class TestContainerComposerCompose:
         assert_that(composer._ContainerComposer__config).is_not_none()
         expected_config = {
             "name": minimal_container_configuration.workspace.name,
-            "workspaceMount": f"source={minimal_container_configuration.workspace.volume_name},target={minimal_container_configuration.workspace.folder},type=volume",
+            "workspaceMount": f"source={
+                    minimal_container_configuration.workspace.volume_name
+                },target={
+                    minimal_container_configuration.workspace.folder
+                },type=volume",
             "workspaceFolder": minimal_container_configuration.workspace.folder,
             "image": minimal_container_configuration.image.name,
         }
@@ -301,7 +300,11 @@ class TestContainerComposerSave:
 
         expected_config = {
             "name": minimal_container_configuration.workspace.name,
-            "workspaceMount": f"source={minimal_container_configuration.workspace.volume_name},target={minimal_container_configuration.workspace.folder},type=volume",
+            "workspaceMount": f"source={
+                minimal_container_configuration.workspace.volume_name
+            },target={
+                minimal_container_configuration.workspace.folder
+            },type=volume",
             "workspaceFolder": minimal_container_configuration.workspace.folder,
             "image": minimal_container_configuration.image.name,
         }
@@ -324,7 +327,8 @@ class TestContainerComposerSave:
 
         composer.save(tmp_path, policies)
 
-        # Check that the correct policies are used (ALWAYS for folder, OVERWRITE for file)
+        # Check that the correct policies are used (ALWAYS for folder, OVERWRITE for
+        # file)
         devcontainer_path = Path(tmp_path, ".devcontainer")
         assert_that(str(devcontainer_path)).exists()
 
@@ -334,5 +338,5 @@ class TestContainerComposerSave:
             f"Folder '{devcontainer_path}' created."
         )
         assert_that(log_records[1]).is_equal_to(
-            f"File '{devcontainer_path / "devcontainer.json"}' saved."
+            f"File '{devcontainer_path / 'devcontainer.json'}' saved."
         )

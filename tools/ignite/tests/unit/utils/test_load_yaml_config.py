@@ -1,7 +1,3 @@
-import json
-from pathlib import Path
-from typing import Dict
-
 import pytest
 import yaml
 from assertpy import assert_that
@@ -209,7 +205,7 @@ class TestLoadYamlConfigEdgeCases:
         key1: null
         key2: ~
         key3: 
-        """
+        """  # noqa: W291
         yaml_file.write_text(yaml_content)
         schema = {"type": "object"}
 
@@ -249,7 +245,7 @@ class TestLoadYamlConfigEdgeCases:
         key1: value
         key2: ~
         key3: 
-        """
+        """  # noqa: W291
         yaml_file.write_text(yaml_content)
         schema = {"type": "object"}
 

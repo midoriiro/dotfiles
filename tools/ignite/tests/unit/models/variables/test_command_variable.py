@@ -337,7 +337,10 @@ class TestCommandVariableErrors:
             variable.resolve()
 
     def test_resolve_invalid_format_raises_error(self):
-        """Test that resolve raises ValueError for invalid format (should not happen with valid CommandVariable)."""
+        """
+        Test that resolve raises ValueError for invalid format (should not happen
+        with valid CommandVariable).
+        """
         # This tests the internal error handling, though it shouldn't be reachable
         # with a properly validated CommandVariable
         variable = CommandVariable("$(echo test)")

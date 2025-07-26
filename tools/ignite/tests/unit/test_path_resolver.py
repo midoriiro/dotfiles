@@ -1,11 +1,12 @@
 from pathlib import Path
-from unittest.mock import MagicMock, patch
 
 import pytest
 from assertpy import assert_that
 
 from ignite.models.fs import ReservedFileName
 from ignite.resolvers import PathResolver
+
+# pylint: disable=redefined-outer-name,protected-access
 
 
 @pytest.fixture()
@@ -25,9 +26,7 @@ class TestPathResolver:
         )
         assert_that(resolver._PathResolver__user_context).is_equal_to(user_context)
 
-    def test_resolve_simple_file_in_repository(
-        self, repository_context, user_context, tmp_path
-    ):
+    def test_resolve_simple_file_in_repository(self, repository_context, user_context):
         """Test resolving a simple file that exists in repository context."""
         resolver = PathResolver(
             repository_context=repository_context, user_context=user_context
@@ -74,9 +73,7 @@ class TestPathResolver:
         ):
             resolver.resolve(paths)
 
-    def test_resolve_all_file_in_repository(
-        self, repository_context, user_context, tmp_path
-    ):
+    def test_resolve_all_file_in_repository(self, repository_context, user_context):
         """Test resolving $all file in repository context."""
         resolver = PathResolver(
             repository_context=repository_context, user_context=user_context
@@ -250,8 +247,6 @@ class TestPathResolver:
         )
 
         # Setup test files
-        repo_file = repository_context / "vscode" / "settings" / "python" / "base"
-
         user_file = user_context / "user.txt"
         user_file.write_text("user content")
 

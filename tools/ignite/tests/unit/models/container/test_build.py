@@ -2,7 +2,6 @@ import pytest
 from assertpy import assert_that
 from pydantic import ValidationError
 
-from ignite.models.common import Identifier
 from ignite.models.container import Build
 
 
@@ -21,7 +20,9 @@ class TestValidBuild:
         ],
     )
     def test_valid_build_with_container_file_only(self, container_file):
-        """Test that valid build configurations with only container_file are accepted."""
+        """
+        Test that valid build configurations with only container_file are accepted.
+        """
         build = Build(container_file=container_file)
         assert_that(build.container_file).is_equal_to(container_file)
         assert_that(build.context).is_none()
@@ -37,7 +38,10 @@ class TestValidBuild:
         ],
     )
     def test_valid_build_with_container_file_and_context(self, container_file, context):
-        """Test that valid build configurations with container_file and context are accepted."""
+        """
+        Test that valid build configurations with container_file and context are
+        accepted.
+        """
         build = Build(container_file=container_file, context=context)
         assert_that(build.container_file).is_equal_to(container_file)
         assert_that(build.context).is_equal_to(context)
@@ -53,7 +57,10 @@ class TestValidBuild:
         ],
     )
     def test_valid_build_with_container_file_and_target(self, container_file, target):
-        """Test that valid build configurations with container_file and target are accepted."""
+        """
+        Test that valid build configurations with container_file and target are
+        accepted.
+        """
         build = Build(container_file=container_file, target=target)
         assert_that(build.container_file).is_equal_to(container_file)
         assert_that(build.context).is_none()
@@ -81,12 +88,18 @@ class TestBuildValidation:
             Build(container_file="")
 
     def test_build_with_invalid_container_file_pattern(self):
-        """Test that build configurations with invalid container_file patterns are rejected."""
+        """
+        Test that build configurations with invalid container_file patterns are
+        rejected.
+        """
         with pytest.raises(ValidationError, match="should match pattern"):
             Build(container_file="invalid@file")
 
     def test_build_with_too_long_container_file(self):
-        """Test that build configurations with container_file longer than 256 characters are rejected."""
+        """
+        Test that build configurations with container_file longer than 256 characters
+        are rejected.
+        """
         long_file = "a" * 257
         with pytest.raises(ValidationError, match="should have at most 256 items"):
             Build(container_file=long_file)
@@ -102,7 +115,10 @@ class TestBuildValidation:
             Build(container_file="Dockerfile", context="invalid@context")
 
     def test_build_with_too_long_context(self):
-        """Test that build configurations with context longer than 256 characters are rejected."""
+        """
+        Test that build configurations with context longer than 256 characters are
+        rejected.
+        """
         long_context = "a" * 257
         with pytest.raises(ValidationError, match="should have at most 256 items"):
             Build(container_file="Dockerfile", context=long_context)
@@ -113,7 +129,10 @@ class TestBuildValidation:
             Build(container_file="Dockerfile", target="invalid@target")
 
     def test_build_with_too_long_target(self):
-        """Test that build configurations with target longer than 256 characters are rejected."""
+        """
+        Test that build configurations with target longer than 256 characters are
+        rejected.
+        """
         long_target = "a" * 257
         with pytest.raises(ValidationError, match="should have at most 256 characters"):
             Build(container_file="Dockerfile", target=long_target)
@@ -157,7 +176,10 @@ class TestBuildCompose:
         assert_that(result).is_equal_to(expected)
 
     def test_compose_build_with_context_and_target_only(self):
-        """Test that build with context and target (no container_file) raises ValidationError."""
+        """
+        Test that build with context and target (no container_file) raises
+        ValidationError.
+        """
         with pytest.raises(ValidationError, match="Field required"):
             Build(context="src", target="production")
 
@@ -211,7 +233,9 @@ class TestBuildEdgeCases:
         assert_that(build.target).is_equal_to(long_target)
 
     def test_build_with_special_characters_in_container_file(self):
-        """Test that build with valid special characters in container_file is accepted."""
+        """
+        Test that build with valid special characters in container_file is accepted.
+        """
         build = Build(container_file="docker-file_123")
         assert_that(build.container_file).is_equal_to("docker-file_123")
         assert_that(build.context).is_none()

@@ -1,14 +1,12 @@
-import logging
 from pathlib import Path
-from unittest.mock import Mock, mock_open, patch
+from unittest.mock import mock_open, patch
 
-import pytest
 from assertpy import assert_that
-from typer.testing import CliRunner
 
 from ignite.composers import Composer
-from ignite.logging import FilesystemMessage
 from ignite.models.policies import FileWritePolicy, FolderCreatePolicy, Policies
+
+# pylint: disable=protected-access,assignment-from-no-return
 
 
 class TestComposerInit:
@@ -224,7 +222,9 @@ class TestComposerFolderPolicies:
         ).is_true()
 
     def test_never_policy_when_folder_does_not_exist(self, tmp_path):
-        """Test _save_file raises error when policy is NEVER and folder doesn't exist."""
+        """
+        Test _save_file raises error when policy is NEVER and folder doesn't exist.
+        """
         composer = Composer()
         output_path = tmp_path / "nonexistent" / "test.txt"
 
@@ -248,9 +248,7 @@ class TestComposerFilePolicies:
     """Test class for Composer _save_file method with different file policies."""
 
     @patch("typer.confirm")
-    def test_ask_policy_when_user_confirms_overwrite(
-        self, mock_confirm, tmp_path, caplog
-    ):
+    def test_ask_policy_when_user_confirms_overwrite(self, mock_confirm, tmp_path):
         """Test _save_file asks for overwrite when file exists and policy is ASK."""
         composer = Composer()
         output_path = tmp_path / "test.txt"
@@ -339,7 +337,7 @@ class TestComposerFilePolicies:
         # Verify content was overwritten
         assert_that(output_path.read_text()).is_equal_to("new content")
 
-    def test_never_policy_when_file_exists(self, tmp_path, caplog):
+    def test_never_policy_when_file_exists(self, tmp_path):
         """Test _save_file raises error when policy is NEVER and file exists."""
         composer = Composer()
         output_path = tmp_path / "test.txt"

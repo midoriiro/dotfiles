@@ -4,7 +4,7 @@ import pytest
 from assertpy import assert_that
 from pydantic import ValidationError
 
-from ignite.models.fs import AbsolutePath, ResolvedFolder
+from ignite.models.fs import ResolvedFolder
 from ignite.models.projects import UserProject
 from ignite.models.settings import File, Folder, VSCodeFolder
 
