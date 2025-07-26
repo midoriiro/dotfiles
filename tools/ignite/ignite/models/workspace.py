@@ -14,6 +14,8 @@ from ignite.models.projects import (
 from ignite.models.variables import ResolvedVariables, Variables
 from ignite.resolvers import PathResolver
 
+# pylint: disable=no-member
+
 
 class WorkspaceFolderSpecification(BaseModel):
     """
@@ -94,7 +96,8 @@ class Workspace(BaseModel):
 
     def resolve_project_variables(self) -> Dict[str, ResolvedVariables]:
         """
-        Resolve all project variables to a dictionary mapping project identifiers to variables.
+        Resolve all project variables to a dictionary mapping project identifiers to
+        variables.
         """
         resolved_variables: Dict[str, Variables] = {}
         for (

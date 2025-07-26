@@ -4,6 +4,11 @@ import re
 from enum import Enum
 from typing import Annotated, Any, Dict, List, Literal, Optional, Union
 
+try:
+    from typing import override
+except ImportError:
+    from typing_extensions import override
+
 from pydantic import (
     BaseModel,
     BeforeValidator,
@@ -16,6 +21,8 @@ from pydantic import (
 from ignite.mergers import FileMerger, IniFileMerger, JsonFileMerger, YamlFileMerger
 from ignite.models.common import Identifier, IdentifierPattern
 from ignite.models.variables import ResolvedVariables
+
+# pylint: disable=no-member
 
 logger = logging.getLogger(__name__)
 
@@ -123,6 +130,7 @@ class FileTemplateVariables(BaseModel):
 
     __variables_counter: Optional[Dict[str, int]] = None
 
+    @override
     def model_post_init(self, __context: Any) -> None:
         if self.variables:
             self.__variables_counter = {}
@@ -186,7 +194,8 @@ class FileTemplateVariables(BaseModel):
         Note:
             - Variable replacement is case-sensitive
             - Multiple occurrences of the same variable are all replaced
-            - If a variable placeholder doesn't match any known variables, it remains unchanged
+            - If a variable placeholder doesn't match any known variables, it remains
+              unchanged
             - The method preserves the original template structure and formatting
         """
         if not template or template.strip() == "":
@@ -254,16 +263,19 @@ class ResolvedFile(BaseModel):
 
 class ResolvedFolder(BaseModel):
     """
-    Represents a resolved folder that can merge multiple source files into a single destination file.
+    Represents a resolved folder that can merge multiple source files into a single
+    destination file.
 
-    This class is designed to handle the merging of multiple configuration files (JSON, YAML, INI)
-    into a single output file while applying template variable substitution. It provides a
-    unified interface for file merging operations regardless of the source file formats.
+    This class is designed to handle the merging of multiple configuration files
+    (JSON, YAML, INI) into a single output file while applying template variable
+    substitution. It provides a unified interface for file merging operations
+    regardless of the source file formats.
 
     Attributes:
         sources (List[Path]):
             A list of source file paths to be merged. Must contain at least one path.
-            All source files should be of the same type (JSON, YAML, or INI) for proper merging.
+            All source files should be of the same type (JSON, YAML, or INI) for proper
+            merging.
             The files will be merged in the order they appear in this list.
 
         destination (Path):
@@ -320,11 +332,13 @@ class ResolvedFolder(BaseModel):
 
     def resolve(self, variables: FileTemplateVariables) -> ResolvedFile:
         """
-        Resolve the folder to a resolved file by merging source files and applying template variables.
+        Resolve the folder to a resolved file by merging source files and applying
+        template variables.
 
         This method performs the following steps:
             1. Validates that variables are provided
-            2. Determines the appropriate file merger based on the destination file extension
+            2. Determines the appropriate file merger based on the destination file
+               extension
             3. Merges all source files into a single data structure
             4. Writes the merged data to a string representation
             5. Applies template variable substitution to the content
@@ -342,9 +356,11 @@ class ResolvedFolder(BaseModel):
 
         Raises:
             ValueError:
-                If variables is None. The error message will be "Variables cannot be None."
-                If the destination file extension is not supported. The error message will be
-                "Unsupported file extension: {extension}" where {extension} is the actual extension.
+                If variables is None. The error message will be "Variables cannot be
+                None."
+                If the destination file extension is not supported. The error message
+                will be "Unsupported file extension: {extension}" where {extension} is
+                the actual extension.
                 Supported extensions are: .json, .yaml, .yml, .ini
 
         Examples:
@@ -360,7 +376,8 @@ class ResolvedFolder(BaseModel):
             {"project": "my-project", "merged": true}
 
         Note:
-            - The method automatically selects the appropriate merger based on file extension
+            - The method automatically selects the appropriate merger based on file
+              extension
             - JSON files use JsonFileMerger
             - YAML files (.yaml or .yml) use YamlFileMerger
             - INI files use IniFileMerger
@@ -443,7 +460,8 @@ class Folder(RootModel[Dict[Identifier, List[Union[File, "Folder"]]]]):
         - Keys are folder names (:data:`Identifier`)
         - Values are lists containing File objects and/or nested Folder objects
 
-    The model implements comprehensive validation rules to ensure proper file system structure:
+    The model implements comprehensive validation rules to ensure proper file system
+    structure:
 
     Folder Validation Rules:
         - Folder names must be unique within the same level
@@ -538,7 +556,7 @@ class Folder(RootModel[Dict[Identifier, List[Union[File, "Folder"]]]]):
     def _validate_unique_folder_names(folders: List[Identifier]) -> None:
         unique_folders = list(set(folders))
         if len(unique_folders) != len(folders):
-            raise ValueError(f"Folder names must be unique.")
+            raise ValueError("Folder names must be unique.")
 
     @model_validator(mode="after")
     def validate_folder_contents(self):
@@ -555,7 +573,7 @@ class Folder(RootModel[Dict[Identifier, List[Union[File, "Folder"]]]]):
         files = [item.root for item in filtered_items if isinstance(item, File)]
 
         if len(folders) == 0 and len(files) == 0:
-            raise ValueError(f"Folder must contain at least one file or one subfolder.")
+            raise ValueError("Folder must contain at least one file or one subfolder.")
 
         all_files = []
         ref_files = []
@@ -592,19 +610,21 @@ class Folder(RootModel[Dict[Identifier, List[Union[File, "Folder"]]]]):
 
         if ref_file and all_file:
             raise ValueError(
-                f"'{ReservedFileName.REF.value}' and '{ReservedFileName.ALL.value}' cannot be defined simultaneously."
+                f"'{ReservedFileName.REF.value}' and '{ReservedFileName.ALL.value}' "
+                "cannot be defined simultaneously."
             )
 
         if all_file and len(repository_files) > 0:
             raise ValueError(
-                f"'{ReservedFileName.ALL.value}' cannot be defined simultaneously with repository files."
+                f"'{ReservedFileName.ALL.value}' cannot be defined simultaneously "
+                "with repository files."
             )
 
         user_and_repository_files = [item for item in repository_files + user_files]
 
         unique_files = list(set(user_and_repository_files))
         if len(unique_files) != len(user_and_repository_files):
-            raise ValueError(f"File names must be unique.")
+            raise ValueError("File names must be unique.")
 
         return self
 

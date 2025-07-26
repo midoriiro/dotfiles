@@ -1,9 +1,8 @@
-import json
 from pathlib import Path
 from typing import Dict
 
 import yaml
-from jsonschema import SchemaError, ValidationError, validate
+from jsonschema import SchemaError, validate
 
 
 def load_yaml_config(file_path: Path, schema: Dict) -> Dict:

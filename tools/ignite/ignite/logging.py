@@ -7,7 +7,7 @@ try:
 except ImportError:
     from typing_extensions import override
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class BaseMessage(BaseModel):
