@@ -1,6 +1,6 @@
 [project]
 name = "poexy-core"
-version = "2025.7.2"
+version = "2025.7.3"
 description = "Unified Python packaging backend for wheels, sdist, and executables"
 readme = "README.md"
 license-files = ["LICENSE"]
