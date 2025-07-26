@@ -123,3 +123,27 @@ workspace:
         tasks:
           - poetry:
               - $all
+    mutex-cli:
+      alias: Mutex-CLI
+      path: tools/
+      variables:
+        pytest-root-directory: tests
+        pytest-package-name: mutex_cli
+      vscode:
+        settings:
+          - $ref
+        tasks:
+          - poetry:
+              - $all
+    mutex:
+      alias: Mutex
+      path: tools/
+      variables:
+        pytest-root-directory: tests
+        pytest-package-name: mutex
+      vscode:
+        settings:
+          - $ref
+        tasks:
+          - poetry:
+              - $all
