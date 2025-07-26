@@ -7,6 +7,7 @@
   "coverage-gutters.coverageReportFileName": ".coverage",
   "coverage-gutters.showLineCoverage": true,
   "coverage-gutters.showRulerCoverage": true,
+  "explorer.autoReveal": false,
   "editor.rulers": [
     88
   ],
@@ -16,7 +17,7 @@
     "editor.formatOnPaste": true,
     "editor.codeActionsOnSave": {
       "source.organizeImports": "explicit"
-    },
+    }
   },
   "files.exclude": {
     "**/__pycache__": true,
@@ -24,12 +25,13 @@
     "**/*.pyc": true,
     "**/.venv": true
   },
-  "python.languageServer": "Pylance",
+  "python.defaultInterpreterPath": "/home/vscode/.cache/pypoetry/virtualenvs/poexy-core-kfrEIfvY-py3.13/bin/python",
   "python.formatting.provider": "black",
   "flake8.enabled": true,
   "flake8.args": [
     "--max-line-length=88"
   ],
+  "pylint.enabled": true,
   "pylint.args": [
     "--disable=missing-module-docstring",
     "--disable=missing-class-docstring",
@@ -37,20 +39,17 @@
     "--disable=logging-fstring-interpolation"
   ],
   "isort.args": [
-    "--profile",
-    "black"
-  ],
-  "python.defaultInterpreterPath": "${poetry env info --executable}",
-  "python.testing.pytestArgs": [
-    "tests",
-    "--cov=poexy_core",
-    "--cov-report=term-missing",
-    "--numprocesses=auto",
-    "--exitfirst",
-    "--capture=no",
-    "--show-capture=no"
+    "--profile black"
   ],
   "python.testing.pytestEnabled": true,
   "python.testing.unittestEnabled": false,
-  "python.testing.nosetestsEnabled": false
+  "python.testing.pytestArgs": [
+    "tests",
+    "--cov=poexy_core",
+    "--exitfirst",
+    "--numprocesses=auto",
+    "--capture=no",
+    "--show-capture=no"
+  ],
+  "python.languageServer": "Pylance"
 }

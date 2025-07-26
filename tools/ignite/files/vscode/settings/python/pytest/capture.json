@@ -1,5 +1,5 @@
 {
     "python.testing.pytestArgs": [
-        "--numprocesses=auto"
+        "--capture=${pytest-capture}"
     ]
 }

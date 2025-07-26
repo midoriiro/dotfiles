@@ -1,5 +1,5 @@
 {
     "python.testing.pytestArgs": [
-        "tests"
+        "--numprocesses=${pytest-parallel}"
     ]
 }

@@ -19,7 +19,9 @@ class TestFileTemplateVariablesCreation:
             FileTemplateVariables(project_name="")
 
     def test_creation_with_special_characters(self):
-        """Test creating FileTemplateVariables with special characters in project name."""
+        """
+        Test creating FileTemplateVariables with special characters in project name.
+        """
         variables = FileTemplateVariables(project_name="my-project_123")
         assert_that(variables.project_name).is_equal_to("my-project_123")
 
@@ -29,7 +31,10 @@ class TestFileTemplateVariablesCreation:
             FileTemplateVariables(project_name="a" * 51)
 
     def test_creation_without_project_name_raises_error(self):
-        """Test that creating FileTemplateVariables without project_name raises ValidationError."""
+        """
+        Test that creating FileTemplateVariables without project_name raises
+        ValidationError.
+        """
         with pytest.raises(ValidationError):
             FileTemplateVariables()
 

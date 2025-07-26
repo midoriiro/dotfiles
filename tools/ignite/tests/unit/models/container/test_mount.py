@@ -2,9 +2,7 @@ import pytest
 from assertpy import assert_that
 from pydantic import ValidationError
 
-from ignite.models.common import Identifier
 from ignite.models.container import Mount, MountType
-from ignite.models.fs import AbsolutePath
 
 
 class TestValidMountBind:
@@ -241,7 +239,10 @@ class TestMountStringRepresentation:
             type=MountType.VOLUME,
             options=["ro", "noexec", "nosuid"],
         )
-        expected = "source=data-volume,target=/workspace/data,type=volume,options=ro,noexec,nosuid"
+        expected = (
+            "source=data-volume,target=/workspace/data,type=volume,options=ro,"
+            "noexec,nosuid"
+        )
         assert_that(str(mount)).is_equal_to(expected)
 
 
@@ -332,7 +333,8 @@ class TestMountCompose:
         result = mount.compose()
         expected = {
             "mounts": [
-                "source=/home/user/data,target=/workspace/data,type=bind,options=ro,noexec,nosuid"
+                "source=/home/user/data,target=/workspace/data,type=bind,options=ro,"
+                "noexec,nosuid"
             ]
         }
         assert_that(result).is_equal_to(expected)
@@ -373,7 +375,8 @@ class TestMountCompose:
         result = mount.compose()
         expected = {
             "mounts": [
-                "source=/home/user/data-folder_123,target=/workspace/data-folder_123,type=bind,options=ro"
+                "source=/home/user/data-folder_123,target=/workspace/data-folder_123,"
+                "type=bind,options=ro"
             ]
         }
         assert_that(result).is_equal_to(expected)

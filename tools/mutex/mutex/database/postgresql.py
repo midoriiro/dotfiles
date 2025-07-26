@@ -1,21 +1,23 @@
-from typing import List, Optional, Union
-import asyncpg
 import logging
-from mutex.database.base import Database, DatabaseError, ConnectionError, QueryError
-from mutex.database.record import Record, LockRecord
-from mutex.database.statement import Statement
+from typing import List, Optional
+
+import asyncpg
+
+from mutex.database.base import ConnectionError, Database, QueryError
 from mutex.database.models import DatabaseConfig
+from mutex.database.record import Record
+from mutex.database.statement import Statement
 
 logger = logging.getLogger(__name__)
 
 
 class PostgreSQLDatabase(Database):
     """PostgreSQL database implementation with connection pooling"""
-    
+
     def __init__(self, config: DatabaseConfig):
         super().__init__(config)
         self._pool = None
-    
+
     async def connect(self) -> None:
         """Establish database connection pool"""
         try:
@@ -25,14 +27,14 @@ class PostgreSQLDatabase(Database):
                 max_size=self.config.pool_size,
                 max_queries=50000,
                 max_inactive_connection_lifetime=300.0,
-                command_timeout=self.config.pool_timeout
+                command_timeout=self.config.pool_timeout,
             )
             self._is_connected = True
             logger.info("PostgreSQL connection pool established")
         except Exception as e:
             self._is_connected = False
             raise ConnectionError(f"Failed to connect to PostgreSQL: {e}") from e
-    
+
     async def disconnect(self) -> None:
         """Close database connection pool"""
         if self._pool:
@@ -40,27 +42,27 @@ class PostgreSQLDatabase(Database):
             self._pool = None
             self._is_connected = False
             logger.info("PostgreSQL connection pool closed")
-    
+
     async def _get_connection(self):
         """Get a connection from the pool"""
         if not self.is_connected:
             raise ConnectionError("Database not connected")
         return await self._pool.acquire()
-    
+
     async def _release_connection(self, conn):
         """Release a connection back to the pool"""
         await self._pool.release(conn)
-    
+
     async def _begin_transaction(self) -> None:
         """Begin a new transaction"""
         conn = await self._get_connection()
         await conn.execute("BEGIN")
-    
+
     async def _commit_transaction(self) -> None:
         """Commit the current transaction"""
         conn = await self._get_connection()
         await conn.execute("COMMIT")
-    
+
     async def _rollback_transaction(self) -> None:
         """Rollback the current transaction"""
         conn = await self._get_connection()
@@ -79,7 +81,7 @@ class PostgreSQLDatabase(Database):
             raise QueryError(f"Failed to create table: {e}") from e
         finally:
             await self._release_connection(conn)
-    
+
     async def fetch_many(self, statement: Statement) -> List[Record]:
         """Fetch multiple records"""
         conn = await self._get_connection()
@@ -90,7 +92,7 @@ class PostgreSQLDatabase(Database):
             raise QueryError(f"Failed to fetch records: {e}") from e
         finally:
             await self._release_connection(conn)
-    
+
     async def fetch_one(self, statement: Statement) -> Optional[Record]:
         """Fetch a single record"""
         conn = await self._get_connection()
@@ -103,7 +105,7 @@ class PostgreSQLDatabase(Database):
             raise QueryError(f"Failed to fetch record: {e}") from e
         finally:
             await self._release_connection(conn)
-    
+
     async def insert_many(self, statement: Statement) -> int:
         """Insert multiple records"""
         conn = await self._get_connection()
@@ -118,12 +120,12 @@ class PostgreSQLDatabase(Database):
             raise QueryError(f"Failed to insert records: {e}") from e
         finally:
             await self._release_connection(conn)
-    
+
     async def insert_one(self, statement: Statement) -> bool:
         """Insert a single record"""
         inserted_count = await self.insert_many(statement)
         return inserted_count == 1
-    
+
     async def update_many(self, statement: Statement) -> int:
         """Update multiple records"""
         conn = await self._get_connection()
@@ -138,12 +140,12 @@ class PostgreSQLDatabase(Database):
             raise QueryError(f"Failed to update records: {e}") from e
         finally:
             await self._release_connection(conn)
-    
+
     async def update_one(self, statement: Statement) -> bool:
         """Update a single record"""
         updated_count = await self.update_many(statement)
         return updated_count == 1
-    
+
     async def delete_many(self, statement: Statement) -> int:
         """Delete multiple records"""
         conn = await self._get_connection()
@@ -158,7 +160,7 @@ class PostgreSQLDatabase(Database):
             raise QueryError(f"Failed to delete records: {e}") from e
         finally:
             await self._release_connection(conn)
-    
+
     async def delete_one(self, statement: Statement) -> bool:
         """Delete a single record"""
         deleted_count = await self.delete_many(statement)

@@ -55,6 +55,10 @@ on:
         required: true
         type: number
         default: 95
+    secrets:
+      mutex-database-uri:
+        description: 'The mutex database URI'
+        required: true
 
 permissions:
   contents: write
@@ -109,6 +113,8 @@ jobs:
         builds-registry-key: ${{ inputs.builds-registry-key }}
         use-poexy-core: ${{ inputs.use-poexy-core }}
         code-coverage-threshold: ${{ inputs.code-coverage-threshold }}
+    secrets:
+      mutex-database-uri: ${{ secrets.mutex-database-uri }}
 
   ci-matrix:
     name: CI - Matrix
@@ -130,6 +136,8 @@ jobs:
         builds-registry-key: ${{ inputs.builds-registry-key }}
         use-poexy-core: ${{ inputs.use-poexy-core }}
         code-coverage-threshold: ${{ inputs.code-coverage-threshold }}
+    secrets:
+      mutex-database-uri: ${{ secrets.mutex-database-uri }}
 
   ci-result-aggregator:
     name: Aggregate CI Result

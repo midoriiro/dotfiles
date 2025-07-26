@@ -1,7 +1,6 @@
 import logging
 import os
 from pathlib import Path
-from typing import Annotated, Any, List, Optional, override
 
 import jsonschema
 import pydantic
@@ -50,7 +49,7 @@ def __handle_yaml_error(error: yaml.scanner.ScannerError) -> None:
         problem=error.problem,
     )
     logger.error("YAML parsing failed", extra=message.model_dump())
-    typer.echo(f"Configuration file is invalid:", err=True)
+    typer.echo("Configuration file is invalid:", err=True)
     typer.echo(f"  - Problem: {error.problem}", err=True)
     typer.echo(f"  - Line: {error.problem_mark.line}", err=True)
     typer.echo(f"  - Column: {error.problem_mark.column}", err=True)
@@ -65,7 +64,7 @@ def __handle_schema_error(error: jsonschema.ValidationError) -> None:
     )
     logger.error("JSON Schema validation failed", extra=message.model_dump())
     # Keep user-friendly output for CLI
-    typer.echo(f"Configuration file is invalid:", err=True)
+    typer.echo("Configuration file is invalid:", err=True)
     typer.echo(f"  - Location: {error.json_path}", err=True)
     typer.echo(f"  - Message: {error.message}", err=True)
     raise typer.Exit(1)
@@ -109,7 +108,7 @@ def __handle_composer_error(error: Exception, composer: Composer) -> None:
     )
     logger.error("Composer failed", extra=message.model_dump())
     # Keep user-friendly output for CLI
-    typer.echo(f"Composer failed:", err=True)
+    typer.echo("Composer failed:", err=True)
     typer.echo(f"  - Composer Type: {composer.__class__.__name__}", err=True)
     typer.echo(f"  - Error Type: {error.__class__.__name__}", err=True)
     typer.echo(f"  - Error Message: {str(error)}", err=True)

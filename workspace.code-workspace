@@ -16,12 +16,12 @@
       "name": "Ignite"
     },
     {
-      "path": "tools/mutex",
-      "name": "Mutex"
-    },
-    {
       "path": "tools/mutex-cli",
       "name": "Mutex-CLI"
+    },
+    {
+      "path": "tools/mutex",
+      "name": "Mutex"
     }
   ],
   "settings": {}

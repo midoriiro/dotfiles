@@ -1,11 +1,12 @@
 from pathlib import Path
-from unittest.mock import MagicMock, patch
 
 import pytest
 from assertpy import assert_that
 
 from ignite.models.fs import ReservedFileName
 from ignite.resolvers import PathResolver
+
+# pylint: disable=redefined-outer-name,protected-access
 
 
 @pytest.fixture()
@@ -25,9 +26,7 @@ class TestPathResolver:
         )
         assert_that(resolver._PathResolver__user_context).is_equal_to(user_context)
 
-    def test_resolve_simple_file_in_repository(
-        self, repository_context, user_context, tmp_path
-    ):
+    def test_resolve_simple_file_in_repository(self, repository_context, user_context):
         """Test resolving a simple file that exists in repository context."""
         resolver = PathResolver(
             repository_context=repository_context, user_context=user_context
@@ -74,9 +73,7 @@ class TestPathResolver:
         ):
             resolver.resolve(paths)
 
-    def test_resolve_all_file_in_repository(
-        self, repository_context, user_context, tmp_path
-    ):
+    def test_resolve_all_file_in_repository(self, repository_context, user_context):
         """Test resolving $all file in repository context."""
         resolver = PathResolver(
             repository_context=repository_context, user_context=user_context
@@ -95,15 +92,41 @@ class TestPathResolver:
             repository_context=repository_context, user_context=user_context
         )
 
-        path = Path("vscode") / "settings" / "python" / ReservedFileName.REF.value
-        ref_paths = [Path("vscode") / "settings" / "python" / "base"]
-        paths = [path]
+        ref_paths = [
+            Path("vscode") / "settings" / "python" / "base",
+            Path("vscode") / "settings" / "python" / "pytest" / "base",
+        ]
+        paths = [
+            Path("vscode") / "settings" / "python" / ReservedFileName.REF.value,
+            Path("vscode")
+            / "settings"
+            / "python"
+            / "pytest"
+            / ReservedFileName.REF.value,
+            Path("vscode") / "settings" / "python" / "pytest" / "capture",
+        ]
 
         result = resolver.resolve(paths, ref_paths)
 
-        assert_that(result).is_length(1)
+        assert_that(result).is_length(3)
         assert_that(result[0]).is_equal_to(
             repository_context / "vscode" / "settings" / "python" / "base.json"
+        )
+        assert_that(result[1]).is_equal_to(
+            repository_context
+            / "vscode"
+            / "settings"
+            / "python"
+            / "pytest"
+            / "base.json"
+        )
+        assert_that(result[2]).is_equal_to(
+            repository_context
+            / "vscode"
+            / "settings"
+            / "python"
+            / "pytest"
+            / "capture.json"
         )
 
     def test_resolve_with_ref_paths_no_match(self, repository_context, user_context):
@@ -184,7 +207,7 @@ class TestPathResolver:
         ref_paths = [Path("base")]
         paths = [Path(ReservedFileName.REF)]
 
-        resolver._resolve_ref(ref_paths, paths)
+        paths = resolver._resolve_ref(ref_paths, paths)
 
         # The $ref should be replaced with matching ref_paths
         assert_that(paths).is_length(1)
@@ -224,8 +247,6 @@ class TestPathResolver:
         )
 
         # Setup test files
-        repo_file = repository_context / "vscode" / "settings" / "python" / "base"
-
         user_file = user_context / "user.txt"
         user_file.write_text("user content")
 
@@ -239,7 +260,7 @@ class TestPathResolver:
 
         result = resolver.resolve(paths, ref_paths)
 
-        assert_that(result).is_length(4)
+        assert_that(result).is_length(5)
         assert_that(result).contains(user_file)
         assert_that(result).contains(
             repository_context / "vscode" / "settings" / "coverage-gutters.json"

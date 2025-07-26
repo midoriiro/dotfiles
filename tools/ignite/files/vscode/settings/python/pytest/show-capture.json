@@ -1,0 +1,5 @@
+{
+    "python.testing.pytestArgs": [
+        "--show-capture=${pytest-show-capture}"
+    ]
+}

@@ -136,8 +136,9 @@ class ContainerPolicy(Policy):
 
     Attributes:
         backend (ContainerBackendPolicy): The container backend policy that determines
-            which container runtime should be used. Defaults to ContainerBackendPolicy.ANY,
-            which allows the system to choose the most appropriate backend available.
+            which container runtime should be used. Defaults to
+            ContainerBackendPolicy.ANY, which allows the system to choose the most
+            appropriate backend available.
 
     Examples:
         >>> # Create a policy that specifically uses Docker
@@ -165,12 +166,13 @@ class ContainerPolicy(Policy):
 
 class Policies(RootModel[Dict[str, Union[ContainerPolicy, FolderPolicy, FilePolicy]]]):
     """
-    Represents a collection of policies that define rules and configurations for various system operations.
+    Represents a collection of policies that define rules and configurations for
+    various system operations.
 
-    This model inherits from Pydantic's RootModel and manages a dictionary of policy objects,
-    where each key represents a specific policy type and the value contains the corresponding
-    policy configuration. The model enforces validation rules to ensure that only valid
-    policy types are included and that at least one policy is specified.
+    This model inherits from Pydantic's RootModel and manages a dictionary of policy
+    objects, where each key represents a specific policy type and the value contains the
+    corresponding policy configuration. The model enforces validation rules to ensure
+    that only valid policy types are included and that at least one policy is specified.
 
     The model supports three types of policies:
     - ContainerPolicy: Defines container backend preferences (Docker, Podman, or any)
@@ -215,7 +217,8 @@ class Policies(RootModel[Dict[str, Union[ContainerPolicy, FolderPolicy, FilePoli
         """
         Validates the policies configuration to ensure it meets all requirements.
 
-        This validator runs after the model is instantiated and performs the following checks:
+        This validator runs after the model is instantiated and performs the following
+        checks:
         1. Ensures that at least one policy is specified (non-empty dictionary)
         2. Validates that all policy keys are from the reserved policy keys list
         3. Returns the validated model instance
@@ -239,7 +242,10 @@ class Policies(RootModel[Dict[str, Union[ContainerPolicy, FolderPolicy, FilePoli
             >>> validated = policies.check_policies()  # Passes validation
 
             >>> # Invalid configuration - empty dict
-            >>> with pytest.raises(ValueError, match="At least one policy must be specified"):
+            >>> with pytest.raises(
+            ...     ValueError,
+            ...     match="At least one policy must be specified",
+            ... ):
             ...     Policies({})
 
             >>> # Invalid configuration - invalid key
@@ -247,8 +253,9 @@ class Policies(RootModel[Dict[str, Union[ContainerPolicy, FolderPolicy, FilePoli
             ...     Policies({"invalid": ContainerPolicy()})
 
         Note:
-            This validator is automatically called by Pydantic during model instantiation
-            and ensures that the policies configuration is valid before the model can be used.
+            This validator is automatically called by Pydantic during model
+            instantiation and ensures that the policies configuration is valid before
+            the model can be used.
         """
         if len(self.root.keys()) == 0:
             raise ValueError("At least one policy must be specified")

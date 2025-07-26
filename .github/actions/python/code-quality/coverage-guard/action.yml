@@ -58,9 +58,15 @@ runs:
             artifact_id: ${{ inputs.artifact-id }}
           });
 
+    - name: Normalize path
+      id: normalize-path
+      uses: ./.github/actions/core/normalize-path
+      with:
+        path: ${{ steps.download-artifact.outputs.download-path }}/${{ inputs.artifact-path }}
+
     - name: Check coverage threshold
       env:
-        ARTIFACT_PATH: ${{ steps.download-artifact.outputs.download-path }}/${{ inputs.artifact-path }}
+        ARTIFACT_PATH: ${{ steps.normalize-path.outputs.normalized-path }}
         THRESHOLD: ${{ inputs.threshold }}
       shell: bash
       run: |

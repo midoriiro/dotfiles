@@ -1,0 +1,31 @@
+name: 'Create Directory'
+description: 'Create a directory'
+
+inputs:
+  path:
+    description: 'The path to create'
+    required: true
+  parents:
+    description: 'Create parent directories if they do not exist'
+    required: false
+    default: true
+
+runs:
+  using: composite
+  steps:
+    - name: Normalize path
+      id: normalize-path
+      uses: ./.github/actions/core/normalize-path
+      with:
+        path: ${{ inputs.path }}
+
+    - name: Create directory
+      shell: python
+      run: |
+        from pathlib import Path
+        path = Path("${{ steps.normalize-path.outputs.normalized-path }}")
+
+        if "${{ inputs.parents }}" == "true":
+            path.mkdir(parents=True, exist_ok=True)
+        else:
+            path.mkdir(exist_ok=True)

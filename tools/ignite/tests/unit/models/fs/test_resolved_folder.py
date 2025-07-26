@@ -1,7 +1,7 @@
 import configparser
 import json
 from pathlib import Path
-from typing import Any, Dict
+from typing import Dict
 
 import pytest
 import yaml

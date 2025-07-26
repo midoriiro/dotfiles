@@ -146,7 +146,8 @@ class TestContainerComposeMethod:
             "workspace": {
                 "name": "test-workspace",
                 "workspaceFolder": "/workspace",
-                "workspaceMount": "source=test-workspace-volume,target=/workspace,type=volume",
+                "workspaceMount": "source=test-workspace-volume,target=/workspace,"
+                "type=volume",
             },
             "image": {"image": "test-image"},
         }
@@ -168,7 +169,8 @@ class TestContainerComposeMethod:
             "workspace": {
                 "name": "test-workspace",
                 "workspaceFolder": "/workspace",
-                "workspaceMount": "source=test-workspace-volume,target=/workspace,type=volume",
+                "workspaceMount": "source=test-workspace-volume,target=/workspace,"
+                "type=volume",
             },
             "build": {"build": {"dockerFile": "Containerfile"}},
         }

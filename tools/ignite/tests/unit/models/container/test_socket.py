@@ -3,7 +3,6 @@ from assertpy import assert_that
 from pydantic import ValidationError
 
 from ignite.models.container import Mount, MountType, Socket
-from ignite.models.fs import AbsolutePath
 
 
 class TestValidSocket:
@@ -62,7 +61,9 @@ class TestSocketValidation:
             Socket(host=long_path, container="/var/run/docker.sock")
 
     def test_socket_with_too_long_container_path(self):
-        """Test that socket with container path longer than 256 characters is rejected."""
+        """
+        Test that socket with container path longer than 256 characters is rejected.
+        """
         long_path = "/" + "a" * 256
         with pytest.raises(ValidationError, match="should have at most 256 characters"):
             Socket(host="/tmp/docker.sock", container=long_path)
@@ -128,7 +129,10 @@ class TestSocketStringRepresentation:
             host="/var/run/docker/docker.sock", container="/var/run/docker/docker.sock"
         )
         result = str(socket)
-        expected = "source=/var/run/docker/docker.sock,target=/var/run/docker/docker.sock,type=bind"
+        expected = (
+            "source=/var/run/docker/docker.sock,"
+            "target=/var/run/docker/docker.sock,type=bind"
+        )
         assert_that(result).is_equal_to(expected)
 
 

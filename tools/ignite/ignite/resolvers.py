@@ -24,6 +24,10 @@ class PathResolver:
         self.__repository_context: Path = repository_context
         self.__user_context: Path = user_context
 
+    @property
+    def user_context(self) -> Path:
+        return self.__user_context
+
     def resolve(
         self, paths: List[Path], ref_paths: Optional[List[Path]] = None
     ) -> List[Path]:
@@ -49,7 +53,7 @@ class PathResolver:
         resolved_paths = []
 
         if ref_paths:
-            self._resolve_ref(ref_paths, paths)
+            paths = self._resolve_ref(ref_paths, paths)
 
         for path in paths:
             repository_path = Path(self.__repository_context, path.parent)
@@ -106,7 +110,7 @@ class PathResolver:
                 continue
         return resolved_paths
 
-    def _resolve_ref(self, ref_paths: List[Path], paths: List[Path]) -> None:
+    def _resolve_ref(self, ref_paths: List[Path], paths: List[Path]) -> List[Path]:
         """
         Resolve $ref patterns in the paths list by replacing them with matching
         reference paths.
@@ -120,13 +124,17 @@ class PathResolver:
             paths (List[Path]): List of paths that may contain $ref patterns.
                 This list is modified in-place.
         """
+        resolved_paths = []
         for path in paths:
             if path.name == ReservedFileName.REF:
-                resolved_paths = self._resolve_ref_file(ref_paths, path)
-                index = paths.index(path)
-                paths.remove(path)
-                for resolved_path in reversed(resolved_paths):
-                    paths.insert(index, resolved_path)
+                resolved_ref_paths = self._resolve_ref_file(ref_paths, path)
+                for resolved_ref_path in resolved_ref_paths:
+                    if resolved_ref_path in resolved_paths:
+                        continue
+                    resolved_paths.append(resolved_ref_path)
+            else:
+                resolved_paths.append(path)
+        return resolved_paths
 
     def _resolve_ref_file(self, ref_paths: List[Path], ref_file: Path) -> List[Path]:
         """
@@ -142,7 +150,8 @@ class PathResolver:
                 directory as the reference file
         """
         paths = []
+        ref_base_path = ref_file.parent
         for ref_path in ref_paths:
-            if ref_path.parent == ref_file.parent:
+            if ref_path.is_relative_to(ref_base_path):
                 paths.append(ref_path)
         return paths

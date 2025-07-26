@@ -1,23 +1,30 @@
 import pathlib
-from typing import Dict, List, Optional, Union, override
+from typing import List, Optional, Union
+
+try:
+    from typing import override
+except ImportError:
+    from typing_extensions import override
 
 from pydantic import BaseModel, Field, model_validator
 
-from ignite.models.fs import File, Folder, Path, ResolvedFolder
+from ignite.models.fs import File, Folder, ResolvedFolder
 
 
 class BaseFolder(BaseModel):
     """
-    Base class for folder-like structures that can be resolved to a list of ResolvedFolder objects.
+    Base class for folder-like structures that can be resolved to a list of
+    ResolvedFolder objects.
 
-    This abstract base class provides the foundation for folder structures that need to be
-    processed and converted into ResolvedFolder objects. It defines the interface that all
-    folder implementations must follow and provides common utility methods for resolving
-    folder contents.
+    This abstract base class provides the foundation for folder structures that need to
+    be processed and converted into ResolvedFolder objects. It defines the interface
+    that all folder implementations must follow and provides common utility methods for
+    resolving folder contents.
 
-    The class is designed to be inherited by specific folder implementations (like VSCodeFolder)
-    that provide concrete implementations of the resolve() method. It also includes a utility
-    method for processing mixed lists of Folder and File objects.
+    The class is designed to be inherited by specific folder implementations
+    (like VSCodeFolder) that provide concrete implementations of the resolve() method.
+    It also includes a utility method for processing mixed lists of Folder and File
+    objects.
 
     Attributes:
         Inherits all attributes from Pydantic's BaseModel
@@ -101,14 +108,18 @@ class BaseFolder(BaseModel):
             ...     Folder({"tasks": [File("build.json")]})
             ... ]
             >>> paths = base._resolve_folder(nested)
-            >>> # Returns: [pathlib.Path("settings/base.json"), pathlib.Path("tasks/build.json")]
+            >>> # Returns: [pathlib.Path(
+            ...     "settings/base.json"),
+            ...     pathlib.Path("tasks/build.json")
+            ... ]
 
         Note:
             - This method recursively processes nested folder structures
             - File objects are converted to Path objects using their root attribute
             - Folder objects are processed by calling their resolve() method
             - The resulting list contains only file paths, not folder paths
-            - The order of paths in the result follows the order of items in the input list
+            - The order of paths in the result follows the order of items in the input
+              list
         """
         paths = []
         for item in folder:
@@ -229,7 +240,10 @@ class VSCodeFolder(BaseFolder):
             >>> settings_folder = Folder({"python": [File("base")]})
             >>> vscode = VSCodeFolder(settings=[settings_folder])
             >>> resolved = vscode.resolve()
-            >>> # Returns: [ResolvedFolder(sources=["settings/python/base"], destination="settings.json")]
+            >>> # Returns: [ResolvedFolder(
+            ...     sources=["settings/python/base"],
+            ...     destination="settings.json"
+            ... )]
 
             Resolution with both configurations:
             >>> vscode = VSCodeFolder(
@@ -238,8 +252,14 @@ class VSCodeFolder(BaseFolder):
             ... )
             >>> resolved = vscode.resolve()
             >>> # Returns: [
-            ... #   ResolvedFolder(sources=["settings/python/base"], destination="settings.json"),
-            ... #   ResolvedFolder(sources=["tasks/poetry/build"], destination="tasks.json")
+            ... #   ResolvedFolder(
+            ...     sources=["settings/python/base"],
+            ...     destination="settings.json"
+            ... ),
+            ... #   ResolvedFolder(
+            ...     sources=["tasks/poetry/build"],
+            ...     destination="tasks.json"
+            ... )
             ... # ]
 
             Resolution with no configuration:

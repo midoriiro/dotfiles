@@ -81,7 +81,9 @@ class TestUsersValidation:
             Users(remote=long_name, container="validuser")
 
     def test_users_with_too_long_container(self):
-        """Test that users with container name longer than 256 characters are rejected."""
+        """
+        Test that users with container name longer than 256 characters are rejected.
+        """
         long_name = "a" * 257
         with pytest.raises(ValidationError, match="should have at most 256 characters"):
             Users(remote="validuser", container=long_name)

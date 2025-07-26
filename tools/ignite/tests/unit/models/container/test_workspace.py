@@ -2,7 +2,7 @@ import pytest
 from assertpy import assert_that
 from pydantic import ValidationError
 
-from ignite.models.container import Mount, MountType, Workspace
+from ignite.models.container import Workspace
 
 
 class TestValidWorkspace:
@@ -69,7 +69,8 @@ class TestWorkspaceComposeMethod:
         expected = {
             "name": "test-workspace",
             "workspaceFolder": "/workspace",
-            "workspaceMount": "source=test-workspace-volume,target=/workspace,type=volume",
+            "workspaceMount": "source=test-workspace-volume,target=/workspace,"
+            "type=volume",
         }
         assert_that(result).is_equal_to(expected)
 
@@ -85,7 +86,8 @@ class TestWorkspaceComposeMethod:
         expected = {
             "name": "my-project",
             "workspaceFolder": "/home/user/project",
-            "workspaceMount": "source=my-project-volume,target=/home/user/project,type=volume",
+            "workspaceMount": "source=my-project-volume,target=/home/user/project,"
+            "type=volume",
         }
         assert_that(result).is_equal_to(expected)
 

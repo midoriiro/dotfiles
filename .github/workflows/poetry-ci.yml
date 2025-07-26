@@ -46,6 +46,10 @@ on:
         required: true
         type: number
         default: 95
+    secrets:
+      mutex-database-uri:
+        description: 'The mutex database URI'
+        required: true
 
 env:
   PYTHON_VERSION: ${{ inputs.python-version }}
@@ -82,11 +86,26 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Wait for Mutex
+        uses: ./.github/actions/mutex/wait
+        with:
+          database-uri: ${{ secrets.mutex-database-uri }}
+          key: setup-environment
+          holder: ${{ github.workflow }}
+          timeout: 600
+
       - name: Setup Environment
         uses: ./.github/actions/python/setup-python-pipx-poetry
         with:
           pipx-tools: ${{ inputs.pipx-tools }}
           poetry-dependency-groups: ${{ inputs.poetry-dependency-groups }}
+
+      - name: Release Mutex
+        uses: ./.github/actions/mutex/release
+        with:
+          database-uri: ${{ secrets.mutex-database-uri }}
+          key: setup-environment
+          holder: ${{ github.workflow }}
         
   tests:
     name: ${{ needs.runner-tag.outputs.tag }} - Tests
@@ -188,7 +207,9 @@ jobs:
     name: ${{ needs.runner-tag.outputs.tag }} - Build
     runs-on: ${{ inputs.os }}
     needs: [runner-tag, setup-environment]
-    concurrency: ${{ github.workflow }}-build
+    concurrency: 
+      group: ${{ github.workflow }}-build
+      cancel-in-progress: false
 
     steps:
       - name: Checkout Code
@@ -215,8 +236,12 @@ jobs:
   prepare-package:
     name: ${{ needs.runner-tag.outputs.tag }} - Prepare Package
     needs: [runner-tag, build]
-    runs-on: ubuntu-latest
-    concurrency: ${{ github.workflow }}-prepare-package
+    runs-on: ${{ inputs.os }}
+    concurrency: 
+      group: ${{ github.workflow }}-prepare-package
+      cancel-in-progress: false
+    env:
+      PYTHONIOENCODING: utf-8
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4

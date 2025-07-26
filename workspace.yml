@@ -14,10 +14,10 @@ container:
     container-file: ../Containerfile
     context: ..
     target: dev
-  network: 
+  network:
     name: host
   extensions:
-    vscode: 
+    vscode:
       - ms-python.python
       - ms-python.debugpy
       - ms-python.vscode-pylance
@@ -29,7 +29,6 @@ container:
       - pamaron.pytest-runner
       - ameenahsanma.poetry-monorepo
       - github.vscode-github-actions
-
 workspace:
   policies:
     container:
@@ -40,79 +39,111 @@ workspace:
       write: ask
   projects:
     ref:
+      variables:
+        pytest-parallel: auto
+        poetry-interpreter-path: $(poetry env info --executable)
       vscode:
         settings:
           - on-save
           - coverage-gutters
+          - explorer-auto-reveal
           - python:
-            - base
-            - exclude-files
-            - pylance
-            - black
-            - flake8
-            - isort
-            - isort-black
-            - poetry
-            - pytest
-            - pytest-coverage
-            - pytest-parallel
-            - testing
-    root: 
+              - base
+              - exclude-files
+              - poetry
+              - black:
+                  - base
+              - flake8:
+                  - base
+                  - max-line-length
+              - pylint:
+                  - base
+                  - missing-module-docstring
+                  - missing-class-docstring
+                  - missing-function-docstring
+                  - logging-fstring-interpolation
+              - isort:
+                  - base
+                  - profile-black
+              - pytest:
+                  - base
+                  - root-directory
+                  - coverage
+                  - exit-first
+                  - parallel
+              - pylance:
+                  - base
+    root:
       vscode:
         settings:
           - $ref
     poexy:
       alias: Poexy
       path: tools/
+      variables:
+        pytest-root-directory: tests
+        pytest-package-name: poexy
       vscode:
         settings:
           - $ref
           - python:
-            - $ref
+              - $ref
         tasks:
           - poetry:
-            - $all
+              - $all
     poexy-core:
       alias: Poexy-Core
       path: tools/
+      variables:
+        pytest-root-directory: tests
+        pytest-package-name: poexy_core
+        pytest-capture: 'no'
+        pytest-show-capture: 'no'
       vscode:
         settings:
           - $ref
           - python:
-            - $ref
-        tasks:
-          - poetry:
+              - $ref
+              - pytest:
+                - $ref
+                - capture
+                - show-capture
+      tasks:
+        - poetry:
             - $all
     ignite:
       alias: Ignite
       path: tools/
+      variables:
+        pytest-root-directory: tests
+        pytest-package-name: ignite
       vscode:
         settings:
           - $ref
-          - python:
-            - $ref
         tasks:
           - poetry:
-            - $all
-    mutex:
-      alias: Mutex
-      path: tools/
-      vscode:
-        settings:
-          - $ref
-          - python:
-            - $ref
-        tasks:
-          - poetry:
-            - $all
+              - $all
     mutex-cli:
       alias: Mutex-CLI
       path: tools/
+      variables:
+        pytest-root-directory: tests
+        pytest-package-name: mutex_cli
       vscode:
         settings:
           - $ref
-          - python:
-            - $ref
         tasks:
           - poetry:
-            - $all
+              - $all
+    mutex:
+      alias: Mutex
+      path: tools/
+      variables:
+        pytest-root-directory: tests
+        pytest-package-name: mutex
+      vscode:
+        settings:
+          - $ref
+        tasks:
+          - poetry:
+              - $all

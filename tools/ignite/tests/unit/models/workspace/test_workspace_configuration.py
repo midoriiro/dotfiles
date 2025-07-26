@@ -1,12 +1,9 @@
-import os
 import pathlib
-from typing import Dict, List
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
-import pytest
 from assertpy import assert_that
 
-from ignite.models.fs import File, Folder, ResolvedFolder
+from ignite.models.fs import File, Folder
 from ignite.models.policies import (
     ContainerBackendPolicy,
     ContainerPolicy,
@@ -29,6 +26,8 @@ from ignite.models.workspace import (
     WorkspaceFolderSpecification,
 )
 from ignite.resolvers import PathResolver
+
+# pylint: disable=redefined-outer-name,no-member
 
 
 class TestWorkspace:

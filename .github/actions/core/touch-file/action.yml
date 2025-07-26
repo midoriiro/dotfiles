@@ -1,0 +1,23 @@
+name: 'Touch File'
+description: 'Touch a file'
+
+inputs:
+  path:
+    description: 'The path to touch'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Normalize path
+      id: normalize-path
+      uses: ./.github/actions/core/normalize-path
+      with:
+        path: ${{ inputs.path }}
+
+    - name: Touch file
+      shell: python
+      run: |
+        from pathlib import Path
+        path = Path("${{ steps.normalize-path.outputs.normalized-path }}")
+        path.touch(exist_ok=True)

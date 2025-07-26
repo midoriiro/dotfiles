@@ -1,14 +1,19 @@
-import os
-import pathlib
 import re
 from enum import Enum
-from typing import Annotated, Any, Dict, List, Optional, Union, override
+from typing import Annotated, Any, Dict, List, Optional, Union
 
-from pydantic import BaseModel, Field, RootModel, StringConstraints, model_validator
+try:
+    from typing import override
+except ImportError:
+    from typing_extensions import override
+
+from pydantic import BaseModel, Field, StringConstraints, model_validator
 
 from ignite.mergers import merge_dicts
 from ignite.models.common import Identifier, IdentifierPattern
 from ignite.models.fs import AbsolutePath, RelativePath
+
+# pylint: disable=no-member,too-many-lines
 
 ImageRepositoryIdentifier = Annotated[
     str,
@@ -75,14 +80,20 @@ class Env(Feature):
         key (Identifier): The environment variable name. Must be a valid identifier
             following the pattern: alphanumeric characters, hyphens, and underscores.
         value (Optional[str]): The environment variable value. If None, the variable
-            will be set without a value. Must be between 1 and 256 characters if provided.
+            will be set without a value. Must be between 1 and 256 characters if
+            provided.
         type (Optional[EnvType]): The type of environment variable. Can be either
-            'remote' (set on the host machine) or 'container' (set inside the container).
+            'remote' (set on the host machine) or 'container' (set inside the
+            container).
             Defaults to 'remote'.
 
     Examples:
         >>> # Remote environment variable with value
-        >>> env = Env(key="DATABASE_URL", value="postgresql://localhost:5432/mydb", type=EnvType.REMOTE)
+        >>> env = Env(
+        ...     key="DATABASE_URL",
+        ...     value="postgresql://localhost:5432/mydb",
+        ...     type=EnvType.REMOTE,
+        ... )
 
         >>> # Container environment variable without value
         >>> env = Env(key="DEBUG", type=EnvType.CONTAINER)
@@ -91,7 +102,8 @@ class Env(Feature):
         >>> env = Env(key="API_KEY", value="secret123")
 
     Validation:
-        - Key must be a valid identifier (3-256 characters, alphanumeric, hyphens, underscores)
+        - Key must be a valid identifier (3-256 characters, alphanumeric, hyphens,
+          underscores)
         - Value must be between 1-256 characters if provided
         - Type must be a valid EnvType enum value
     """
@@ -107,18 +119,22 @@ class Env(Feature):
     @override
     def compose(self) -> Dict[str, Any]:
         """
-        Compose the environment variable into a dictionary according to the devcontainer spec.
+        Compose the environment variable into a dictionary according to the
+        devcontainer spec.
 
         This method converts the Env object into a dictionary format that follows the
         devcontainer specification. The resulting dictionary will contain either a
         'remoteEnv' or 'containerEnv' key depending on the environment variable type.
 
         Returns:
-            Dict[str, Any]: A dictionary containing the environment variable configuration.
+            Dict[str, Any]: A dictionary containing the environment variable
+            configuration.
                 The structure depends on the type:
                 - For remote environment variables: {"remoteEnv": {"key": "value"}}
-                - For container environment variables: {"containerEnv": {"key": "value"}}
-                - If value is None: {"remoteEnv": {"key": None}} or {"containerEnv": {"key": None}}
+                - For container environment variables:
+                    {"containerEnv": {"key": "value"}}
+                - If value is None:
+                    {"remoteEnv": {"key": None}} or {"containerEnv": {"key": None}}
 
         Examples:
             >>> env = Env(key="DEBUG", value="true", type=EnvType.CONTAINER)
@@ -240,13 +256,16 @@ class Mount(BaseModel):
             >>> str(mount)
             'source=/home/user/data,target=/workspace/data,type=bind,options=ro'
         """
-        options_str = f",options={",".join(self.options)}" if self.options else ""
-        return f"source={self.source},target={self.target},type={self.type.value}{options_str}"
+        mount = f"source={self.source},target={self.target},type={self.type.value}"
+        if self.options:
+            mount += f",options={','.join(self.options)}"
+        return mount
 
     @override
     def compose(self) -> Dict[str, Any]:
         """
-        Compose the mount configuration into a dictionary according to the devcontainer spec.
+        Compose the mount configuration into a dictionary according to the devcontainer
+        spec.
 
         This method converts the Mount object into a dictionary format that follows the
         devcontainer specification. The resulting dictionary will contain a 'mounts' key
@@ -255,7 +274,8 @@ class Mount(BaseModel):
 
         Returns:
             Dict[str, Any]: A dictionary containing the mount configuration.
-                The structure is: {"mounts": ["source=...,target=...,type=...[,options=...]"]}
+                The structure is:
+                    {"mounts": ["source=...,target=...,type=...[,options=...]"]}
                 where the mount string follows the Docker mount specification format.
 
         Examples:
@@ -266,7 +286,9 @@ class Mount(BaseModel):
             ...     options=[MountOption.READ_ONLY]
             ... )
             >>> mount.compose()
-            {'mounts': ['source=/home/user/data,target=/workspace/data,type=bind,options=ro']}
+            {'mounts': [
+                'source=/home/user/data,target=/workspace/data,type=bind,options=ro'
+            ]}
 
             >>> mount = Mount(
             ...     source="cache-volume",
@@ -291,17 +313,18 @@ class Users(Feature):
     """
     User configuration for devcontainer runtime environment.
 
-    This class represents the user configuration for both the remote environment (host machine)
-    and the container environment. It allows specifying different users for the remote and
-    container contexts, which is useful for security and permission management in development
-    containers.
+    This class represents the user configuration for both the remote environment
+    (host machine) and the container environment. It allows specifying different users
+    for the remote and container contexts, which is useful for security and permission
+    management in development containers.
 
-    The Users class ensures that the remote and container users are different to maintain
-    proper separation between host and container environments. This is important for security
-    and to avoid potential conflicts in user management.
+    The Users class ensures that the remote and container users are different to
+    maintain proper separation between host and container environments. This is
+    important for security and to avoid potential conflicts in user management.
 
     Attributes:
-        remote (Identifier): The user identifier for the remote environment (host machine).
+        remote (Identifier): The user identifier for the remote environment
+            (host machine).
             Must be a valid identifier following the pattern: alphanumeric characters,
             hyphens, and underscores. This user will be used for operations on the host
             machine outside the container.
@@ -323,7 +346,8 @@ class Users(Feature):
 
     Validation:
         - Remote and container users must be different
-        - Both users must be valid identifiers (3-256 characters, alphanumeric, hyphens, underscores)
+        - Both users must be valid identifiers (3-256 characters, alphanumeric,
+          hyphens, underscores)
         - Both fields are required
     """
 
@@ -340,16 +364,18 @@ class Users(Feature):
     @override
     def compose(self) -> Dict[str, Any]:
         """
-        Compose the user configuration into a dictionary according to the devcontainer spec.
+        Compose the user configuration into a dictionary according to the devcontainer
+        spec.
 
         This method converts the Users object into a dictionary format that follows the
-        devcontainer specification. The resulting dictionary contains the user configuration
-        for both remote and container environments, which will be used by the devcontainer
-        runtime to set up the appropriate user contexts.
+        devcontainer specification. The resulting dictionary contains the user
+        configuration for both remote and container environments, which will be used
+        by the devcontainer runtime to set up the appropriate user contexts.
 
         Returns:
             Dict[str, Any]: A dictionary containing the user configuration.
-                The structure is: {"remoteUser": "remote_user_id", "containerUser": "container_user_id"}
+                The structure is: {"remoteUser": "remote_user_id", "containerUser":
+                "container_user_id"}
                 where both values are the identifier strings for the respective users.
 
         Examples:
@@ -377,7 +403,8 @@ class Runtime(Feature):
 
     This class represents the runtime configuration that can be applied to a development
     container. It includes user configuration, environment variables, and mount points
-    that define how the container should behave and what resources it should have access to.
+    that define how the container should behave and what resources it should have
+    access to.
 
     The Runtime feature allows you to configure:
     - User identity (single user or separate remote/container users)
@@ -416,7 +443,9 @@ class Runtime(Feature):
         >>> # Runtime with separate users and mount points
         >>> runtime = Runtime(
         ...     user=Users(remote="host-user", container="dev-user"),
-        ...     mounts=[Mount(source="/data", target="/workspace/data", type=MountType.BIND)]
+        ...     mounts=[
+        ...         Mount(source="/data", target="/workspace/data", type=MountType.BIND)
+        ...     ],
         ... )
 
         >>> # Runtime with all configurations
@@ -427,8 +456,16 @@ class Runtime(Feature):
         ...         Env(key="DEBUG", value="true", type=EnvType.CONTAINER)
         ...     ],
         ...     mounts=[
-        ...         Mount(source="cache-volume", target="/cache", type=MountType.VOLUME),
-        ...         Mount(source="/home/user/data", target="/workspace/data", type=MountType.BIND)
+        ...         Mount(
+        ...             source="cache-volume",
+        ...             target="/cache",
+        ...             type=MountType.VOLUME,
+        ...         ),
+        ...         Mount(
+        ...             source="/home/user/data",
+        ...             target="/workspace/data",
+        ...             type=MountType.BIND,
+        ...         ),
         ...     ]
         ... )
     """
@@ -451,12 +488,13 @@ class Runtime(Feature):
     @override
     def compose(self) -> Dict[str, Any]:
         """
-        Compose the runtime configuration into a dictionary according to the devcontainer spec.
+        Compose the runtime configuration into a dictionary according to the
+        devcontainer spec.
 
-        This method converts the Runtime object into a dictionary format that follows the
-        devcontainer specification. The resulting dictionary contains all the runtime
-        configurations including user settings, environment variables, and mount points
-        that will be applied to the development container.
+        This method converts the Runtime object into a dictionary format that follows
+        the devcontainer specification. The resulting dictionary contains all the
+        runtime configurations including user settings, environment variables, and
+        mount points that will be applied to the development container.
 
         The composition process:
         1. User Configuration: If a user is specified, it's converted to the appropriate
@@ -496,7 +534,13 @@ class Runtime(Feature):
             >>> runtime = Runtime(
             ...     user="developer",
             ...     env=[Env(key="API_KEY", value="secret123")],
-            ...     mounts=[Mount(source="/data", target="/workspace/data", type=MountType.BIND)]
+            ...     mounts=[
+            ...         Mount(
+            ...             source="/data",
+            ...             target="/workspace/data",
+            ...             type=MountType.BIND,
+            ...         )
+            ...     ],
             ... )
             >>> runtime.compose()
             {
@@ -589,7 +633,10 @@ class Socket(BaseModel):
                 'source=<host_path>,target=<container_path>,type=bind'
 
         Examples:
-            >>> socket = Socket(host="/var/run/docker.sock", container="/var/run/docker.sock")
+            >>> socket = Socket(
+            ...     host="/var/run/docker.sock",
+            ...     container="/var/run/docker.sock",
+            ... )
             >>> str(socket)
             'source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind'
 
@@ -851,12 +898,20 @@ class Image(Feature):
         'library/python'
 
         >>> # Full image reference with repository, name, and tag
-        >>> image = Image(repository="microsoft", name="vscode-devcontainers", tag="latest")
+        >>> image = Image(
+        ...     repository="microsoft",
+        ...     name="vscode-devcontainers",
+        ...     tag="latest",
+        ... )
         >>> str(image)
         'microsoft/vscode-devcontainers:latest'
 
         >>> # Custom registry with image and tag
-        >>> image = Image(repository="registry.example.com/project", name="app", tag="v1.0.0")
+        >>> image = Image(
+        ...     repository="registry.example.com/project",
+        ...     name="app",
+        ...     tag="v1.0.0",
+        ... )
         >>> str(image)
         'registry.example.com/project/app:v1.0.0'
     """
@@ -877,8 +932,8 @@ class Image(Feature):
         patterns based on the provided attributes:
 
         - **Simple Image Name**: When only the name is provided, returns the name as-is.
-          This assumes the image is available in the default registry (typically Docker Hub)
-          and uses the default "latest" tag.
+          This assumes the image is available in the default registry (typically Docker
+          Hub) and uses the default "latest" tag.
 
         - **Repository + Name**: When both repository and name are provided but no tag,
           combines them with a forward slash separator. This format is commonly used
@@ -908,12 +963,20 @@ class Image(Feature):
             {'image': 'library/python'}
 
             >>> # Full image reference
-            >>> image = Image(repository="microsoft", name="vscode-devcontainers", tag="latest")
+            >>> image = Image(
+            ...     repository="microsoft",
+            ...     name="vscode-devcontainers",
+            ...     tag="latest",
+            ... )
             >>> image.compose()
             {'image': 'microsoft/vscode-devcontainers:latest'}
 
             >>> # Custom registry with tag
-            >>> image = Image(repository="registry.example.com/project", name="app", tag="v1.0.0")
+            >>> image = Image(
+            ...     repository="registry.example.com/project",
+            ...     name="app",
+            ...     tag="v1.0.0",
+            ... )
             >>> image.compose()
             {'image': 'registry.example.com/project/app:v1.0.0'}
         """
@@ -1001,7 +1064,8 @@ class Build(Feature):
     @override
     def compose(self) -> Dict[str, Any]:
         """
-        Compose the build configuration into a dictionary according to the devcontainer spec.
+        Compose the build configuration into a dictionary according to the devcontainer
+        spec.
 
         This method converts the Build object into a dictionary format that follows the
         devcontainer specification for build configurations. The resulting dictionary
@@ -1084,10 +1148,10 @@ class Network(Feature):
     configuration. It allows you to connect the development container to a specific
     Docker network, enabling communication with other containers on that network.
 
-    Docker networks provide isolation and communication between containers. By specifying
-    a network name, the development container will be connected to that network when
-    it starts, allowing it to communicate with other containers that are also connected
-    to the same network.
+    Docker networks provide isolation and communication between containers. By
+    specifying a network name, the development container will be connected to that
+    network when it starts, allowing it to communicate with other containers that are
+    also connected to the same network.
 
     Attributes:
         name (Identifier): The name of the Docker network to connect to. This must
@@ -1122,16 +1186,18 @@ class Network(Feature):
     @override
     def compose(self) -> Dict[str, Any]:
         """
-        Compose the Network feature into a dictionary according to the devcontainer spec.
+        Compose the Network feature into a dictionary according to the devcontainer
+        spec.
 
         This method transforms the Network feature configuration into the appropriate
         devcontainer specification format. It creates a 'runArgs' configuration that
         specifies the Docker network to connect to when the container starts.
 
-        The composition creates a Docker run argument in the format '--network=network_name'
-        which instructs the container runtime to connect the development container
-        to the specified Docker network. This enables network communication between
-        the development container and other containers on the same network.
+        The composition creates a Docker run argument in the format
+        '--network=network_name' which instructs the container runtime to connect the
+        development container to the specified Docker network. This enables network
+        communication between the development container and other containers on the
+        same network.
 
         Returns:
             Dict[str, Any]: A dictionary containing the devcontainer-compatible
@@ -1231,18 +1297,21 @@ class Workspace(Feature):
     @override
     def compose(self) -> Dict[str, Any]:
         """
-        Compose the Workspace feature into a dictionary according to the devcontainer spec.
+        Compose the Workspace feature into a dictionary according to the devcontainer
+        spec.
 
         This method transforms the Workspace feature configuration into the appropriate
         devcontainer specification format. It creates a complete workspace configuration
-        that includes the workspace name, folder location, and automatic volume mounting.
+        that includes the workspace name, folder location, and automatic volume
+        mounting.
 
         The composition creates three key components:
 
         - **name**: The workspace identifier that can be referenced by other features
-        - **workspaceFolder**: The absolute path where the workspace is located in the container
-        - **workspaceMount**: An automatically generated Mount configuration that creates
-          a Docker volume mount for the workspace folder
+        - **workspaceFolder**: The absolute path where the workspace is located in the
+          container
+        - **workspaceMount**: An automatically generated Mount configuration that
+          creates a Docker volume mount for the workspace folder
 
         The workspaceMount is automatically created using the volume_name as the source
         and the folder as the target, with the mount type set to VOLUME. This ensures
@@ -1254,7 +1323,8 @@ class Workspace(Feature):
                 workspace configuration. The structure includes:
                 - "name": The workspace identifier
                 - "workspaceFolder": The workspace folder path as a string
-                - "workspaceMount": A string representation of the volume mount configuration
+                - "workspaceMount": A string representation of the volume mount
+                  configuration
 
         Examples:
             >>> # Basic workspace composition
@@ -1267,7 +1337,11 @@ class Workspace(Feature):
             {
                 'name': 'my-project',
                 'workspaceFolder': '/workspace',
-                'workspaceMount': 'Mount(source=project-volume, target=/workspace, type=volume)'
+                'workspaceMount': 'Mount(
+                    source=project-volume,
+                    target=/workspace,
+                    type=volume
+                )'
             }
 
             >>> # Workspace with custom folder path
@@ -1280,7 +1354,11 @@ class Workspace(Feature):
             {
                 'name': 'backend',
                 'workspaceFolder': '/app/src',
-                'workspaceMount': 'Mount(source=backend-workspace, target=/app/src, type=volume)'
+                'workspaceMount': 'Mount(
+                    source=backend-workspace,
+                    target=/app/src,
+                    type=volume
+                )'
             }
 
             >>> # Workspace for development environment
@@ -1293,7 +1371,11 @@ class Workspace(Feature):
             {
                 'name': 'frontend-dev',
                 'workspaceFolder': '/home/developer/frontend',
-                'workspaceMount': 'Mount(source=frontend-workspace, target=/home/developer/frontend, type=volume)'
+                'workspaceMount': 'Mount(
+                    source=frontend-workspace,
+                    target=/home/developer/frontend,
+                    type=volume
+                )'
             }
         """
         composed = {
@@ -1368,17 +1450,19 @@ class Extensions(Feature):
     @override
     def compose(self) -> Dict[str, Any]:
         """
-        Compose the Extensions feature into a dictionary according to the devcontainer spec.
+        Compose the Extensions feature into a dictionary according to the devcontainer
+        spec.
 
         This method transforms the Extensions feature configuration into the appropriate
         devcontainer specification format. It creates a 'customizations' configuration
         that specifies VS Code extensions to be automatically installed and enabled
         when the development container starts.
 
-        The composition creates a nested structure under 'customizations.vscode.extensions'
-        that contains the list of extension identifiers. This format is compatible
-        with the VS Code devcontainer specification and ensures that the specified
-        extensions are installed during container creation.
+        The composition creates a nested structure under
+        'customizations.vscode.extensions' that contains the list of extension
+        identifiers. This format is compatible with the VS Code devcontainer
+        specification and ensures that the specified extensions are installed during
+        container creation.
 
         The method iterates through the vscode extensions list and includes each
         extension identifier in the final configuration. This allows for dynamic
@@ -1539,7 +1623,13 @@ class Container(Feature):
         ...     image=Image(name="node:18-alpine"),
         ...     runtime=Runtime(
         ...         user=Users(remote="host-user", container="dev-user"),
-        ...         env=[Env(key="NODE_ENV", value="development", type=EnvType.CONTAINER)]
+        ...         env=[
+        ...             Env(
+        ...                 key="NODE_ENV",
+        ...                 value="development",
+        ...                 type=EnvType.CONTAINER,
+        ...             )
+        ...         ],
         ...     ),
         ...     expose=Expose(ports=[3000, 3001]),
         ...     network=Network(name="app-network"),
@@ -1566,7 +1656,8 @@ class Container(Feature):
         be specified simultaneously, and neither can be omitted.
 
         Raises:
-            ValueError: If neither image nor build is specified, or if both are specified.
+            ValueError: If neither image nor build is specified, or if both are
+            specified.
 
         Returns:
             Container: The validated container instance.
@@ -1584,20 +1675,22 @@ class Container(Feature):
     @override
     def compose(self) -> Dict[str, Any]:
         """
-        Compose the container configuration into a dictionary according to the devcontainer spec.
+        Compose the container configuration into a dictionary according to the
+        devcontainer spec.
 
         This method transforms the Container feature configuration into the appropriate
         devcontainer specification format. It combines all the individual feature
         configurations (workspace, runtime, expose, image/build, network, extensions)
         into a single, cohesive dictionary that can be used by the devcontainer runtime.
 
-        The composition process includes each configured feature by calling its respective
-        compose() method and merging the results into the final container configuration.
+        The composition process includes each configured feature by calling its
+        respective compose() method and merging the results into the final container
+        configuration.
         Only features that are configured (not None) are included in the final output.
 
-        The resulting dictionary structure follows the devcontainer specification format,
-        where each feature contributes its specific configuration keys and values to
-        the overall container configuration.
+        The resulting dictionary structure follows the devcontainer specification
+        format, where each feature contributes its specific configuration keys and
+        values to the overall container configuration.
 
         Returns:
             Dict[str, Any]: A dictionary containing the complete devcontainer-compatible
@@ -1617,7 +1710,11 @@ class Container(Feature):
             ... )
             >>> container.compose()
             {
-                'workspace': {'name': 'simple-project', 'folder': '/workspace', 'volumeName': 'project-volume'},
+                'workspace': {
+                    'name': 'simple-project',
+                    'folder': '/workspace',
+                    'volumeName': 'project-volume',
+                },
                 'image': {'image': 'python:3.11'}
             }
 
@@ -1634,7 +1731,11 @@ class Container(Feature):
             ... )
             >>> container.compose()
             {
-                'workspace': {'name': 'web-app', 'folder': '/app', 'volumeName': 'web-workspace'},
+                'workspace': {
+                    'name': 'web-app',
+                    'folder': '/app',
+                    'volumeName': 'web-workspace',
+                },
                 'build': {'build': {'dockerFile': 'Dockerfile'}},
                 'runtime': {'remoteUser': 'developer', 'containerUser': 'developer'},
                 'expose': {'forwardPorts': [8080]}
@@ -1658,7 +1759,11 @@ class Container(Feature):
             ... )
             >>> container.compose()
             {
-                'workspace': {'name': 'full-stack', 'folder': '/workspace', 'volumeName': 'full-workspace'},
+                'workspace': {
+                    'name': 'full-stack',
+                    'folder': '/workspace',
+                    'volumeName': 'full-workspace',
+                },
                 'image': {'image': 'node:18'},
                 'runtime': {
                     'remoteUser': 'host',

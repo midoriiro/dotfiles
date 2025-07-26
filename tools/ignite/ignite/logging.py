@@ -1,8 +1,13 @@
 import logging
 from pathlib import Path
-from typing import Any, Optional, override
+from typing import Any, Optional
 
-from pydantic import BaseModel, Field
+try:
+    from typing import override
+except ImportError:
+    from typing_extensions import override
+
+from pydantic import BaseModel
 
 
 class BaseMessage(BaseModel):

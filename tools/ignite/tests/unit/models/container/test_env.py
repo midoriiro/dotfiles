@@ -2,7 +2,6 @@ import pytest
 from assertpy import assert_that
 from pydantic import ValidationError
 
-from ignite.models.common import Identifier
 from ignite.models.container import Env, EnvType
 
 
@@ -80,18 +79,27 @@ class TestEnvValidation:
             Env(key="invalid-key@")
 
     def test_env_with_too_long_key(self):
-        """Test that environment variables with keys longer than 256 characters are rejected."""
+        """
+        Test that environment variables with keys longer than 256 characters are
+        rejected.
+        """
         long_key = "a" * 257
         with pytest.raises(ValidationError, match="should have at most 256 characters"):
             Env(key=long_key)
 
     def test_env_with_too_short_value(self):
-        """Test that environment variables with values shorter than 1 character are rejected."""
+        """
+        Test that environment variables with values shorter than 1 character are
+        rejected.
+        """
         with pytest.raises(ValidationError, match="should have at least 1 character"):
             Env(key="VALID_KEY", value="")
 
     def test_env_with_too_long_value(self):
-        """Test that environment variables with values longer than 256 characters are rejected."""
+        """
+        Test that environment variables with values longer than 256 characters are
+        rejected.
+        """
         long_value = "a" * 257
         with pytest.raises(ValidationError, match="should have at most 256 characters"):
             Env(key="VALID_KEY", value=long_value)
@@ -112,14 +120,18 @@ class TestEnvCompose:
         assert_that(result).is_equal_to(expected)
 
     def test_compose_remote_env_without_value(self):
-        """Test that remote environment variables without values are composed correctly."""
+        """
+        Test that remote environment variables without values are composed correctly.
+        """
         env = Env(key="DEBUG", type=EnvType.REMOTE)
         result = env.compose()
         expected = {"remoteEnv": {"DEBUG": None}}
         assert_that(result).is_equal_to(expected)
 
     def test_compose_container_env_with_value(self):
-        """Test that container environment variables with values are composed correctly."""
+        """
+        Test that container environment variables with values are composed correctly.
+        """
         env = Env(
             key="DATABASE_URL",
             value="postgresql://localhost:5432/mydb",
@@ -132,7 +144,9 @@ class TestEnvCompose:
         assert_that(result).is_equal_to(expected)
 
     def test_compose_container_env_without_value(self):
-        """Test that container environment variables without values are composed correctly."""
+        """
+        Test that container environment variables without values are composed correctly.
+        """
         env = Env(key="DEBUG", type=EnvType.CONTAINER)
         result = env.compose()
         expected = {"containerEnv": {"DEBUG": None}}
@@ -180,14 +194,20 @@ class TestEnvEdgeCases:
         assert_that(env.type).is_equal_to(EnvType.REMOTE)
 
     def test_env_with_special_characters_in_key(self):
-        """Test that environment variables with valid special characters in keys are accepted."""
+        """
+        Test that environment variables with valid special characters in keys are
+        accepted.
+        """
         env = Env(key="API_KEY_123")
         assert_that(env.key).is_equal_to("API_KEY_123")
         assert_that(env.value).is_none()
         assert_that(env.type).is_equal_to(EnvType.REMOTE)
 
     def test_env_with_special_characters_in_value(self):
-        """Test that environment variables with valid special characters in values are accepted."""
+        """
+        Test that environment variables with valid special characters in values are
+        accepted.
+        """
         env = Env(key="URL", value="https://example.com/path?param=value")
         assert_that(env.key).is_equal_to("URL")
         assert_that(env.value).is_equal_to("https://example.com/path?param=value")

@@ -1,0 +1,49 @@
+name: 'Mutex Setup'
+description: 'Setup Mutex'
+
+runs:
+  using: composite
+  steps:
+    - name: Check Mutex CLI is Installed
+      id: check-mutex-cli
+      shell: bash
+      run: |
+        if ! command -v mutex-cli &> /dev/null; then
+          echo "Mutex CLI is not installed"
+          echo "is-installed=false" >> $GITHUB_OUTPUT
+        else
+          echo "Mutex CLI is installed"
+          echo "is-installed=true" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Mutex Path
+      if: ${{ steps.check-mutex-cli.outputs.is-installed == 'false' }}
+      id: mutex-path
+      uses: ./.github/actions/core/normalize-path
+      with:
+        path: ${{ github.action_path }}/../../../../tools/mutex
+  
+    - name: Mutex CLI Path
+      if: ${{ steps.check-mutex-cli.outputs.is-installed == 'false' }}
+      id: mutex-cli-path
+      uses: ./.github/actions/core/normalize-path
+      with:
+        path: ${{ github.action_path }}/../../../../tools/mutex-cli
+
+    - name: Install Mutex Core
+      if: ${{ steps.check-mutex-cli.outputs.is-installed == 'false' }}
+      working-directory: ${{ steps.mutex-path.outputs.normalized-path }}
+      shell: bash
+      run: |
+        pip install build
+        python -m build --wheel
+        pip install dist/mutex-*.whl
+
+    - name: Install Mutex CLI
+      if: ${{ steps.check-mutex-cli.outputs.is-installed == 'false' }}
+      working-directory: ${{ steps.mutex-cli-path.outputs.normalized-path }}
+      shell: bash
+      run: |
+        pip install build
+        python -m build --wheel
+        pip install dist/mutex_cli-*.whl

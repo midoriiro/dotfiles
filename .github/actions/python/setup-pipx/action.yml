@@ -62,6 +62,12 @@ runs:
         path: ${{ steps.pipx-registry-env.outputs.path }}
         key: ${{ steps.pipx-registry-env.outputs.key }}
 
+    - name: Create Pipx Home Directory
+      uses: ./.github/actions/core/create-directory
+      with:
+        path: ${{ steps.pipx-cache.outputs.path }}
+        parents: true
+
     - name: Generate Pipx Environment Variables
       id: pipx-env
       shell: bash
@@ -74,8 +80,6 @@ runs:
         PIPX_BIN_DIR="$PIPX_HOME/bin"
         PIPX_TOOLS="$TOOLS_SPACES"
 
-        mkdir --parents $PIPX_HOME/bin
-        
         # Set pipx environment variables
         echo "PIPX_HOME=$PIPX_HOME" >> $GITHUB_ENV
         echo "PIPX_BIN_DIR=$PIPX_BIN_DIR" >> $GITHUB_ENV

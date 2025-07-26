@@ -77,7 +77,7 @@ add_project(
     "ignite",
     "Ignite",
     supported_os,
-    supported_python_versions,
+    [last_supported_python_version],
 )
 
 matrix = {

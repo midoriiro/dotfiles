@@ -5,8 +5,9 @@ from typing import Dict, List, Literal, Optional, Union
 from pydantic import BaseModel, Field, RootModel, model_validator
 
 from ignite.models.common import Identifier
-from ignite.models.fs import AbsolutePath, Path, RelativePath, ResolvedFolder
+from ignite.models.fs import RelativePath, ResolvedFolder
 from ignite.models.settings import VSCodeFolder
+from ignite.models.variables import ResolvedVariables, Variables
 
 
 class ReservedProjectKey(str, Enum):
@@ -17,7 +18,7 @@ class ReservedProjectKey(str, Enum):
 user_project_key = Identifier
 root_project_key = Literal[ReservedProjectKey.ROOT]
 ref_project_key = Literal[ReservedProjectKey.REF]
-project_key = Union[user_project_key, root_project_key, ref_project_key]
+project_key = Union[root_project_key, ref_project_key, user_project_key]
 
 
 def _resolve_vscode_folder(vscode_folder: VSCodeFolder) -> List[ResolvedFolder]:
@@ -43,23 +44,30 @@ class RepositoryProject(BaseModel):
     is managed within the repository context.
 
     Attributes:
-        vscode: Optional VSCode folder configuration containing settings and tasks for the project.
-                If provided, will be resolved to generate .vscode/settings.json and .vscode/tasks.json files.
+        variables: Optional variables configuration for the project.
+            If provided, contains project-specific variables that can be used throughout
+            the project configuration.
+        vscode: Optional VSCode folder configuration containing settings and tasks for
+            the project. If provided, will be resolved to generate .vscode/settings.json
+            and .vscode/tasks.json files. If not provided, no VSCode configuration will
+            be generated.
 
     Methods:
-        resolve_folders: Resolves the VSCode configuration to a list of ResolvedFolder objects
-                        that represent the files to be created in the project directory.
+        resolve_folders: Resolves the VSCode configuration to a list of ResolvedFolder
+                         objects that represent the files to be created in the project
+                         directory.
 
     Example:
         ```python
         >>> # Minimal repository project without VSCode configuration
         >>> project = RepositoryProject()
 
-        >>> # Repository project with VSCode settings
+        >>> # Repository project with variables and VSCode settings
+        >>> variables = Variables({"ENV": "development", "DEBUG": "true"})
         >>> vscode_config = VSCodeFolder(
         ...     settings=[Folder({"python": [File("base")]})]
         ... )
-        >>> project = RepositoryProject(vscode=vscode_config)
+        >>> project = RepositoryProject(variables=variables, vscode=vscode_config)
 
         >>> # Repository project with both settings and tasks
         >>> vscode_config = VSCodeFolder(
@@ -70,8 +78,13 @@ class RepositoryProject(BaseModel):
         ```
 
     Validation:
+        - variables: If provided, must be a valid Variables configuration
         - vscode: If provided, must be a valid VSCodeFolder configuration
     """
+
+    variables: Optional[Variables] = Field(
+        None, description="Optional variables configuration for the project"
+    )
 
     vscode: Optional[VSCodeFolder] = Field(
         None, description="Optional VSCode folder configuration for the project"
@@ -81,10 +94,10 @@ class RepositoryProject(BaseModel):
         """
         Resolve the VSCode configuration to a list of ResolvedFolder objects.
 
-        This method processes the VSCode configuration and converts it into ResolvedFolder
-        objects that represent the final VSCode configuration files to be generated.
-        Each ResolvedFolder contains the source paths and destination file information
-        needed for file merging operations.
+        This method processes the VSCode configuration and converts it into
+        ResolvedFolder objects that represent the final VSCode configuration files to
+        be generated. Each ResolvedFolder contains the source paths and destination
+        file information needed for file merging operations.
 
         Returns:
             List[ResolvedFolder]: A list of ResolvedFolder objects representing
@@ -98,7 +111,10 @@ class RepositoryProject(BaseModel):
             >>> vscode = VSCodeFolder(settings=[Folder({"python": [File("base")]})])
             >>> project = RepositoryProject(vscode=vscode)
             >>> resolved = project.resolve_folders()
-            >>> # Returns: [ResolvedFolder(sources=["vscode/settings/python/base"], destination=".vscode/settings.json")]
+            >>> # Returns: [ResolvedFolder(
+            ...     sources=["vscode/settings/python/base"],
+            ...     destination=".vscode/settings.json"
+            ... )]
 
             Resolution with both configurations:
             >>> vscode = VSCodeFolder(
@@ -108,8 +124,14 @@ class RepositoryProject(BaseModel):
             >>> project = RepositoryProject(vscode=vscode)
             >>> resolved = project.resolve_folders()
             >>> # Returns: [
-            ... #     ResolvedFolder(sources=["vscode/settings/python/base"], destination=".vscode/settings.json"),
-            ... #     ResolvedFolder(sources=["vscode/tasks/poetry/build"], destination=".vscode/tasks.json")
+            ... #     ResolvedFolder(
+            ...     sources=["vscode/settings/python/base"],
+            ...     destination=".vscode/settings.json"
+            ... ),
+            ... #     ResolvedFolder(
+            ...     sources=["vscode/tasks/poetry/build"],
+            ...     destination=".vscode/tasks.json"
+            ... )
             ... # ]
 
             No VSCode configuration:
@@ -125,29 +147,37 @@ class RepositoryProject(BaseModel):
 
 class UserProject(BaseModel):
     """
-    Represents a user project with filesystem path and optional VSCode configuration.
+    Represents a user project with filesystem path, optional variables, and optional
+    VSCode configuration.
 
-    A UserProject defines a user-specific project that can be located anywhere on the filesystem
-    and optionally includes VSCode workspace settings and tasks configuration.
+    A UserProject defines a user-specific project that can be located anywhere on the
+    filesystem, and can optionally include VSCode workspace settings, tasks
+    configuration, and project-specific variables.
 
     Attributes:
-        alias: An optional identifier that can be used as an alternative name for the project.
-              If provided, must be a valid identifier string. If None, the project key will be used.
+        alias: An optional identifier that can be used as an alternative name for the
+            project. If provided, must be a valid identifier string. If None, the
+            project key will be used.
         path: The relative filesystem path where the project is located. Must be a valid
-              relative path that exists or can be created.
-        vscode: Optional VSCode folder configuration containing settings and tasks for the project.
-                If provided, will be resolved to generate .vscode/settings.json and .vscode/tasks.json files.
+            relative path that exists or can be created.
+        variables: Optional variables configuration for the project. If provided, must
+            be a valid Variables object containing key-value pairs for project-specific
+            configuration.
+        vscode: Optional VSCode folder configuration containing settings and tasks for
+            the project. If provided, will be resolved to generate .vscode/settings.json
+            and .vscode/tasks.json files.
 
     Methods:
-        resolve_folders: Resolves the VSCode configuration to a list of ResolvedFolder objects
-                        that represent the files to be created in the project directory.
+        resolve_folders: Resolves the VSCode configuration to a list of ResolvedFolder
+            objects that represent the files to be created in the project directory.
 
     Example:
         ```python
         >>> # Minimal project with just a path
         >>> project = UserProject(path="/workspace/my-project")
 
-        >>> # Project with alias and VSCode configuration
+        >>> # Project with alias, variables, and VSCode configuration
+        >>> from ignite.models.common import Variables
         >>> vscode_config = VSCodeFolder(
         ...     settings=[Folder({"python": [File("base")]})],
         ...     tasks=[Folder({"poetry": [File("build")]})]
@@ -155,6 +185,7 @@ class UserProject(BaseModel):
         >>> project = UserProject(
         ...     path="my-project/",
         ...     alias="my-python-project",
+        ...     variables=Variables({"pytest-root-directory": "tests"}),
         ...     vscode=vscode_config
         ... )
         ```
@@ -162,6 +193,7 @@ class UserProject(BaseModel):
     Validation:
         - path: Must be a valid relative path
         - alias: If provided, must be a valid identifier string
+        - variables: If provided, must be a valid Variables object
         - vscode: If provided, must be a valid VSCodeFolder configuration
     """
 
@@ -169,6 +201,9 @@ class UserProject(BaseModel):
         None, description="The alias of the user project"
     )
     path: RelativePath = Field(..., description="The path of the user project")
+    variables: Optional[Variables] = Field(
+        None, description="Optional variables configuration for the project"
+    )
     vscode: Optional[VSCodeFolder] = Field(
         None, description="Optional VSCode folder configuration for the project"
     )
@@ -183,8 +218,8 @@ class UserProject(BaseModel):
 
         Returns:
             List[ResolvedFolder]: A list of resolved folders representing the VSCode
-                                 configuration files to be created. Each ResolvedFolder
-                                 contains the destination path and source files.
+                configuration files to be created. Each ResolvedFolder
+                contains the destination path and source files.
 
         Example:
             ```python
@@ -213,7 +248,8 @@ class Projects(RootModel[Dict[project_key, Union[RepositoryProject, UserProject]
 
     The model supports two types of projects:
     - RepositoryProject: For root and reference projects that are part of the repository
-    - UserProject: For additional user-defined projects with custom paths and VSCode configs
+    - UserProject: For additional user-defined projects with custom paths and VSCode
+                   configurations.
 
     Attributes:
         root (Dict[project_key, Union[RepositoryProject, UserProject]]): A dictionary
@@ -276,7 +312,9 @@ class Projects(RootModel[Dict[project_key, Union[RepositoryProject, UserProject]
             >>> projects = Projects({
             ...     "root": UserProject(path="/workspace")
             ... })
-            >>> # Raises: ValueError("The value for key 'root' must be a RepositoryProject instance.")
+            >>> # Raises: ValueError(
+            ...     "The value for key 'root' must be a RepositoryProject instance."
+            ... )
         """
         if len(self.root.keys()) == 0:
             raise ValueError("At least one project must be specified")
@@ -285,29 +323,66 @@ class Projects(RootModel[Dict[project_key, Union[RepositoryProject, UserProject]
             if key == ReservedProjectKey.ROOT:
                 if not isinstance(value, RepositoryProject):
                     raise ValueError(
-                        f"The value for key '{ReservedProjectKey.ROOT.value}' must be a RepositoryProject instance."
+                        f"The value for key '{ReservedProjectKey.ROOT.value}' must be "
+                        "a RepositoryProject instance."
                     )
 
             if key == ReservedProjectKey.REF:
                 if not isinstance(value, RepositoryProject):
                     raise ValueError(
-                        f"The value for key '{ReservedProjectKey.REF.value}' must be a RepositoryProject instance."
+                        f"The value for key '{ReservedProjectKey.REF.value}' must be "
+                        "a RepositoryProject instance."
                     )
 
         return self
 
+    def resolve_project_variables(self) -> Dict[str, Optional[ResolvedVariables]]:
+        """
+        Resolve all project variables to a dictionary mapping project identifiers to
+        variables.
+        """
+        resolved_variables: Dict[str, Optional[ResolvedVariables]] = {}
+        ref_project = self.root.get(ReservedProjectKey.REF, None)
+        if ref_project:
+            ref_variables = ref_project.variables
+        else:
+            ref_variables = None
+        for key, value in self.root.items():
+            if isinstance(value, UserProject):
+                if not value.variables:
+                    continue
+                current_working_directory = pathlib.Path(value.path) / key
+                key = value.alias if value.alias else key
+                if ref_variables:
+                    value.variables.root.update(ref_variables.root)
+                resolved_variables[key] = value.variables.resolve(
+                    current_working_directory
+                )
+            elif isinstance(value, RepositoryProject):
+                if key == ReservedProjectKey.REF:
+                    continue
+                if not value.variables:
+                    continue
+                resolved_variables[key] = (
+                    value.variables.resolve() if value.variables else None
+                )
+        return resolved_variables
+
     def resolve_project_folders(self) -> Dict[str, List[ResolvedFolder]]:
         """
-        Resolve all projects to a dictionary mapping project identifiers to resolved folders.
+        Resolve all projects to a dictionary mapping project identifiers to resolved
+        folders.
 
         This method processes all projects in the collection and returns a dictionary
-        where each key is a project identifier and each value is a list of ResolvedFolder
-        objects representing the VSCode configuration files to be created for that project.
+        where each key is a project identifier and each value is a list of
+        ResolvedFolder objects representing the VSCode configuration files to be created
+        for that project.
 
         For UserProject instances, the method:
         - Resolves the project's VSCode configuration
         - Adjusts destination paths to include the project path and key
-        - Uses the project's alias as the key if available, otherwise uses the original key
+        - Uses the project's alias as the key if available, otherwise uses the original
+          key
 
         For RepositoryProject instances, the method:
         - Directly resolves the project's folders without path adjustments
@@ -321,16 +396,25 @@ class Projects(RootModel[Dict[project_key, Union[RepositoryProject, UserProject]
             >>> projects = Projects({
             ...     "root": RepositoryProject(path="/workspace"),
             ...     "my-project": UserProject(
-            ...         path="/workspace/my-project",
+            ...         path="/workspace",
             ...         alias="python-project",
-            ...         vscode=VSCodeFolder(settings=[Folder({"python": [File("base")]})])
+            ...         vscode=VSCodeFolder(
+            ...             settings=[Folder({"python": [File("base")]})]
+            ...         )
             ...     )
             ... })
             >>> resolved = projects.resolve_project_folders()
             # Returns:
             # {
-            #     "root": [ResolvedFolder(destination=".vscode/settings.json", sources=[...])],
-            #     "python-project": [ResolvedFolder(destination="/workspace/my-project/my-project/.vscode/settings.json", sources=[...])]
+            #     "root": [ResolvedFolder(
+            #         destination=".vscode/settings.json",
+            #         sources=[...]
+            #     )],
+            #     "python-project": [
+            #         ResolvedFolder(
+            #             destination="/workspace/my-project/.vscode/settings.json",
+            #             sources=[...]
+            #         )]
             # }
         """
         resolved_projects: Dict[str, List[ResolvedFolder]] = {}

@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from pydantic import BaseModel, Field, StringConstraints
+from pydantic import StringConstraints
 
 IdentifierPattern = "([a-zA-Z0-9]|[a-zA-Z][a-zA-Z0-9_-]*[a-zA-Z0-9])"
 

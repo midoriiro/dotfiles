@@ -2,9 +2,8 @@ import pathlib
 
 import pytest
 from assertpy import assert_that
-from pydantic import ValidationError
 
-from ignite.models.fs import File, Folder, ReservedFileName
+from ignite.models.fs import File, Folder
 
 
 class TestFolderCreation:

@@ -8,12 +8,18 @@ runs:
       id: artifacts-registry
       uses: ./.github/actions/artifacts-registry/restore
 
+    - name: Normalize Script Path
+      id: script-path
+      uses: ./.github/actions/core/normalize-path
+      with:
+        path: ${{ github.action_path }}/main.py
+
     - name: Prepare Artifacts Release
       env:
         ARTIFACTS_REGISTRY_PATH: ${{ steps.artifacts-registry.outputs.path }}
       shell: bash
       run: |
-        python ${{ github.action_path }}/main.py
+        python ${{ steps.script-path.outputs.normalized-path }}
 
     - name: Save Artifacts Registry
       uses: ./.github/actions/artifacts-registry/save 

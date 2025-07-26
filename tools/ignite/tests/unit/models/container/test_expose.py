@@ -110,9 +110,7 @@ class TestExposeFeatureInheritance:
 
     def test_expose_feature_name(self):
         """Test that Expose has correct feature name."""
-        expose = Expose(
-            socket=Socket(host="/tmp/docker.sock", container="/var/run/docker.sock")
-        )
+        Expose(socket=Socket(host="/tmp/docker.sock", container="/var/run/docker.sock"))
         assert_that(Expose.feature_name()).is_equal_to("expose")
 
 

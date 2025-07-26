@@ -1,6 +1,4 @@
 import pathlib
-from pathlib import Path
-from typing import List
 
 import pytest
 from assertpy import assert_that
@@ -522,7 +520,9 @@ class TestVSCodeFolderModelBehavior:
         )
 
     def test_vscode_folder_uses_model_construct(self):
-        """Test that VSCodeFolder uses model_construct for creating ResolvedFolder objects."""
+        """
+        Test that VSCodeFolder uses model_construct for creating ResolvedFolder objects.
+        """
         settings_folder = Folder({"python": [File("base")]})
         vscode_folder = VSCodeFolder(settings=[settings_folder])
         resolved = vscode_folder.resolve()

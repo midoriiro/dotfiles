@@ -1,10 +1,9 @@
 import json
 import logging
 import os
-import pprint
 from collections import OrderedDict
 from pathlib import Path
-from typing import Callable, Dict, List, Optional
+from typing import Dict, List, Optional
 
 import typer
 
@@ -19,18 +18,14 @@ from ignite.models.container import (
     Runtime,
 )
 from ignite.models.container import Workspace as ContainerWorkspace
-from ignite.models.fs import FileTemplateVariables, ReservedFileName, ResolvedFile
+from ignite.models.fs import FileTemplateVariables, ResolvedFile
 from ignite.models.policies import (
     FileWritePolicy,
     FolderCreatePolicy,
-    FolderPolicy,
     Policies,
     ReservedPolicyKeys,
 )
-from ignite.models.projects import RepositoryProject, ReservedProjectKey, UserProject
-from ignite.models.settings import ResolvedFolder
 from ignite.models.workspace import Workspace as WorkspaceModel
-from ignite.models.workspace import WorkspaceFileSpecification
 from ignite.resolvers import PathResolver
 
 JSON_INDENT = 2
@@ -91,7 +86,8 @@ class Composer:
                      that determine how to handle directory creation and file writing.
 
         Raises:
-            NotImplementedError: Always raised by the base class, subclasses must implement.
+            NotImplementedError: Always raised by the base class, subclasses must
+            implement.
         """
         raise NotImplementedError("Subclass must implement this method.")
 
@@ -137,7 +133,8 @@ class Composer:
         file_policy: FileWritePolicy = FileWritePolicy.ASK,
     ) -> None:
         """
-        Save content to a file with configurable policies for folder creation and file writing.
+        Save content to a file with configurable policies for folder creation and file
+        writing.
 
         This method handles the complete file saving process including:
         - Validating that the output path is not a directory
@@ -340,8 +337,10 @@ class ContainerComposer(Composer):
             ValueError: If file overwrite is needed but policy is NEVER.
 
         Note:
-            The method uses the folder creation policy from policies.root[ReservedPolicyKeys.FOLDER].create
-            and the file write policy from policies.root[ReservedPolicyKeys.FILE].write to determine
+            The method uses the folder creation policy from
+            policies.root[ReservedPolicyKeys.FOLDER].create
+            and the file write policy from
+            policies.root[ReservedPolicyKeys.FILE].write to determine
             the behavior for directory creation and file writing respectively.
         """
         if self.__config is None:
@@ -422,15 +421,25 @@ class WorkspaceComposer(Composer):
             variable substitution for each project.
         """
         resolved_project_files: List[ResolvedFile] = []
+        original_cwd = Path.cwd()
+        try:
+            os.chdir(self.__path_resolver.user_context)
+            resolved_project_variables = self.__workspace.resolve_project_variables()
+        finally:
+            os.chdir(original_cwd)
         resolved_project_folders = self.__workspace.resolve_project_folders(
             self.__path_resolver
         )
         for project_name, resolved_folders in resolved_project_folders.items():
-            file_content_variables = FileTemplateVariables(project_name=project_name)
+            variables = resolved_project_variables.get(project_name, None)
+            file_content_variables = FileTemplateVariables(
+                project_name=project_name, variables=variables
+            )
             for resolved_folder in resolved_folders:
                 resolved_project_files.append(
                     resolved_folder.resolve(file_content_variables)
                 )
+            file_content_variables.check_variables_usage()
         return resolved_project_files
 
     def _resolve_file_specification(self) -> ResolvedFile:
@@ -474,7 +483,8 @@ class WorkspaceComposer(Composer):
         1. Validates that files have been resolved (compose() has been called)
         2. Processes each resolved file, handling absolute path conversion
         3. Creates necessary directories and writes files using the provided policies
-        4. Applies folder creation and file write policies from the policies configuration
+        4. Applies folder creation and file write policies from the policies
+           configuration
 
         Args:
             output_path: The base path where all workspace files should be saved.
@@ -488,8 +498,8 @@ class WorkspaceComposer(Composer):
 
         Note:
             The method uses the provided policies to determine how to handle directory
-            creation and file overwriting. Absolute paths in resolved files are converted
-            to relative paths within the output directory structure.
+            creation and file overwriting. Absolute paths in resolved files are
+            converted to relative paths within the output directory structure.
         """
         if self.__resolved_files is None:
             raise ValueError("Files are not resolved yet.")

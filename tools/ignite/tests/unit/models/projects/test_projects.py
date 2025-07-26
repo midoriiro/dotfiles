@@ -1,6 +1,4 @@
-import os
 import pathlib
-from pathlib import Path
 
 import pytest
 from assertpy import assert_that
@@ -59,7 +57,9 @@ class TestValidProjects:
         assert_that(user_project.alias).is_equal_to("my-alias")
 
     def test_projects_with_user_project_with_vscode(self):
-        """Test that projects with user project with VSCode configuration is accepted."""
+        """
+        Test that projects with user project with VSCode configuration is accepted.
+        """
         vscode_config = VSCodeFolder(settings=[Folder({"python": [File("base")]})])
         projects = Projects(
             {"test-project": UserProject(path="tools", vscode=vscode_config)}
@@ -69,7 +69,10 @@ class TestValidProjects:
         assert_that(user_project.vscode).is_instance_of(VSCodeFolder)
 
     def test_projects_with_repository_project_with_vscode(self):
-        """Test that projects with repository project with VSCode configuration is accepted."""
+        """
+        Test that projects with repository project with VSCode configuration is
+        accepted.
+        """
         vscode_config = VSCodeFolder(
             settings=[Folder({"python": [File("base")]})],
             tasks=[Folder({"poetry": [File("build")]})],
@@ -164,7 +167,9 @@ class TestProjectsResolveProjectFolders:
         )
 
     def test_resolve_project_folders_with_repository_project_no_vscode(self):
-        """Test that resolve_project_folders works with repository project without VSCode."""
+        """
+        Test that resolve_project_folders works with repository project without VSCode.
+        """
         projects = Projects({"root": RepositoryProject()})
         result = projects.resolve_project_folders()
 
@@ -172,7 +177,9 @@ class TestProjectsResolveProjectFolders:
         assert_that(result["root"]).is_empty()
 
     def test_resolve_project_folders_with_repository_project_with_vscode(self):
-        """Test that resolve_project_folders works with repository project with VSCode."""
+        """
+        Test that resolve_project_folders works with repository project with VSCode.
+        """
         vscode_config = VSCodeFolder(
             settings=[Folder({"python": [File("base")]})],
             tasks=[Folder({"poetry": [File("build")]})],
