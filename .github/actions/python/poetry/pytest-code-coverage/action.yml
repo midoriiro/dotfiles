@@ -104,6 +104,6 @@ runs:
 
     # Delete coverage report artifacts in case we downloaded them it the same job
     - name: Delete coverage report artifacts
-      shell: bash
-      run: |
-        rm --force ${{ steps.artifact-info.outputs.artifact-path }}
+      uses: ./.github/actions/core/remove-path
+      with:
+        path: ${{ steps.artifact-info.outputs.artifact-path }}
