@@ -19,6 +19,7 @@ black = "^25.1.0"
 isort = "^6.0.1"
 flake8 = "^7.3.0"
 flake8-pyproject = "^1.2.3"
+flake8-docstrings = "^1.7.0"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^8.4.1"
@@ -72,4 +73,17 @@ exclude = [
     ".git",
     "__pycache__",
     "dist"
+]
+extend-ignore = [
+    "D100",
+    "D101",
+    "D102",
+    "D103",
+    "D104",
+    "D107",
+    "D200",
+    "D202",
+    "D205",
+    "D400",
+    "D401",
 ]
