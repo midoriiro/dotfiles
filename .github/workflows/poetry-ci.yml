@@ -78,6 +78,9 @@ jobs:
     name: ${{ needs.runner-tag.outputs.tag }} - Setup Environment
     runs-on: ${{ inputs.os }}
     needs: [runner-tag]
+    concurrency: 
+      group: ${{ github.workflow }}-setup-environment
+      cancel-in-progress: false
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -188,7 +191,9 @@ jobs:
     name: ${{ needs.runner-tag.outputs.tag }} - Build
     runs-on: ${{ inputs.os }}
     needs: [runner-tag, setup-environment]
-    concurrency: ${{ github.workflow }}-build
+    concurrency: 
+      group: ${{ github.workflow }}-build
+      cancel-in-progress: false
 
     steps:
       - name: Checkout Code
@@ -215,8 +220,12 @@ jobs:
   prepare-package:
     name: ${{ needs.runner-tag.outputs.tag }} - Prepare Package
     needs: [runner-tag, build]
-    runs-on: ubuntu-latest
-    concurrency: ${{ github.workflow }}-prepare-package
+    runs-on: ${{ inputs.os }}
+    concurrency: 
+      group: ${{ github.workflow }}-prepare-package
+      cancel-in-progress: false
+    env:
+      PYTHONIOENCODING: utf-8
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4

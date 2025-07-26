@@ -17,6 +17,12 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Normalize path
+      id: normalize-path
+      uses: ./.github/actions/core/normalize-path
+      with:
+        path: ${{ inputs.path }}
+
     - name: Hash file
       id: hash-file
       shell: python
@@ -25,9 +31,7 @@ runs:
         import hashlib
         import os
 
-        raw_input_path = r"${{ inputs.path }}"
-        normalized_path = Path(raw_input_path.replace("\\", "/"))
-        path = Path(normalized_path)
+        path = Path("${{ steps.normalize-path.outputs.normalized-path }}")
 
         with open(path, "rb") as f:
             file_hash = hashlib.sha256(f.read()).hexdigest()

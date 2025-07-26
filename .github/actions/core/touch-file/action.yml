@@ -1,9 +1,9 @@
-name: 'Remove Path'
-description: 'Remove a path'
+name: 'Touch File'
+description: 'Touch a file'
 
 inputs:
   path:
-    description: 'The path to remove'
+    description: 'The path to touch'
     required: true
 
 runs:
@@ -15,13 +15,9 @@ runs:
       with:
         path: ${{ inputs.path }}
 
-    - name: Remove path
+    - name: Touch file
       shell: python
       run: |
         from pathlib import Path
         path = Path("${{ steps.normalize-path.outputs.normalized-path }}")
-
-        if path.is_file():
-            path.unlink()
-        elif path.is_dir():
-            path.rmdir()
+        path.touch(exist_ok=True)

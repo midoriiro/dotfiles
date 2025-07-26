@@ -1,0 +1,31 @@
+name: 'Normalize Path'
+description: 'Normalize a path'
+
+inputs:
+  path:
+    description: 'The path to normalize'
+    required: true
+
+outputs:
+  normalized-path:
+    description: 'The normalized path'
+    value: ${{ steps.normalize-path.outputs.normalized-path }}
+
+runs:
+  using: composite
+  steps:
+    - name: Normalize path
+      id: normalize-path
+      shell: python
+      run: |
+        from pathlib import Path
+        import os
+
+        raw_input_path = r"${{ inputs.path }}"
+        normalized_path = Path(raw_input_path.replace("\\", "/"))
+        path = normalized_path.as_posix()
+
+        print(f"Normalized path: {path}")
+
+        with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+            f.write(f"normalized-path={path}\n")

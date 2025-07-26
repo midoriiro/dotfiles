@@ -74,14 +74,18 @@ runs:
         path: ${{ steps.registry.outputs.self-path }}/clean
         parents: true
 
+    - name: Touch Self Registry Clean File
+      if: ${{ inputs.clean == 'true' }}
+      uses: ./.github/actions/core/touch-file
+      with:
+        path: ${{ steps.registry.outputs.self-path }}/clean/${{ steps.registry.outputs.key }}
+
     - name: Add Registry to Clean Operation List
       if: ${{ inputs.clean == 'true' }}
       env:
-        REGISTRY_PATH: ${{ steps.registry.outputs.self-path }}/clean
         REGISTRY_KEY: ${{ steps.registry.outputs.key }}
       shell: bash
       run: |
-        touch ${{ env.REGISTRY_PATH }}/${{ env.REGISTRY_KEY }}
         echo "✅ Added registry to clean operation list with key: ${{ env.REGISTRY_KEY }}"
 
     - name: Delete Previous Self Registry
