@@ -3,6 +3,7 @@
 
 from conftests.assert_builds import *
 from conftests.assert_manifests import *
+from conftests.executable import *
 from conftests.logger import *
 from conftests.metadata import *
 from conftests.paths import *
