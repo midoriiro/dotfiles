@@ -1,25 +1,22 @@
 import ast
 import logging
-from enum import Enum
 from pathlib import Path
 from typing import Optional
 
 from poetry.core.poetry import Poetry
 
 from poexy_core.packages.format import WheelFormat
+from poexy_core.pyinstaller.argument_builder import PyInstallerArgumentBuilder
+from poexy_core.pyinstaller.types import BuildType
 from poexy_core.pyproject.tables.poexy import Poexy
 from poexy_core.utils import subprocess_rt
+from poexy_core.utils.venv import VirtualEnvironment
 
 logger = logging.getLogger(__name__)
 
 
 class PyinstallerBuilderError(Exception):
     pass
-
-
-class BuildType(Enum):
-    OneFile = "onefile"
-    OneDir = "onedir"
 
 
 class PyinstallerBuilder:
@@ -49,6 +46,7 @@ class PyinstallerBuilder:
             )
         self.__executable_name = binary.name
         self.__entry_point = binary.entry_point
+        self.__dependencies = poetry.package.requires
 
     @property
     def executable_name(self) -> str:
@@ -83,6 +81,21 @@ class PyinstallerBuilder:
                 return str(file)
         raise PyinstallerBuilderError("No entry point found")
 
+    def __build(self, arguments: PyInstallerArgumentBuilder) -> None:
+        command = ["pyinstaller", *arguments.build()]
+        exit_code = subprocess_rt.run(
+            command, printer=logger.info, cwd=self.__project_path
+        )
+        if exit_code != 0:
+            raise PyinstallerBuilderError("Failed to build executable")
+
+    def __build_with_venv(self, arguments: PyInstallerArgumentBuilder) -> None:
+        with VirtualEnvironment.create() as venv:
+            venv.install_dependencies(self.__dependencies)
+            venv_site_packages_paths = venv.site_packages_paths
+            arguments.paths(venv_site_packages_paths)
+            self.__build(arguments)
+
     def build(
         self,
         build_type: Optional[BuildType] = BuildType.OneFile,
@@ -109,43 +122,25 @@ class PyinstallerBuilder:
             dist_path = self.__project_path / "dist"
         work_path = str(build_path or self.__project_path / "build" / "temp")
 
-        if build_type == BuildType.OneFile:
-            build_type_argument = "--onefile"
-        elif build_type == BuildType.OneDir:
-            build_type_argument = "--onedir"
+        collect_submodules = self.__package_source_path.resolve()
+
+        arguments = PyInstallerArgumentBuilder()
+        arguments.executable_name(self.__executable_name)
+        arguments.build_type(build_type)
+        arguments.entry_point(path_to_entry_point)
+        arguments.spec_path(spec_path)
+        arguments.dist_path(dist_path)
+        arguments.work_path(work_path)
+        arguments.collect_submodules([collect_submodules])
+
+        if strip is not None:
+            arguments.strip(strip)
+        if clean is not None:
+            arguments.clean(clean)
+
+        if len(self.__dependencies) > 0:
+            self.__build_with_venv(arguments)
         else:
-            raise PyinstallerBuilderError(f"Invalid build type: {build_type}")
-
-        logger.info("Building executable:")
-        logger.info(f"  - Path to entry point: {path_to_entry_point}")
-        logger.info(f"  - Spec path: {spec_path}")
-        logger.info(f"  - Dist path: {dist_path}")
-        logger.info(f"  - Work path: {work_path}")
-        logger.info(f"  - Build type: {build_type}")
-        logger.info(f"  - Strip: {strip}")
-        logger.info(f"  - Clean: {clean}")
-
-        command = [
-            "pyinstaller",
-            path_to_entry_point,
-            build_type_argument,
-            "--name",
-            self.__executable_name,
-            "--specpath",
-            spec_path,
-            "--distpath",
-            dist_path,
-            "--workpath",
-            work_path,
-            "--strip" if strip else None,
-            "--clean" if clean else None,
-        ]
-
-        exit_code = subprocess_rt.run(
-            command, printer=logger.info, cwd=self.__project_path
-        )
-
-        if exit_code != 0:
-            raise PyinstallerBuilderError("Failed to build executable")
+            self.__build(arguments)
 
         logger.info("Executable built successfully.")
