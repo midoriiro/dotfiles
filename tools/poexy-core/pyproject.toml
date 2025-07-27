@@ -33,7 +33,13 @@ includes = [
 ]
 
 [build-system]
-requires = ["poetry-core>=2.1.0", "pydantic>=2.11.7", "rich>=14.0.0", "pyinstaller>=6.14.2"]
+requires = [
+    "poetry-core>=2.1.0",
+    "pydantic>=2.11.7",
+    "rich>=14.0.0",
+    "pyinstaller>=6.14.2",
+    "virtualenv>=20.31.2"
+]
 build-backend = "poexy_core.api"
 backend-path = ["."]
 
