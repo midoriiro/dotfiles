@@ -57,12 +57,8 @@ def assert_pip_wheel(
     def _assert(archive_path: Path):
         log_info_section("Running pip wheel")
         wheel_path = Path(build_path) / "wheel"
-        if dist_package_name() == "poexy_core":
-            no_build_isolation = False
-            check_build_dependencies = True
-        else:
-            no_build_isolation = True
-            check_build_dependencies = True
+        no_build_isolation = True
+        check_build_dependencies = True
         returncode = pip.wheel(
             archive_path, wheel_path, no_build_isolation, check_build_dependencies
         )

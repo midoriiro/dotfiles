@@ -13,7 +13,8 @@ class Pip:
         self.__cache_path = virtualenv_path / ".cache"
         self.__cache_path.mkdir(parents=True, exist_ok=True)
         self.__common_args = [
-            # "--verbose",
+            "--verbose",
+            # "--debug",
             "--require-virtualenv",
             "--isolated",
             "--cache-dir",
@@ -163,7 +164,6 @@ class Pip:
             cmd.append("--no-build-isolation")
         if check_build_dependencies:
             cmd.append("--check-build-dependencies")
-            cmd.extend(self.__common_args)
         cmd.extend(["--use-pep517", "--no-clean", "--force-reinstall"])
         cmd.extend(self.__common_args)
         cmd.append(str(archive_path))
