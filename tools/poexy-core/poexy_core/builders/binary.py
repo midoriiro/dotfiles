@@ -129,7 +129,7 @@ class BinaryBuilder(WheelBuilder):
 
         with self._create_archive():
             logger.info("Adding metadata...")
-            self._add_metadata(self._manifests.metadata)
+            self.__add_metadata()
             logger.info("Adding wheel...")
             self._add_wheel()
             logger.info("Adding executable...")

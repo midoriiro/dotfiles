@@ -8,9 +8,10 @@ from poetry.core.poetry import Poetry
 from poexy_core.packages.format import WheelFormat
 from poexy_core.pyinstaller.argument_builder import PyInstallerArgumentBuilder
 from poexy_core.pyinstaller.types import BuildType
+from poexy_core.pyinstaller.venv import PyinstallerVirtualEnvironment
 from poexy_core.pyproject.tables.poexy import Poexy
+from poexy_core.pyproject.toml import PyProjectTOML
 from poexy_core.utils import subprocess_rt
-from poexy_core.utils.venv import VirtualEnvironment
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +47,7 @@ class PyinstallerBuilder:
             )
         self.__executable_name = binary.name
         self.__entry_point = binary.entry_point
-        self.__dependencies = poetry.package.requires
+        self.__dependencies = PyProjectTOML.dependencies_from_poetry(poetry)
 
     @property
     def executable_name(self) -> str:
@@ -90,10 +91,10 @@ class PyinstallerBuilder:
             raise PyinstallerBuilderError("Failed to build executable")
 
     def __build_with_venv(self, arguments: PyInstallerArgumentBuilder) -> None:
-        with VirtualEnvironment.create() as venv:
-            venv.install_dependencies(self.__dependencies)
-            venv_site_packages_paths = venv.site_packages_paths
-            arguments.paths(venv_site_packages_paths)
+        with PyinstallerVirtualEnvironment.create() as venv:
+            directory_dependencies = venv.install_dependencies(self.__dependencies)
+            for directory_dependency in directory_dependencies:
+                arguments.paths([directory_dependency.full_path])
             self.__build(arguments)
 
     def build(

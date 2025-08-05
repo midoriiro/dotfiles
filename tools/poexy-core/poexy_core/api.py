@@ -5,6 +5,7 @@ from typing import Any
 from rich.console import Console
 
 from poexy_core.builders.binary import BinaryBuilder
+from poexy_core.builders.editable import EditableBuilder
 from poexy_core.builders.hooks.binary import BinaryHookBuilder
 from poexy_core.builders.sdist import SdistBuilder
 from poexy_core.builders.wheel import WheelBuilder
@@ -81,9 +82,11 @@ def __get_wheel_builder(
     if poexy.wheel.format is not None:
         wheel_format = list(poexy.wheel.format)
         if len(wheel_format) > 1 and WheelFormat.Binary in wheel_format:
+            pyproject.validate_dependencies()
             wheel_builder.add_hook(BinaryHookBuilder(binary_builder))
             return wheel_builder
         if len(wheel_format) == 1 and WheelFormat.Binary not in wheel_format:
+            pyproject.validate_dependencies()
             return wheel_builder
         if len(wheel_format) == 1 and WheelFormat.Binary in wheel_format:
             return binary_builder
@@ -120,6 +123,32 @@ def __get_binary_builder(
     return builder
 
 
+def __get_editable_builder(
+    wheel_directory: str | None = None,
+    metadata_directory: str | None = None,
+    config_settings: dict[str, Any] | None = None,
+) -> EditableBuilder:
+    pyproject = PyProjectTOML(path=Path.cwd())
+    poexy = pyproject.poexy
+    poetry = pyproject.poetry
+    if metadata_directory is not None:
+        destination_directory = metadata_directory
+    elif wheel_directory is not None:
+        destination_directory = wheel_directory
+    else:
+        raise ValueError("wheel_directory and metadata_directory cannot be None")
+    metadata_path = None if metadata_directory is None else Path(metadata_directory)
+    builder = EditableBuilder(
+        poetry,
+        poexy,
+        PackageFormat.Wheel,
+        wheel_directory=Path(destination_directory),
+        metadata_directory=metadata_path,
+        config_settings=config_settings,
+    )
+    return builder
+
+
 def __get_sdist_builder(
     sdist_directory: str,
     config_settings: dict[str, Any] | None = None,
@@ -127,6 +156,7 @@ def __get_sdist_builder(
     pyproject = PyProjectTOML(path=Path.cwd())
     poexy = pyproject.poexy
     poetry = pyproject.poetry
+    pyproject.validate_dependencies()
     builder = SdistBuilder(
         poetry,
         poexy,
@@ -233,5 +263,29 @@ def build_sdist(
         raise
 
 
+def build_editable(
+    wheel_directory: str,
+    config_settings: dict[str, Any] | None = None,
+    metadata_directory: str | None = None,
+) -> str:
+    """Builds a wheel, places it in wheel_directory"""
+    logger.info("=== Build editable called ===")
+    logger.info(f"wheel_directory: {wheel_directory}")
+    logger.info(f"config_settings: {config_settings}")
+    logger.info(f"metadata_directory: {metadata_directory}")
+
+    try:
+        builder = __get_editable_builder(
+            wheel_directory=wheel_directory, config_settings=config_settings
+        )
+        logger.info("Builder created successfully")
+        with builder.build() as file_path:
+            logger.info(f"Editable wheel built successfully, file_path: {file_path}")
+            return file_path.name
+    except Exception as e:
+        logger.error(f"Error in build_editable: {e}")
+        raise
+
+
 get_requires_for_build_editable = get_requires_for_build_wheel
-# prepare_metadata_for_build_editable = prepare_metadata_for_build_wheel
+prepare_metadata_for_build_editable = prepare_metadata_for_build_wheel
