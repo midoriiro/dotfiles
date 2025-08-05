@@ -6,6 +6,7 @@ from base as dev
 run dnf update -y && \
     dnf install -y \
     git \
+    git-daemon \
     sudo \
     python3 \
     pipx \
