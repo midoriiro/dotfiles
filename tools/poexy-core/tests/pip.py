@@ -1,5 +1,7 @@
 import json
 import os
+import shutil
+import site
 from pathlib import Path
 from typing import Optional
 
@@ -17,8 +19,8 @@ class Pip:
             # "--debug",
             "--require-virtualenv",
             "--isolated",
-            "--cache-dir",
-            str(self.__cache_path),
+            # "--cache-dir",
+            # str(self.__cache_path),
         ]
 
     def __create_virtualenv(self) -> int:

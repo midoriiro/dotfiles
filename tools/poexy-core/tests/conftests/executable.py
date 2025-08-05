@@ -1,6 +1,6 @@
 import subprocess
 from pathlib import Path
-from typing import Callable, List
+from typing import Callable, List, Optional
 
 import pytest
 
@@ -9,7 +9,13 @@ import pytest
 
 @pytest.fixture()
 def execute_binary() -> Callable[[Path, List[str]], subprocess.CompletedProcess]:
-    def execute(binary_path: Path, args: List[str]) -> subprocess.CompletedProcess:
-        return subprocess.run([binary_path, *args], capture_output=True, text=True)
+    def execute(
+        binary_path: Path, args: Optional[List[str]] = None
+    ) -> subprocess.CompletedProcess:
+        if args is None:
+            cmd = [str(binary_path)]
+        else:
+            cmd = [str(binary_path), *args]
+        return subprocess.run(cmd, capture_output=True, text=True)
 
     return execute

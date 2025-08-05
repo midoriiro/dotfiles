@@ -111,9 +111,16 @@ def assert_wheel_build(
     assert_pip_install,
     assert_zip_file,
 ) -> Callable[[Path], Callable[[List[Path], bool], None]]:
-    def _assert(project_path: Path, _format: Set[WheelFormat] = {WheelFormat.Source}):
+    def _assert(
+        project_path: Path,
+        _format: Set[WheelFormat] = {WheelFormat.Source},
+        editable: bool = False,
+    ):
         with project(project_path):
-            filename = api.build_wheel(str(dist_path))
+            if editable:
+                filename = api.build_editable(str(dist_path))
+            else:
+                filename = api.build_wheel(str(dist_path))
 
             assert_that(filename).ends_with(".whl")
             assert_that(filename).starts_with(dist_package_name())
@@ -151,7 +158,13 @@ def assert_wheel_build(
                     strip=False,
                 )
             else:
-                assert_that(str(site_packages)).exists()
+                if editable:
+                    assert_that(str(site_packages)).does_not_exist()
+                    assert_that(
+                        str(site_packages.parent / (package_name() + ".pth"))
+                    ).exists()
+                else:
+                    assert_that(str(site_packages)).exists()
                 binary_path = install_path / "bin" / package_name()
                 if WheelFormat.Binary in _format:
                     assert_that(binary_path.exists()).is_true()

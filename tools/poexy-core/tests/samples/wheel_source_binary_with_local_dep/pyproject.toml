@@ -1,0 +1,16 @@
+[project]
+name = "wheel-source-binary-with-local-dep"
+version = "1.0.0"
+dependencies = [
+    "library @ ../library/"
+]
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.wheel_source_binary_with_local_dep]
+source = "src"
+
+[tool.poexy.wheel]
+format = ["source", "binary"]
