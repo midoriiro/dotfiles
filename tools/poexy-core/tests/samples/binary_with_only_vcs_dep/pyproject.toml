@@ -1,0 +1,20 @@
+[project]
+name = "binary-with-only-vcs-dep"
+version = "1.0.0"
+dependencies = [
+    "library @ git://localhost:8001/"
+]
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.binary_with_only_vcs_dep]
+source = "src"
+
+[tool.poexy.wheel]
+format = ["binary"]
+
+[tool.poexy.binary]
+name = "binary-with-only-vcs-dep"
+entry_point = "src.__init__"
