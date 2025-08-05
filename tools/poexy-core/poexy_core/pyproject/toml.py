@@ -1,18 +1,24 @@
 from pathlib import Path
-from typing import Any, Dict, Optional, override
+from typing import Any, Dict, List, Optional, override
 
 from poetry.core.factory import Factory
+from poetry.core.packages.dependency import Dependency
+from poetry.core.packages.directory_dependency import DirectoryDependency
+from poetry.core.packages.file_dependency import FileDependency
 from poetry.core.poetry import Poetry
 from poetry.core.pyproject.tables import BuildSystem
 from poetry.core.pyproject.toml import PyProjectTOML as PoetryPyProjectTOML
 from pydantic import BaseModel, Field, field_validator
 
+from poexy_core.pyproject.exceptions import PyProjectError
 from poexy_core.pyproject.tables.license import License
 from poexy_core.pyproject.tables.package import BinaryPackage, ModulePackage
 from poexy_core.pyproject.tables.poexy import Poexy
 from poexy_core.pyproject.tables.readme import Readme
 
 # pylint: disable=attribute-defined-outside-init
+
+DependencyMap = Dict[str, List[Dependency]]
 
 
 class PyProjectTOML(BaseModel):
@@ -24,6 +30,7 @@ class PyProjectTOML(BaseModel):
         self.__build_system: Optional[BuildSystem] = None
         self.__poetry: Optional[Poetry] = None
         self.__poexy: Optional[Poexy] = None
+        self.__dependencies: Optional[Dict[str, List[Dependency]]] = None
 
     @field_validator("path")
     @classmethod
@@ -34,6 +41,52 @@ class PyProjectTOML(BaseModel):
         if path.name != "pyproject.toml":
             raise ValueError(f"Path {v} is not a pyproject.toml file")
         return path
+
+    def validate_dependencies(self) -> None:
+        dependencies = self.dependencies
+        for key, values in dependencies.items():
+            dependency_types = [dependency.__class__.__name__ for dependency in values]
+            if (
+                FileDependency.__name__ in dependency_types
+                and DirectoryDependency.__name__ in dependency_types
+            ):
+                raise PyProjectError(
+                    f"Dependency '{key}' is pointing only to local dependencies. "
+                    "This is not allowed and you should provide alternative "
+                    "dependency types other than file or directory."
+                )
+            for dependency in values:
+                dependency_name = dependency.name
+                if isinstance(dependency, DirectoryDependency) and len(values) == 1:
+                    raise PyProjectError(
+                        f"Dependency '{dependency_name}' is pointing to a directory. "
+                        "This is not allowed and you should provide alternative "
+                        "dependency types other than file or directory."
+                    )
+                elif isinstance(dependency, FileDependency) and len(values) == 1:
+                    if dependency.source_type == "file":
+                        raise PyProjectError(
+                            f"Dependency '{dependency_name}' is pointing to a file. "
+                            "This is not allowed and you should provide alternative "
+                            "dependency types other than file or directory."
+                        )
+
+    @staticmethod
+    def dependencies_from_poetry(poetry: Poetry) -> DependencyMap:
+        dependencies = poetry.package.requires
+        dependencies_map: DependencyMap = {}
+        for dependency in dependencies:
+            if dependency.name in dependencies_map:
+                dependencies_map[dependency.name].append(dependency)
+            else:
+                dependencies_map[dependency.name] = [dependency]
+        return dependencies_map
+
+    @property
+    def dependencies(self) -> DependencyMap:
+        if self.__dependencies is None:
+            self.__dependencies = self.dependencies_from_poetry(self.poetry)
+        return self.__dependencies
 
     @property
     def build_system(self) -> BuildSystem:
