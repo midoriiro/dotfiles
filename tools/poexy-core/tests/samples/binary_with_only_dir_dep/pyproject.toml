@@ -1,0 +1,20 @@
+[project]
+name = "binary-with-only-dir-dep"
+version = "1.0.0"
+dependencies = [
+    "library @ ../library/"
+]
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.binary_with_only_dir_dep]
+source = "src"
+
+[tool.poexy.wheel]
+format = ["binary"]
+
+[tool.poexy.binary]
+name = "binary-with-only-dir-dep"
+entry_point = "src.__init__"

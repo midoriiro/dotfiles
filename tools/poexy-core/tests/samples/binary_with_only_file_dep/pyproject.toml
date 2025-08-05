@@ -1,0 +1,20 @@
+[project]
+name = "binary-with-only-file-dep"
+version = "1.0.0"
+dependencies = [
+    "library @ ../library/library-1.0.0-py3-none-any.whl"
+]
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.binary_with_only_file_dep]
+source = "src"
+
+[tool.poexy.wheel]
+format = ["binary"]
+
+[tool.poexy.binary]
+name = "binary-with-only-file-dep"
+entry_point = "src.__init__"
