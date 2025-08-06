@@ -1,8 +1,13 @@
 import os
+import shutil
+import tempfile
 import uuid
 from pathlib import Path
 
 import pytest
+from filelock import FileLock
+
+from tests.utils.markers import MarkerFile
 
 # pylint: disable=redefined-outer-name
 
@@ -40,15 +45,70 @@ def build_path(tmp_root):
 
 
 @pytest.fixture(scope="session")
-def global_virtualenv_path(tmpdir_factory) -> Path:
-    tmpdir = tmpdir_factory.mktemp("venv")
-    return Path(tmpdir)
+def global_tmp_root(testrun_uid, log_info_section) -> Path:
+    base_tmp = Path(tempfile.gettempdir())
+    path = base_tmp / "poexy-core-tmp"
+    lock_path = str(path) + ".lock"
+    lock = FileLock(lock_path)
+
+    with lock:
+        init_marker = MarkerFile(path / ".initialized", {"testrun_uid": testrun_uid})
+
+        if not init_marker.exists():
+            log_info_section("Removing global tmp root")
+            shutil.rmtree(path, ignore_errors=True)
+            path.mkdir(parents=True, exist_ok=True)
+
+        init_marker.touch()
+
+    try:
+        yield path
+    finally:
+        if init_marker.untouch():
+            log_info_section("Removing global tmp root")
+            shutil.rmtree(path, ignore_errors=True)
 
 
 @pytest.fixture(scope="session")
-def global_virtualenv_archive_path(tmpdir_factory) -> Path:
-    tmpdir = tmpdir_factory.mktemp("venv-archive")
-    return Path(tmpdir)
+def global_virtualenv_path(global_tmp_root: Path) -> Path:
+    path = global_tmp_root / "venv"
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+@pytest.fixture(scope="session")
+def global_virtualenv_archive_path(global_tmp_root: Path) -> Path:
+    path = global_tmp_root / "venv-archive"
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+@pytest.fixture(scope="session")
+def global_virtualenv_lock_path(global_tmp_root: Path) -> Path:
+    path = global_tmp_root / "venv-lock"
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+@pytest.fixture(scope="session")
+def http_server_path(global_tmp_root: Path) -> Path:
+    path = global_tmp_root / "http-server"
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+@pytest.fixture(scope="session")
+def git_server_path(global_tmp_root: Path) -> Path:
+    path = global_tmp_root / "git-server"
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+@pytest.fixture(scope="session")
+def server_lock_path(global_tmp_root: Path) -> Path:
+    path = global_tmp_root / "server-lock"
+    path.mkdir(parents=True, exist_ok=True)
+    return path
 
 
 @pytest.fixture(scope="function")
