@@ -4,6 +4,7 @@ import pytest
 from assertpy import assert_that
 
 from poexy_core.packages.format import WheelFormat
+from tests.utils.venv import TestVirtualEnvironment
 
 # pylint: disable=redefined-outer-name
 
@@ -21,8 +22,7 @@ def test_wheel(
     current_python_tag,
     dist_package_name,
     package_name,
-    site_packages_path,
-    install_path,
+    venv: TestVirtualEnvironment,
     execute_binary,
 ):
     with project(project_path):
@@ -33,9 +33,9 @@ def test_wheel(
             ],
             strict=True,
         )
-        purelib_path = site_packages_path / dist_package_name() / "__init__.py"
+        purelib_path = venv.site_package / dist_package_name() / "__init__.py"
         assert_that(purelib_path.exists()).is_false()
-        binary_path = install_path / "bin" / package_name()
+        binary_path = venv.bin_path / package_name()
         assert_that(binary_path.exists()).is_true()
         result = execute_binary(binary_path, ["--text", "Hello, World!"])
         if result.returncode != 0:
@@ -49,8 +49,7 @@ def test_sdist(
     assert_sdist_build,
     dist_package_name,
     package_name,
-    site_packages_path,
-    install_path,
+    venv: TestVirtualEnvironment,
     execute_binary,
 ):
     with project(project_path):
@@ -61,9 +60,9 @@ def test_sdist(
             ],
             strict=True,
         )
-        purelib_path = site_packages_path / dist_package_name() / "__init__.py"
+        purelib_path = venv.site_package / dist_package_name() / "__init__.py"
         assert_that(purelib_path.exists()).is_false()
-        binary_path = install_path / "bin" / package_name()
+        binary_path = venv.bin_path / package_name()
         assert_that(binary_path.exists()).is_true()
         result = execute_binary(binary_path, ["--text", "Hello, World!"])
         if result.returncode != 0:
