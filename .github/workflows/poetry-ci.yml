@@ -8,10 +8,6 @@ on:
         description: 'Operating system to run on'
         required: true
         type: string
-      runner-features:
-        description: 'Runner features to install separated by comma'
-        required: true
-        type: string
       python-version:
         description: 'Python version to use'
         required: true
@@ -50,6 +46,10 @@ on:
         required: true
         type: number
         default: 95
+      runner-features:
+        description: 'Runner features to install separated by comma'
+        required: false
+        type: string
 
 env:
   PYTHON_VERSION: ${{ inputs.python-version }}
@@ -101,6 +101,11 @@ jobs:
       - name: Checkout Code 
         uses: actions/checkout@v4
 
+      - name: Install Runner Features
+        uses: ./.github/actions/runner/install-features
+        with:
+          features: ${{ inputs.runner-features }}
+
       - name: Setup Environment
         uses: ./.github/actions/python/setup-python-pipx-poetry
         with:
@@ -116,9 +121,9 @@ jobs:
           coverage-artifact-name: coverage-report-${{ inputs.poetry-package-name }}
           coverage-artifact-path: coverage.xml
           upload-to-codecov: false
-          run-in-parallel: true
+          run-in-parallel: false
           fail-fast: true
-          capture-output: false
+          capture-output: true
 
       - name: Code Coverage Guard
         uses: ./.github/actions/python/code-quality/coverage-guard

@@ -41,6 +41,7 @@ runs:
         TEST_PATH: ${{ inputs.test-path }}
         RUN_IN_PARALLEL: ${{ inputs.run-in-parallel }}
         FAIL_FAST: ${{ inputs.fail-fast }}
+        CAPTURE_OUTPUT: ${{ inputs.capture-output }}
         ADDITIONAL_PYTEST_OPTIONS: ${{ inputs.additional-pytest-options }}
       shell: bash
       run: |
