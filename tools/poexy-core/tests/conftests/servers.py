@@ -1,109 +1,136 @@
 import shutil
-import socket
-import time
-from http.server import HTTPServer, SimpleHTTPRequestHandler
-from threading import Thread
-from typing import Callable, Generator
+from pathlib import Path
 
 import pytest
+from filelock import FileLock
 
 from poexy_core.utils import subprocess_rt
+from tests.utils.markers import MarkerFile
+from tests.utils.servers import GitServer, HttpServer
 
 
-def wait_for_port(host, port, timeout=5.0):
-    start = time.time()
-    while time.time() - start < timeout:
-        try:
-            with socket.create_connection((host, port), timeout=0.5):
-                return True
-        except (OSError, ConnectionRefusedError):
-            time.sleep(0.1)
-    raise TimeoutError(f"Port {port} on {host} did not open in {timeout} seconds")
+@pytest.fixture(scope="session", autouse=True)
+def serve_library_archive(
+    http_server_path: Path,
+    samples_path: Path,
+    server_lock_path: Path,
+    log_info_section,
+    log_info,
+) -> None:
+    lock_path = server_lock_path / ".http.lock"
+    lock = FileLock(lock_path)
 
+    http_server = None
 
-def start_http_server(directory, port, log_info) -> Generator[str, None, None]:
-    class HttpRequestHandler(SimpleHTTPRequestHandler):
-        def __init__(self, *args, **kwargs):
-            super().__init__(directory=directory, *args, **kwargs)
+    with lock:
+        marker_file = MarkerFile(http_server_path / ".server_running")
+
+        if not marker_file.exists():
+            log_info_section("Removing http server folder")
+            shutil.rmtree(http_server_path, ignore_errors=True)
+
+            log_info_section("Creating http server folder")
+            http_server_path.mkdir(parents=True, exist_ok=True)
+
+            log_info_section("Serving library archive")
+            library_path = samples_path / "library" / "library-1.0.0-py3-none-any.whl"
+            shutil.copy(library_path, http_server_path)
+            http_server = HttpServer(http_server_path, 8000, log_info)
+            http_server.start()
+            http_server.wait_for_connection(timeout=30)
+
+        marker_file.touch()
 
     try:
-        log_info(f"Starting HTTP server at {directory}")
-        handler = HttpRequestHandler
-        httpd = HTTPServer(("localhost", port), handler, False)
-        httpd.allow_reuse_address = True
-        httpd.allow_reuse_port = True
-        httpd.server_bind()
-        httpd.server_activate()
-        thread = Thread(target=httpd.serve_forever, daemon=True)
-        thread.start()
-        log_info(f"HTTP server started at {httpd.server_address}")
-        yield f"http://localhost:{port}"
-        log_info("Stopping HTTP server")
-        httpd.shutdown()
-        httpd.server_close()
-        thread.join(timeout=0.5)
-        log_info("HTTP server stopped")
-    except Exception as e:
-        log_info(f"Error in HTTP server: {e}")
-        raise e
+        yield
+    finally:
+        if marker_file.untouch(wait=http_server is not None):
+            http_server.stop()
+            log_info_section("Removing http server folder")
+            shutil.rmtree(http_server_path, ignore_errors=True)
 
 
-@pytest.fixture()
-def serve_library_archive(
-    tmp_path, samples_path, log_info_section, log_info
-) -> Callable[[], None]:
-    def _serve_library_archive() -> None:
-        log_info_section("Serving library archive")
-        library_path = samples_path / "library" / "library-1.0.0-py3-none-any.whl"
-        shutil.copy(library_path, tmp_path)
-        next(start_http_server(tmp_path, 8000, log_info))
-        wait_for_port("localhost", 8000, timeout=30)
-
-    return _serve_library_archive
-
-
-def start_git_daemon(directory, port, log_info) -> Generator[None, None, None]:
-    def run_daemon() -> None:
-        subprocess_rt.run(
-            [
-                "git",
-                "daemon",
-                "--verbose",
-                "--export-all",
-                "--reuseaddr",
-                "--listen=localhost",
-                f"--port={port}",
-                f"--base-path={directory}",
-            ],
-            printer=log_info,
-        )
-
-    thread = Thread(target=run_daemon, daemon=True)
-    thread.start()
-    log_info(f"GIT server started at localhost:{port}")
-    yield
-    log_info("Stopping GIT server")
-    thread.join(timeout=0.5)
-    log_info("GIT server stopped")
-
-
-@pytest.fixture()
+@pytest.fixture(scope="session", autouse=True)
 def serve_library_vcs(
-    tmp_path, samples_path, log_info_section, log_info
-) -> Callable[[], None]:
-    def _serve_library_vcs() -> None:
-        log_info_section("Serving library vcs")
-        library_path = samples_path / "library"
-        shutil.copytree(library_path, tmp_path, dirs_exist_ok=True)
-        subprocess_rt.run(["git", "init"], printer=log_info, cwd=tmp_path)
-        subprocess_rt.run(
-            ["git", "branch", "-m", "main"], printer=log_info, cwd=tmp_path
-        )
-        subprocess_rt.run(["git", "add", "-A"], printer=log_info, cwd=tmp_path)
-        subprocess_rt.run(
-            ["git", "commit", "-m", "Initial commit"], printer=log_info, cwd=tmp_path
-        )
-        next(start_git_daemon(tmp_path, 8001, log_info))
-        wait_for_port("localhost", 8001, timeout=30)
+    git_server_path: Path,
+    samples_path: Path,
+    server_lock_path: Path,
+    log_info_section,
+    log_info,
+) -> None:
+    lock_path = server_lock_path / ".vcs.lock"
+    lock = FileLock(lock_path)
 
-    return _serve_library_vcs
+    git_server = None
+
+    with lock:
+        marker_file = MarkerFile(git_server_path / ".server_running")
+
+        if not marker_file.exists():
+            log_info_section("Removing git server folder")
+            shutil.rmtree(git_server_path, ignore_errors=True)
+
+            log_info_section("Creating git server folder")
+            git_server_path.mkdir(parents=True, exist_ok=True)
+
+            log_info_section("Serving library vcs")
+
+            working_path = git_server_path / "work"
+            working_path.mkdir(parents=True, exist_ok=True)
+
+            bare_path = git_server_path / "library.git"
+            bare_path.mkdir(parents=True, exist_ok=True)
+
+            library_path = samples_path / "library"
+            shutil.copytree(library_path, working_path, dirs_exist_ok=True)
+
+            subprocess_rt.run(["git", "init"], printer=log_info, cwd=working_path)
+            subprocess_rt.run(
+                ["git", "branch", "-m", "main"], printer=log_info, cwd=working_path
+            )
+            subprocess_rt.run(
+                ["git", "config", "user.email", "ci@example.com"],
+                printer=log_info,
+                cwd=working_path,
+            )
+            subprocess_rt.run(
+                ["git", "config", "user.name", "CI"], printer=log_info, cwd=working_path
+            )
+            subprocess_rt.run(["git", "add", "-A"], printer=log_info, cwd=working_path)
+            subprocess_rt.run(
+                ["git", "commit", "-m", "Initial commit"],
+                printer=log_info,
+                cwd=working_path,
+            )
+
+            subprocess_rt.run(
+                ["git", "init", "--bare", str(bare_path)], printer=log_info
+            )
+            subprocess_rt.run(
+                ["git", "remote", "add", "origin", str(bare_path)],
+                printer=log_info,
+                cwd=working_path,
+            )
+            subprocess_rt.run(
+                ["git", "push", "origin", "main"], printer=log_info, cwd=working_path
+            )
+            subprocess_rt.run(
+                ["git", "symbolic-ref", "HEAD", "refs/heads/main"],
+                printer=log_info,
+                cwd=bare_path,
+            )
+            (bare_path / "git-daemon-export-ok").touch()
+
+            git_server = GitServer(bare_path.parent, 8001, log_info)
+            git_server.start()
+            git_server.wait_for_connection(timeout=30)
+
+        marker_file.touch()
+
+    try:
+        yield
+    finally:
+        if marker_file.untouch(wait=git_server is not None):
+            git_server.stop()
+            log_info_section("Removing git server folder")
+            shutil.rmtree(git_server_path, ignore_errors=True)
