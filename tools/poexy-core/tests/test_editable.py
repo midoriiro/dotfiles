@@ -3,6 +3,8 @@ from pathlib import Path
 import pytest
 from assertpy import assert_that
 
+from tests.utils.venv import TestVirtualEnvironment
+
 # pylint: disable=redefined-outer-name
 
 
@@ -17,8 +19,7 @@ def test_wheel(
     assert_wheel_build,
     dist_package_name,
     package_name,
-    site_packages_path,
-    install_path,
+    venv: TestVirtualEnvironment,
 ):
     with project(project_path):
         assert_zip_file = assert_wheel_build(project_path, editable=True)
@@ -26,9 +27,9 @@ def test_wheel(
             [Path(dist_package_name() + ".pth")],
             strict=True,
         )
-        purelib_path = site_packages_path / dist_package_name() / "__init__.py"
+        purelib_path = venv.site_package / dist_package_name() / "__init__.py"
         assert_that(purelib_path.exists()).is_false()
-        binary_path = install_path / "bin" / package_name()
+        binary_path = venv.bin_path / package_name()
         assert_that(binary_path.exists()).is_false()
 
 
@@ -37,7 +38,7 @@ def test_sdist(
     project_path,
     assert_sdist_build,
     package_name,
-    install_path,
+    venv: TestVirtualEnvironment,
 ):
     with project(project_path):
         assert_tar_file = assert_sdist_build(project_path)
@@ -47,5 +48,5 @@ def test_sdist(
             ],
             strict=True,
         )
-        binary_path = install_path / "bin" / package_name()
+        binary_path = venv.bin_path / package_name()
         assert_that(binary_path.exists()).is_false()

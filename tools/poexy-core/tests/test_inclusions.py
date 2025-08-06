@@ -4,6 +4,9 @@ import pytest
 from assertpy import assert_that
 
 from poexy_core.packages.files import FORBIDDEN_DIRS
+from tests.utils.venv import TestVirtualEnvironment
+
+# pylint: disable=redefined-outer-name
 
 
 @pytest.fixture()
@@ -14,8 +17,7 @@ def project_path(sample_project):
 def test_wheel(
     project,
     project_path,
-    install_path,
-    site_packages_path,
+    venv: TestVirtualEnvironment,
     dist_package_name,
     default_python_tag,
     wheel_data_purelib_folder,
@@ -31,25 +33,25 @@ def test_wheel(
             ]
         )
 
-        purelib_path = site_packages_path / "includes"
-        data_path = install_path / "share" / "includes"
+        purelib_path = venv.site_package / "includes"
+        data_path = venv.path / "share" / "includes"
 
         assert_that(purelib_path.exists()).is_true()
         assert_that(data_path.exists()).is_true()
 
-        purelib_path = purelib_path.relative_to(install_path)
-        data_path = data_path.relative_to(install_path)
+        purelib_path = purelib_path.relative_to(venv.path)
+        data_path = data_path.relative_to(venv.path)
         purelib_glob_pattern = f"{purelib_path}/**/*"
         data_glob_pattern = f"{data_path}/**/*"
 
-        for file in install_path.rglob(purelib_glob_pattern):
+        for file in purelib_path.rglob(purelib_glob_pattern):
             if not file.is_file():
                 continue
             if any(part in FORBIDDEN_DIRS for part in file.parts):
                 continue
             assert_that(file.suffix).is_equal_to(".py")
 
-        for file in install_path.rglob(data_glob_pattern):
+        for file in data_path.rglob(data_glob_pattern):
             if not file.is_file():
                 continue
             if any(part in FORBIDDEN_DIRS for part in file.parts):
