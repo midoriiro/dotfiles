@@ -2,7 +2,7 @@
 name = "binary-with-only-vcs-dep"
 version = "1.0.0"
 dependencies = [
-    "library @ git://localhost:8001/"
+    "library @ git://localhost:8001/library.git"
 ]
 
 [build-system]
