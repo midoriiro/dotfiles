@@ -1,67 +1,72 @@
-import zipfile
+import shutil
 from pathlib import Path
 from typing import Callable
 
 import pytest
 from assertpy import assert_that
 
-from poexy_core import api
-from tests.pip import Pip
+from poexy_core.utils.pip import Pip, PipInstallOptions, PipOptions, PipWheelOptions
+from tests.utils.venv import TestVirtualEnvironment
 
 # pylint: disable=redefined-outer-name
 
 
 @pytest.fixture()
-def pip(
-    virtualenv_path, create_venv_archive, log_info_section, pyinstaller_path
-) -> Pip:
-    pyinstaller_path()
-    log_info_section("Creating virtualenv")
-    pip = Pip(virtualenv_path)
-    pip.extract_virtualenv_archive(create_venv_archive)
+def venv(
+    virtualenv_path, create_venv_archive, log_info_section
+) -> TestVirtualEnvironment:
+    log_info_section("Extracting virtualenv archive")
+    venv = TestVirtualEnvironment(virtualenv_path)
+    venv.extract_archive(create_venv_archive)
+    yield venv
+    log_info_section("Removing virtualenv")
+    shutil.rmtree(venv.path)
+
+
+@pytest.fixture()
+def pip(venv, log_info_section) -> Pip:
     log_info_section("Checking poexy-core is installed")
-    assert_that(pip.show("poexy-core")).is_equal_to(0)
+    pip = venv.pip
+    assert_that(pip.show("poexy-core", PipOptions.defaults())).is_equal_to(0)
     return pip
 
 
 @pytest.fixture(scope="session")
 def create_venv_archive(
-    global_virtualenv_path, global_virtualenv_archive_path, self_build, log_info_section
+    global_virtualenv_path,
+    global_virtualenv_archive_path,
+    self_project,
+    log_info_section,
 ) -> Path:
-    pip = Pip(global_virtualenv_path)
-    log_info_section("Creating virtualenv")
-    pip.create_virtualenv()
+    log_info_section("Creating global virtualenv")
+    venv = TestVirtualEnvironment.create_from(global_virtualenv_path)
+    log_info_section("Building poexy-core")
+    self_archive_path = venv.build(self_project)
     log_info_section("Installing poexy-core")
-    pip.install(self_build)
+    pip = venv.pip
+    pip.install([str(self_archive_path)], PipInstallOptions.defaults())
     log_info_section("Creating virtualenv archive")
-    archive_path = pip.create_virtualenv_archive(global_virtualenv_archive_path)
+    archive_path = venv.create_archive(global_virtualenv_archive_path)
     assert_that(str(archive_path)).is_file()
-    return archive_path
-
-
-@pytest.fixture(scope="session")
-def self_build(project, self_project, self_project_dist_path, log_info_section):
-    with project(self_project):
-        log_info_section("Building self project")
-        filename = api.build_wheel(str(self_project_dist_path))
-        archive_path = self_project_dist_path / filename
-        assert_that(str(archive_path)).is_file()
-        assert_that(zipfile.is_zipfile(archive_path)).is_true()
-        return archive_path
+    yield archive_path
+    log_info_section("Removing virtualenv")
+    shutil.rmtree(global_virtualenv_path)
 
 
 @pytest.fixture()
 def assert_pip_wheel(
-    build_path, pip, dist_package_name, log_info_section
+    build_path, pip: Pip, dist_package_name, log_info_section
 ) -> Callable[[Path], Path]:
     def _assert(archive_path: Path):
         log_info_section("Running pip wheel")
         wheel_path = Path(build_path) / "wheel"
         no_build_isolation = True
         check_build_dependencies = True
-        returncode = pip.wheel(
-            archive_path, wheel_path, no_build_isolation, check_build_dependencies
-        )
+        options = PipWheelOptions()
+        options.no_build_isolation(no_build_isolation)
+        options.check_build_dependencies(check_build_dependencies)
+        options.wheel_dir(wheel_path)
+        returncode = pip.wheel([str(archive_path)], options)
         assert_that(returncode).is_equal_to(0)
         for file in wheel_path.iterdir():
             if file.is_file() and file.name.startswith(dist_package_name()):
@@ -73,7 +78,7 @@ def assert_pip_wheel(
 
 @pytest.fixture()
 def assert_pip_install(
-    install_path, pip, dist_package_name, log_info_section
+    pip: Pip, dist_package_name, log_info_section
 ) -> Callable[[Path], Path]:
     def _assert(archive_path: Path):
         log_info_section("Running pip install")
@@ -83,10 +88,10 @@ def assert_pip_install(
         else:
             no_build_isolation = True
             check_build_dependencies = True
-        returncode = pip.install(
-            archive_path, install_path, no_build_isolation, check_build_dependencies
-        )
+        options = PipInstallOptions()
+        options.no_build_isolation(no_build_isolation)
+        options.check_build_dependencies(check_build_dependencies)
+        returncode = pip.install([str(archive_path)], options)
         assert_that(returncode).is_equal_to(0)
-        return install_path
 
     return _assert

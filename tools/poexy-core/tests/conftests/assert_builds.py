@@ -9,6 +9,7 @@ from assertpy import assert_that
 from poexy_core import api
 from poexy_core.builders.wheel import WheelMetadata
 from poexy_core.packages.format import WheelFormat
+from tests.utils.venv import TestVirtualEnvironment
 
 # pylint: disable=redefined-outer-name,dangerous-default-value
 
@@ -97,10 +98,8 @@ def assert_zip_file() -> Callable[[Path, List[Path], bool], None]:
 def assert_wheel_build(
     project,
     dist_path,
-    install_path,
     dist_package_name,
     package_name,
-    site_packages_path,
     current_python_tag,
     default_python_tag,
     wheel_metadata,
@@ -110,6 +109,7 @@ def assert_wheel_build(
     assert_record_manifest,
     assert_pip_install,
     assert_zip_file,
+    venv: TestVirtualEnvironment,
 ) -> Callable[[Path], Callable[[List[Path], bool], None]]:
     def _assert(
         project_path: Path,
@@ -139,11 +139,11 @@ def assert_wheel_build(
             assert_record_manifest(python_tag)
             assert_pip_install(archive_path)
 
-            site_packages = site_packages_path / dist_package_name()
+            site_packages = venv.site_package / dist_package_name()
 
             if len(_format) == 1 and WheelFormat.Binary in _format:
                 assert_that(str(site_packages)).does_not_exist()
-                binary_path = install_path / "bin" / package_name()
+                binary_path = venv.bin_path / package_name()
                 assert_that(binary_path.exists()).is_true()
                 dist_info_folder = metadata.dist_info_folder.name
                 assert_zip_file(
@@ -165,7 +165,7 @@ def assert_wheel_build(
                     ).exists()
                 else:
                     assert_that(str(site_packages)).exists()
-                binary_path = install_path / "bin" / package_name()
+                binary_path = venv.bin_path / package_name()
                 if WheelFormat.Binary in _format:
                     assert_that(binary_path.exists()).is_true()
                 else:
@@ -194,14 +194,13 @@ def assert_wheel_build(
 def assert_sdist_build(
     project,
     dist_path,
-    site_packages_path,
-    install_path,
     dist_package_name,
     package_name,
     assert_pkginfo_manifest,
     assert_pip_wheel,
     assert_pip_install,
     assert_tar_file,
+    venv: TestVirtualEnvironment,
 ) -> Callable[[Path], Callable[[List[Path], bool], None]]:
     def _assert(project_path: Path, _format: Set[WheelFormat] = {WheelFormat.Source}):
         with project(project_path):
@@ -217,15 +216,15 @@ def assert_sdist_build(
             wheel_path = assert_pip_wheel(archive_path)
             assert_pip_install(wheel_path)
 
-            site_packages = site_packages_path / dist_package_name()
+            site_packages = venv.site_package / dist_package_name()
 
             if len(_format) == 1 and WheelFormat.Binary in _format:
                 assert_that(str(site_packages)).does_not_exist()
-                binary_path = install_path / "bin" / package_name()
+                binary_path = venv.bin_path / package_name()
                 assert_that(binary_path.exists()).is_true()
             else:
                 assert_that(str(site_packages)).exists()
-                binary_path = install_path / "bin" / package_name()
+                binary_path = venv.bin_path / package_name()
                 if WheelFormat.Binary in _format:
                     assert_that(binary_path.exists()).is_true()
                 else:
