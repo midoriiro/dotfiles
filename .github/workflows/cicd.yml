@@ -69,6 +69,7 @@ jobs:
         builds-registry-key: ${{ matrix.projects.inputs.builds-registry-key }}
         use-poexy-core: ${{ matrix.projects.inputs.use-poexy-core == 'true' }}
         code-coverage-threshold: ${{ matrix.projects.inputs.code-coverage-threshold }}
+        runner-features: ${{ matrix.projects.inputs.runner-features }}
 
   prepare-release-mode:
     name: Prepare Release Mode

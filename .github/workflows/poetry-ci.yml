@@ -8,6 +8,10 @@ on:
         description: 'Operating system to run on'
         required: true
         type: string
+      runner-features:
+        description: 'Runner features to install separated by comma'
+        required: true
+        type: string
       python-version:
         description: 'Python version to use'
         required: true
