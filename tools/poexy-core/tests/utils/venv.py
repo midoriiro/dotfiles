@@ -41,12 +41,14 @@ class TestVirtualEnvironment(VirtualEnvironment):
     def bin_path(self) -> Path:
         return self.path / "bin"
 
+    @staticmethod
+    def archive_name() -> str:
+        return "venv.tar.zst"
+
     def build(self, source_path: Path) -> Path:
         return self._build(source_path)
 
     def create_archive(self, archive_path: Path) -> Path:
-        archive_name = "venv.tar.zst"
-
         venv_config = {
             "base_path": str(self.path),
             "created_at": str(Path().stat().st_mtime),
@@ -60,7 +62,7 @@ class TestVirtualEnvironment(VirtualEnvironment):
             "zstd",
             "--create",
             "--file",
-            str(archive_path / archive_name),
+            str(archive_path / TestVirtualEnvironment.archive_name()),
             "--directory",
             str(self.path),
             ".",
@@ -68,7 +70,7 @@ class TestVirtualEnvironment(VirtualEnvironment):
         exit_code = subprocess_rt.run(cmd, printer=logger.info)
         if exit_code != 0:
             raise VirtualEnvironmentError(f"Failed to create venv archive: {exit_code}")
-        return archive_path / archive_name
+        return archive_path / TestVirtualEnvironment.archive_name()
 
     def extract_archive(self, archive_path: Path) -> None:
         cmd = [
