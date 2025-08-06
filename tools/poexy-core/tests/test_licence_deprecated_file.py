@@ -4,6 +4,7 @@ import pytest
 from assertpy import assert_that
 
 from poexy_core.metadata.fields import MetadataField
+from tests.utils.venv import TestVirtualEnvironment
 
 
 @pytest.fixture()
@@ -19,7 +20,7 @@ def test_wheel(
     wheel_dist_info_folder,
     default_python_tag,
     dist_package_name,
-    site_packages_path,
+    venv: TestVirtualEnvironment,
     assert_metadata_manifest,
 ):
     with project(project_path):
@@ -33,7 +34,7 @@ def test_wheel(
             ],
             strict=True,
         )
-        purelib_path = site_packages_path / dist_package_name() / "__init__.py"
+        purelib_path = venv.site_package / dist_package_name() / "__init__.py"
         assert_that(purelib_path.exists()).is_true()
         metadata_manifest = assert_metadata_manifest(default_python_tag)
         assert_that(metadata_manifest.get(MetadataField.LicenseFile)).is_equal_to(

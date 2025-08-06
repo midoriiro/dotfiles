@@ -4,6 +4,7 @@ import pytest
 from assertpy import assert_that
 
 from poexy_core.metadata.fields import MetadataField
+from tests.utils.venv import TestVirtualEnvironment
 
 # pylint: disable=redefined-outer-name
 
@@ -20,7 +21,7 @@ def test_wheel(
     wheel_data_purelib_folder,
     default_python_tag,
     dist_package_name,
-    site_packages_path,
+    venv: TestVirtualEnvironment,
 ):
     with project(project_path):
         assert_zip_file = assert_wheel_build(project_path)
@@ -32,7 +33,7 @@ def test_wheel(
             ],
             strict=True,
         )
-        purelib_path = site_packages_path / dist_package_name() / "__init__.py"
+        purelib_path = venv.site_package / dist_package_name() / "__init__.py"
         assert_that(purelib_path.exists()).is_true()
 
 
