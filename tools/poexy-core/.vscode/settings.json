@@ -46,6 +46,7 @@
     "--cov=poexy_core",
     "--cov-report=term-missing",
     "--numprocesses=auto",
+    "--dist=load",
     "--exitfirst",
     "--capture=no",
     "--show-capture=no"
