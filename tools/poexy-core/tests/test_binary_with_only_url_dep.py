@@ -24,9 +24,7 @@ def test_wheel(
     package_name,
     venv: TestVirtualEnvironment,
     execute_binary,
-    serve_library_archive,
 ):
-    serve_library_archive()
     with project(project_path):
         assert_zip_file = assert_wheel_build(project_path, _format={WheelFormat.Binary})
         assert_zip_file(
@@ -53,9 +51,7 @@ def test_sdist(
     package_name,
     venv: TestVirtualEnvironment,
     execute_binary,
-    serve_library_archive,
 ):
-    serve_library_archive()
     with project(project_path):
         assert_tar_file = assert_sdist_build(project_path, _format={WheelFormat.Binary})
         assert_tar_file(
