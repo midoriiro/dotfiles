@@ -4,8 +4,10 @@ from typing import Callable
 
 import pytest
 from assertpy import assert_that
+from filelock import FileLock
 
 from poexy_core.utils.pip import Pip, PipInstallOptions, PipOptions, PipWheelOptions
+from tests.utils.markers import MarkerFile
 from tests.utils.venv import TestVirtualEnvironment
 
 # pylint: disable=redefined-outer-name
@@ -35,22 +37,52 @@ def pip(venv, log_info_section) -> Pip:
 def create_venv_archive(
     global_virtualenv_path,
     global_virtualenv_archive_path,
+    global_virtualenv_lock_path,
     self_project,
     log_info_section,
 ) -> Path:
-    log_info_section("Creating global virtualenv")
-    venv = TestVirtualEnvironment.create_from(global_virtualenv_path)
-    log_info_section("Building poexy-core")
-    self_archive_path = venv.build(self_project)
-    log_info_section("Installing poexy-core")
-    pip = venv.pip
-    pip.install([str(self_archive_path)], PipInstallOptions.defaults())
-    log_info_section("Creating virtualenv archive")
-    archive_path = venv.create_archive(global_virtualenv_archive_path)
-    assert_that(str(archive_path)).is_file()
-    yield archive_path
-    log_info_section("Removing virtualenv")
-    shutil.rmtree(global_virtualenv_path)
+    lock_path = global_virtualenv_lock_path / ".lock"
+    lock = FileLock(lock_path)
+
+    archive_path = (
+        global_virtualenv_archive_path / TestVirtualEnvironment.archive_name()
+    )
+
+    with lock:
+        marker_file = MarkerFile(global_virtualenv_archive_path / ".archive_created")
+
+        if not marker_file.exists():
+            log_info_section("Removing global virtualenv folder and archive")
+            shutil.rmtree(global_virtualenv_path, ignore_errors=True)
+            shutil.rmtree(global_virtualenv_archive_path, ignore_errors=True)
+
+            log_info_section("Creating global virtualenv folder and archive")
+            global_virtualenv_path.mkdir(parents=True, exist_ok=True)
+            global_virtualenv_archive_path.mkdir(parents=True, exist_ok=True)
+
+            log_info_section("Creating global virtualenv")
+            venv = TestVirtualEnvironment.create_from(global_virtualenv_path)
+
+            log_info_section("Building poexy-core")
+            self_archive_path = venv.build(self_project)
+
+            log_info_section("Installing poexy-core")
+            venv.pip.install([str(self_archive_path)], PipInstallOptions.defaults())
+
+            log_info_section("Creating virtualenv archive")
+            archive_path = venv.create_archive(global_virtualenv_archive_path)
+
+            assert_that(str(archive_path)).is_file()
+
+        marker_file.touch()
+
+    try:
+        yield archive_path
+    finally:
+        if marker_file.untouch():
+            log_info_section("Removing global virtualenv folder and archive")
+            shutil.rmtree(global_virtualenv_archive_path, ignore_errors=True)
+            shutil.rmtree(global_virtualenv_path, ignore_errors=True)
 
 
 @pytest.fixture()
