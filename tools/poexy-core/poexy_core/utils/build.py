@@ -51,14 +51,14 @@ class BuildOptions:
         options = []
         if self.__verbose is not None:
             options.append("--verbose")
-        if self.__sdist is not None:
+        if self.__sdist is not None and self.__sdist:
             options.append("--sdist")
-        if self.__wheel is not None:
+        if self.__wheel is not None and self.__wheel:
             options.append("--wheel")
         if self.__output_path is not None:
             options.append("--outdir")
             options.append(str(self.__output_path))
-        if self.__no_isolation is not None:
+        if self.__no_isolation is not None and self.__no_isolation:
             options.append("--no-isolation")
         return options
 
