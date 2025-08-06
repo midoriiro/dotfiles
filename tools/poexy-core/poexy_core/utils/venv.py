@@ -18,7 +18,6 @@ class VirtualEnvironmentError(Exception):
 
 
 class VirtualEnvironment:
-
     def __init__(self, venv_path: Path) -> None:
         self.__venv_path = venv_path
         self.__python_path = venv_path / "bin" / "python"
