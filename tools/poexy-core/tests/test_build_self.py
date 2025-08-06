@@ -3,6 +3,7 @@ from pathlib import Path
 from assertpy import assert_that
 
 from poexy_core import api
+from tests.utils.venv import TestVirtualEnvironment
 
 
 def test_get_requires_for_build_wheel():
@@ -40,7 +41,7 @@ def test_wheel(
 def test_sdist(
     self_project,
     dist_package_name,
-    site_packages_path,
+    venv: TestVirtualEnvironment,
     assert_sdist_build,
 ):
     assert_tar_file = assert_sdist_build(self_project)
@@ -51,5 +52,5 @@ def test_sdist(
         ]
     )
 
-    site_packages = site_packages_path / dist_package_name()
+    site_packages = venv.site_package / dist_package_name()
     assert_that(str(site_packages)).is_directory()
