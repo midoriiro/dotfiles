@@ -1,0 +1,19 @@
+name: 'Install Features'
+description: 'Install Features'
+
+inputs:
+  features:
+    description: 'The features to install separated by commas'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Install features
+      env:
+        FEATURES_TO_INSTALL: ${{ inputs.features }}
+        RUNNER_OS: ${{ runner.os }}
+      shell: bash
+      run: |
+        python ${{ github.action_path }}/main.py
+    
