@@ -55,6 +55,10 @@ on:
         required: true
         type: number
         default: 95
+      runner-features:
+        description: 'Runner features to install separated by comma'
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -109,6 +113,7 @@ jobs:
         builds-registry-key: ${{ inputs.builds-registry-key }}
         use-poexy-core: ${{ inputs.use-poexy-core }}
         code-coverage-threshold: ${{ inputs.code-coverage-threshold }}
+        runner-features: ${{ inputs.runner-features }}
 
   ci-matrix:
     name: CI - Matrix
@@ -130,7 +135,8 @@ jobs:
         builds-registry-key: ${{ inputs.builds-registry-key }}
         use-poexy-core: ${{ inputs.use-poexy-core }}
         code-coverage-threshold: ${{ inputs.code-coverage-threshold }}
-
+        runner-features: ${{ inputs.runner-features }}
+        
   ci-result-aggregator:
     name: Aggregate CI Result
     runs-on: ubuntu-latest
