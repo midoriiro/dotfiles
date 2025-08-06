@@ -1,5 +1,4 @@
 import os
-import sys
 import uuid
 from pathlib import Path
 
@@ -40,11 +39,6 @@ def build_path(tmp_root):
     return tmp_root / "build"
 
 
-@pytest.fixture(scope="function")
-def install_path(tmp_root):
-    return tmp_root / "install"
-
-
 @pytest.fixture(scope="session")
 def global_virtualenv_path(tmpdir_factory) -> Path:
     tmpdir = tmpdir_factory.mktemp("venv")
@@ -62,18 +56,7 @@ def virtualenv_path(tmp_root):
     return tmp_root / "venv"
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="function", autouse=True)
 def pyinstaller_path(tmp_root):
     path = tmp_root / "pyinstaller"
-
-    def _pyinstaller_path():
-        os.environ["PYINSTALLER_CONFIG_DIR"] = str(path)
-
-    return _pyinstaller_path
-
-
-@pytest.fixture(scope="function")
-def site_packages_path(install_path) -> Path:
-    python_version = f"{sys.version_info.major}.{sys.version_info.minor}"
-    path = install_path / "lib" / f"python{python_version}" / "site-packages"
-    return path
+    os.environ["PYINSTALLER_CONFIG_DIR"] = str(path)
