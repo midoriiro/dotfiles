@@ -121,9 +121,9 @@ jobs:
           coverage-artifact-name: coverage-report-${{ inputs.poetry-package-name }}
           coverage-artifact-path: coverage.xml
           upload-to-codecov: false
-          run-in-parallel: false
+          run-in-parallel: true
           fail-fast: true
-          capture-output: true
+          capture-output: false
 
       - name: Code Coverage Guard
         uses: ./.github/actions/python/code-quality/coverage-guard
