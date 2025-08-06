@@ -5,7 +5,7 @@ from typing import List, Union
 runner_commands = {
     "linux": {
         "update": "sudo apt update",
-        "install": "sudo apt install -y",
+        "install": "sudo apt install --yes --reinstall",
     },
     "macos": {"update": "brew update", "install": "brew install"},
     "windows": {"update": None, "install": "choco install"},
@@ -14,7 +14,8 @@ runner_commands = {
 features_info = {
     "git-daemon": {
         "cmd": "git daemon -h",
-        "linux": "git-daemon-run",
+        "cmd_returncode": 129,
+        "linux": "git",
         "macos": "git",
         "windows": "git",
     }
@@ -27,12 +28,36 @@ def run_command(cmd: Union[str, List[str]]) -> subprocess.CompletedProcess:
     else:
         run_cmd = cmd
 
-    return subprocess.run(run_cmd, shell=True, text=True, capture_output=True)
+    arguments = {
+        "stdout": subprocess.PIPE,
+        "stderr": subprocess.STDOUT,
+        "shell": False,
+        "text": True,
+        "encoding": "utf-8",
+    }
+
+    process = subprocess.Popen(run_cmd, **arguments)
+
+    while True:
+        if process.stdout is None:
+            continue
+        output = process.stdout.readline()
+        if output and output != "":
+            print(output.strip())
+            continue
+        if process.poll() is not None:
+            break
+
+    exit_code = process.poll()
+
+    if exit_code is None:
+        raise RuntimeError("Process terminated unexpectedly")
+
+    return exit_code
 
 
-def is_feature_installed(feature_cmd: str):
-    process = run_command(feature_cmd)
-    return process.returncode == 0
+def is_feature_installed(feature_cmd: str, expected_returncode: int) -> bool:
+    return run_command(feature_cmd) == expected_returncode
 
 
 def install_feature(feature: str, runner_os: str):
@@ -42,7 +67,7 @@ def install_feature(feature: str, runner_os: str):
 
     feature_info = features_info[feature]
 
-    if is_feature_installed(feature_info["cmd"]):
+    if is_feature_installed(feature_info["cmd"], feature_info["cmd_returncode"]):
         print(f"Feature {feature} is already installed")
         return
 
@@ -64,7 +89,11 @@ def install_feature(feature: str, runner_os: str):
 
     install_command = f"{runner_command['install']} {package_name}"
 
-    run_command(install_command)
+    returncode = run_command(install_command)
+
+    if returncode != 0:
+        print(f"Failed to install {feature}")
+        exit(1)
 
 
 features_to_install = os.getenv("FEATURES_TO_INSTALL", None)

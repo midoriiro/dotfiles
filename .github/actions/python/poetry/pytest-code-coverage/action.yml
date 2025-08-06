@@ -83,6 +83,7 @@ runs:
         test-path: ${{ inputs.test-path }}
         run-in-parallel: ${{ inputs.run-in-parallel }}
         fail-fast: ${{ inputs.fail-fast }}
+        capture-output: ${{ inputs.capture-output }}
         additional-pytest-options: --cov=${{ env.POETRY_PACKAGE_NAME }} --cov-report=${{ inputs.coverage-report-format }}:${{ inputs.coverage-artifact-path }}
 
     - name: Upload coverage report to Codecov
