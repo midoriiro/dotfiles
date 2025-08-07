@@ -24,7 +24,7 @@ class BaseServer:
         if self._thread is not None:
             raise RuntimeError("Server is already running")
         target = self._target()
-        self._thread = Thread(target=target, daemon=True)
+        self._thread = Thread(target=target, daemon=False)
         self._thread.start()
 
     def stop(self):
@@ -80,9 +80,9 @@ class HttpServer(BaseServer):
         self.logger("Stopping HTTP server")
         self.__httpd.shutdown()
         self.__httpd.server_close()
-        self.__httpd = None
         if self._thread.is_alive():
             super().stop()
+        self.__httpd = None
         self.logger("HTTP server stopped")
 
 
