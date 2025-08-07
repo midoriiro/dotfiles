@@ -12,7 +12,7 @@ from poetry.core.packages.url_dependency import URLDependency
 from poetry.core.packages.vcs_dependency import VCSDependency
 
 from poexy_core.pyproject.toml import DependencyMap
-from poexy_core.utils.pip import PipInstallOptions
+from poexy_core.utils.pip import UvInstallOptions
 from poexy_core.utils.venv import VirtualEnvironment, VirtualEnvironmentError
 
 logger = logging.getLogger(__name__)
@@ -126,16 +126,13 @@ class PyinstallerVirtualEnvironment(VirtualEnvironment):
         if len(requirements) == 0:
             return directory_dependencies
 
-        pip_options = PipInstallOptions()
-        pip_options.verbose(True)
-        pip_options.require_virtualenv(True)
-        pip_options.isolated(True)
-        pip_options.use_pep517(True)
-        pip_options.no_build_isolation(True)
-        pip_options.check_build_dependencies(True)
-        pip_options.force_reinstall(True)
+        install_options = UvInstallOptions()
+        install_options.no_build_isolation(True)
+        install_options.reinstall(True)
+        install_options.verbose(True)
+        install_options.no_config(True)
 
-        exit_code = self._pip.install(requirements, pip_options)
+        exit_code = self._pip.install(requirements, install_options)
 
         if exit_code != 0:
             raise VirtualEnvironmentError(
