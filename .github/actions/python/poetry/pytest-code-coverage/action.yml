@@ -7,6 +7,16 @@ inputs:
     required: false
     default: 'true'
     type: boolean
+  distribution-mode:
+    description: 'Distribution mode'
+    required: false
+    default: worksteal
+    type: string
+  maximum-scheduled-chunk:
+    description: 'Maximum scheduled chunk'
+    required: false
+    default: 1
+    type: integer
   fail-fast:
     description: 'Fail fast'
     required: false
@@ -82,6 +92,8 @@ runs:
       with:
         test-path: ${{ inputs.test-path }}
         run-in-parallel: ${{ inputs.run-in-parallel }}
+        distribution-mode: ${{ inputs.distribution-mode }}
+        maximum-scheduled-chunk: ${{ inputs.maximum-scheduled-chunk }}
         fail-fast: ${{ inputs.fail-fast }}
         capture-output: ${{ inputs.capture-output }}
         additional-pytest-options: --cov=${{ env.POETRY_PACKAGE_NAME }} --cov-report=${{ inputs.coverage-report-format }}:${{ inputs.coverage-artifact-path }}
