@@ -17,6 +17,8 @@ run dnf update -y && \
 run useradd -m -s /bin/bash vscode && \
     echo "vscode ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/vscode && \
     chmod 0440 /etc/sudoers.d/vscode
+# Silent warning message when using podman instead of docker
+run touch /etc/containers/nodocker
 # Set working directory
 workdir /workspace
 # Set default user
