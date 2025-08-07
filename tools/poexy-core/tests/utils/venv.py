@@ -12,6 +12,8 @@ logger = logging.getLogger(__name__)
 
 
 class TestVirtualEnvironment(VirtualEnvironment):
+    __test__ = False
+
     def __init__(self, venv_path: Path):
         super().__init__(venv_path)
         self.__site_package_path = None
