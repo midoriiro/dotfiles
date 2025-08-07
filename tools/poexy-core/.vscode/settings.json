@@ -46,7 +46,8 @@
     "--cov=poexy_core",
     "--cov-report=term-missing",
     "--numprocesses=auto",
-    "--dist=load",
+    "--dist=worksteal",
+    "--maxschedchunk=1",
     "--exitfirst",
     "--capture=no",
     "--show-capture=no"
