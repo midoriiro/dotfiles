@@ -38,7 +38,7 @@ class MarkerFile:
 
         self.__write(self.__counter)
 
-    def untouch(self, wait: bool = False) -> bool:
+    def untouch(self, wait: bool = False, timeout: float = 10) -> bool:
         if not self.exists():
             return False
 
@@ -53,11 +53,15 @@ class MarkerFile:
         self.__write(self.__counter)
 
         if wait:
-            while True:
+            start_time = time.time()
+            while time.time() - start_time < timeout:
                 self.read()
                 if self.__counter == 0:
                     self.path.unlink()
                     return True
-                time.sleep(1)
+                time.sleep(0.1)
+            if self.exists():
+                self.path.unlink()
+            return True
 
         return False
