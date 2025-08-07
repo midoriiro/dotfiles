@@ -51,12 +51,22 @@ def global_tmp_root(testrun_uid, log_info_section) -> Path:
     lock_path = str(path) + ".lock"
     lock = FileLock(lock_path)
 
+    def remove_global_tmp_root():
+        log_info_section("Removing global tmp root")
+        shutil.rmtree(path, ignore_errors=True)
+        path.mkdir(parents=True, exist_ok=True)
+
     with lock:
         init_marker = MarkerFile(path / ".initialized", {"testrun_uid": testrun_uid})
 
-        if not init_marker.exists():
-            log_info_section("Removing global tmp root")
-            shutil.rmtree(path, ignore_errors=True)
+        if path.exists() and init_marker.exists():
+            marker_data = init_marker.read()
+            if marker_data["testrun_uid"] != testrun_uid:
+                remove_global_tmp_root()
+        elif path.exists() and not init_marker.exists():
+            remove_global_tmp_root()
+
+        if not path.exists():
             path.mkdir(parents=True, exist_ok=True)
 
         init_marker.touch()
@@ -65,8 +75,7 @@ def global_tmp_root(testrun_uid, log_info_section) -> Path:
         yield path
     finally:
         if init_marker.untouch():
-            log_info_section("Removing global tmp root")
-            shutil.rmtree(path, ignore_errors=True)
+            remove_global_tmp_root()
 
 
 @pytest.fixture(scope="session")
