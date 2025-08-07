@@ -11,6 +11,23 @@ inputs:
     required: false
     default: 'true'
     type: boolean
+  distribution-mode:
+    description: 'Distribution mode'
+    required: false
+    default: worksteal
+    type: choice
+    options:
+      - no
+      - worksteal
+      - xdist_group
+      - loadfile
+      - loadscope
+      - load
+  maximum-scheduled-chunk:
+    description: 'Maximum scheduled chunk'
+    required: false
+    default: 1
+    type: integer
   fail-fast:
     description: 'Fail fast'
     required: false
@@ -40,6 +57,8 @@ runs:
       env:
         TEST_PATH: ${{ inputs.test-path }}
         RUN_IN_PARALLEL: ${{ inputs.run-in-parallel }}
+        DISTRIBUTION_MODE: ${{ inputs.distribution-mode }}
+        MAXIMUM_SCHEDULED_CHUNK: ${{ inputs.maximum-scheduled-chunk }}
         FAIL_FAST: ${{ inputs.fail-fast }}
         CAPTURE_OUTPUT: ${{ inputs.capture-output }}
         ADDITIONAL_PYTEST_OPTIONS: ${{ inputs.additional-pytest-options }}
@@ -48,6 +67,8 @@ runs:
         PYTEST_CMD="poetry run pytest $TEST_PATH --show-capture=no"
         if [ "$RUN_IN_PARALLEL" = "true" ]; then  
           PYTEST_CMD="$PYTEST_CMD --numprocesses=auto"
+          PYTEST_CMD="$PYTEST_CMD --dist=$DISTRIBUTION_MODE"
+          PYTEST_CMD="$PYTEST_CMD --maxschedchunk=$MAXIMUM_SCHEDULED_CHUNK"
         fi
         if [ "$FAIL_FAST" = "true" ]; then
           PYTEST_CMD="$PYTEST_CMD --exitfirst"

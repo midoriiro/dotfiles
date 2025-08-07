@@ -122,6 +122,8 @@ jobs:
           coverage-artifact-path: coverage.xml
           upload-to-codecov: false
           run-in-parallel: true
+          distribution-mode: worksteal
+          maximum-scheduled-chunk: 1
           fail-fast: true
           capture-output: false
 
