@@ -122,7 +122,14 @@ class Builder:
     def _add_metadata(self, manifest: Manifest) -> MetadataManifestBuilder:
         if self.poexy.readme is not None:
             self.poexy.readme.transform_poetry_package(self.poetry.package)
+        dependencies: List[str] = []
+        for dependency in self.poetry.package.requires:
+            if dependency.is_file() or dependency.is_directory():
+                continue
+            if not dependency.is_optional() or dependency.in_extras:
+                dependencies.append(dependency.to_pep_508())
         metadata = Metadata.from_package(self.poetry.package)
+        metadata.requires_dist = dependencies
         for hook in self._hooks:
             hook.add_metadata(metadata, self.format)
         builder = MetadataManifestBuilder(manifest, MetadataVersions.V2_4)
