@@ -1,0 +1,14 @@
+[project]
+name = "wheel-source-with-mix-deps"
+version = "1.0.0"
+dependencies = [
+    "library @ ../library/",
+    "library @ http://localhost:8000/library-1.0.0-py3-none-any.whl"
+]
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.wheel_source_with_mix_deps]
+source = "src"
