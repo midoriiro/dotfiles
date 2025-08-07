@@ -6,5 +6,10 @@
   },
   "coverage-gutters.coverageReportFileName": ".coverage",
   "coverage-gutters.showLineCoverage": true,
-  "coverage-gutters.showRulerCoverage": true
+  "coverage-gutters.showRulerCoverage": true,
+  "python.testing.pytestArgs": [
+    "tools"
+  ],
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true
 }
