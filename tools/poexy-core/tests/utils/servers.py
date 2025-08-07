@@ -96,13 +96,14 @@ class GitServer(BaseServer):
     def _target(self) -> Callable[[], object]:
         def target() -> None:
             self.logger(f"Starting GIT server at {self.directory}")
-            subprocess_rt.run(
+            exit_code = subprocess_rt.run(
                 [
                     "git",
                     "daemon",
                     "--verbose",
                     "--export-all",
                     "--reuseaddr",
+                    "--detach",
                     "--listen=localhost",
                     f"--port={self.port}",
                     f"--pid-file={self.__pid_file}",
@@ -110,11 +111,26 @@ class GitServer(BaseServer):
                 ],
                 printer=self.logger,
             )
-            with open(self.__pid_file, "r", encoding="utf-8") as f:
-                self.__pid = int(f.read())
-            self.logger(
-                f"GIT server started at localhost:{self.port} and with pid {self.__pid}"
-            )
+
+            if exit_code != 0:
+                raise RuntimeError(f"git daemon exited with code {exit_code}")
+
+            try:
+                if self.__pid_file.exists():
+                    with open(self.__pid_file, "r", encoding="utf-8") as f:
+                        pid_content = f.read().strip()
+                        if pid_content:
+                            self.__pid = int(pid_content)
+                            self.logger(
+                                f"GIT server started at localhost:{self.port} "
+                                f"and with pid {self.__pid}"
+                            )
+                        else:
+                            raise RuntimeError("PID file is empty")
+                else:
+                    raise RuntimeError(f"PID file {self.__pid_file} was not created")
+            except (FileNotFoundError, ValueError, OSError) as e:
+                raise RuntimeError(f"Failed to read PID file: {e}")
 
         return target
 
@@ -124,8 +140,12 @@ class GitServer(BaseServer):
             raise RuntimeError("GIT server is not running")
         self.logger(f"Stopping GIT server with pid {self.__pid}")
         if self._thread.is_alive():
-            os.kill(self.__pid, signal.SIGTERM)
-            super().stop()
+            if self.__pid is not None:
+                os.kill(self.__pid, signal.SIGTERM)
+                super().stop()
+            else:
+                super().stop()
+                raise RuntimeError("GIT server PID is undefined")
         self.__pid = None
         self.__pid_file.unlink(missing_ok=True)
         self.logger("GIT server stopped")
