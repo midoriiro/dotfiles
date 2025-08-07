@@ -7,8 +7,8 @@ from typing import Generator, List
 
 from virtualenv import cli_run
 
-from poexy_core.utils.build import Build, BuildOptions
-from poexy_core.utils.pip import Pip, PipInstallOptions
+from poexy_core.utils.build import BuildOptions, UvBuild
+from poexy_core.utils.pip import PackageInstallerProgram, Pip, Uv
 
 logger = logging.getLogger(__name__)
 
@@ -22,10 +22,24 @@ class VirtualEnvironment:
         self.__venv_path = venv_path
         self.__python_path = venv_path / "bin" / "python"
         self.__pip_path = venv_path / "bin" / "pip"
+        self.__uv_path = venv_path / "bin" / "uv"
         self.__site_packages_paths = None
-        self._pip = Pip(self.__pip_path)
-        self.__builder = Build(self.__python_path)
-        self.__build_package_installed = False
+        self._pip: PackageInstallerProgram = Uv(
+            self.__python_path, self.__uv_path, Pip(self.__pip_path)
+        )
+        self.__builder = UvBuild(self.__uv_path)
+
+        if not self.__venv_path.exists():
+            raise VirtualEnvironmentError(f"venv not found in {self.__venv_path}")
+
+        if not self.__python_path.exists():
+            raise VirtualEnvironmentError(f"python not found in {self.__python_path}")
+
+        if not self.__pip_path.exists():
+            raise VirtualEnvironmentError(f"pip not found in {self.__pip_path}")
+
+        if not self.__uv_path.exists():
+            raise VirtualEnvironmentError(f"uv not found in {self.__uv_path}")
 
     @contextmanager
     @staticmethod
@@ -43,18 +57,16 @@ class VirtualEnvironment:
         venv_dir.cleanup()
 
     def _build(self, source_path: Path) -> Path:
-        if not self.__build_package_installed:
-            exit_code = self._pip.install(["build"], PipInstallOptions.defaults())
-            if exit_code != 0:
-                raise VirtualEnvironmentError(f"Failed to install build: {exit_code}")
-            self.__build_package_installed = True
         output_path = self.__venv_path / "build"
         if output_path.exists():
             shutil.rmtree(output_path)
         build_options = BuildOptions()
+        build_options.verbose(True)
+        build_options.no_config(True)
+        build_options.python_interpreter(self.__python_path)
         build_options.wheel(True)
         build_options.output_path(output_path)
-        build_options.verbose(True)
+        build_options.force_pep517(True)
         self.__builder.build(source_path, build_options)
         wheel_files = list(output_path.glob("*.whl"))
         if len(wheel_files) == 0:
