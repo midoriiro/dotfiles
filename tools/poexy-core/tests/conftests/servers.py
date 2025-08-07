@@ -44,7 +44,10 @@ def serve_library_archive(
     try:
         yield
     finally:
-        if marker_file.untouch(wait=http_server is not None):
+        if (
+            marker_file.untouch(wait=http_server is not None)
+            and http_server is not None
+        ):
             http_server.stop()
             log_info_section("Removing http server folder")
             shutil.rmtree(http_server_path, ignore_errors=True)
@@ -130,7 +133,7 @@ def serve_library_vcs(
     try:
         yield
     finally:
-        if marker_file.untouch(wait=git_server is not None):
+        if marker_file.untouch(wait=git_server is not None) and git_server is not None:
             git_server.stop()
             log_info_section("Removing git server folder")
             shutil.rmtree(git_server_path, ignore_errors=True)
