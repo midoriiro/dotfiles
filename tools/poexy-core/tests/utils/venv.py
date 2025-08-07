@@ -5,7 +5,7 @@ from pathlib import Path
 from virtualenv import cli_run
 
 from poexy_core.utils import subprocess_rt
-from poexy_core.utils.pip import Pip
+from poexy_core.utils.pip import PackageInstallerProgram
 from poexy_core.utils.venv import VirtualEnvironment, VirtualEnvironmentError
 
 logger = logging.getLogger(__name__)
@@ -19,12 +19,19 @@ class TestVirtualEnvironment(VirtualEnvironment):
         self.__site_package_path = None
 
     @staticmethod
-    def create_from(venv_path: Path) -> "TestVirtualEnvironment":
+    def create_from_path(venv_path: Path) -> "TestVirtualEnvironment":
         cli_run([str(venv_path)])
         return TestVirtualEnvironment(venv_path)
 
+    @staticmethod
+    def create_from_archive(
+        archive_path: Path, venv_path: Path
+    ) -> "TestVirtualEnvironment":
+        TestVirtualEnvironment.__extract_archive(archive_path, venv_path)
+        return TestVirtualEnvironment(venv_path)
+
     @property
-    def pip(self) -> Pip:
+    def pip(self) -> PackageInstallerProgram:
         return self._pip
 
     @property
@@ -74,16 +81,17 @@ class TestVirtualEnvironment(VirtualEnvironment):
             raise VirtualEnvironmentError(f"Failed to create venv archive: {exit_code}")
         return archive_path / TestVirtualEnvironment.archive_name()
 
-    def extract_archive(self, archive_path: Path) -> None:
+    @staticmethod
+    def __extract_archive(archive_path: Path, venv_path: Path) -> None:
         cmd = [
             "rm",
             "-rf",
-            str(self.path),
+            str(venv_path),
         ]
         exit_code = subprocess_rt.run(cmd, printer=logger.info)
         if exit_code != 0:
             raise VirtualEnvironmentError(f"Failed to remove venv: {exit_code}")
-        self.path.mkdir(parents=True, exist_ok=True)
+        venv_path.mkdir(parents=True, exist_ok=True)
         cmd = [
             "tar",
             "--use-compress-program",
@@ -92,7 +100,7 @@ class TestVirtualEnvironment(VirtualEnvironment):
             "--file",
             str(archive_path),
             "--directory",
-            str(self.path),
+            str(venv_path),
         ]
         logger.info(f"Extracting venv archive: {archive_path}")
         exit_code = subprocess_rt.run(cmd, printer=logger.info)
@@ -102,19 +110,22 @@ class TestVirtualEnvironment(VirtualEnvironment):
                 f"Failed to extract venv archive: {exit_code}"
             )
 
-        self.__upgrade_scripts_shebang()
+        TestVirtualEnvironment.__upgrade_scripts_shebang(venv_path)
 
-    def __upgrade_scripts_shebang(self) -> None:
-        with open(self.path / "venv.json", "r", encoding="utf-8") as f:
+    @staticmethod
+    def __upgrade_scripts_shebang(venv_path: Path) -> None:
+        with open(venv_path / "venv.json", "r", encoding="utf-8") as f:
             venv_config = json.load(f)
 
-        bin_path = self.path / "bin"
+        bin_path = venv_path / "bin"
         if not bin_path.exists():
             return
 
-        binary_files = [
-            f for f in bin_path.iterdir() if f.is_file() and f.stat().st_mode & 0o111
-        ]
+        binary_files = []
+
+        for file in bin_path.iterdir():
+            if file.is_file() and not file.is_symlink() and file.stat().st_mode & 0o111:
+                binary_files.append(file)
 
         for file in binary_files:
             try:
@@ -124,6 +135,6 @@ class TestVirtualEnvironment(VirtualEnvironment):
             logger.info(f"Upgrading shebang for script: {file}")
             if venv_config["base_path"] in content:
                 file.write_text(
-                    content.replace(venv_config["base_path"], str(self.path)),
+                    content.replace(venv_config["base_path"], str(venv_path)),
                     encoding="utf-8",
                 )

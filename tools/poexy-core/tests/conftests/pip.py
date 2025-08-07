@@ -6,7 +6,12 @@ import pytest
 from assertpy import assert_that
 from filelock import FileLock
 
-from poexy_core.utils.pip import Pip, PipInstallOptions, PipOptions, PipWheelOptions
+from poexy_core.utils.pip import (
+    PackageInstallerProgram,
+    PipWheelOptions,
+    UvInstallOptions,
+    UvOptions,
+)
 from tests.utils.markers import MarkerFile
 from tests.utils.venv import TestVirtualEnvironment
 
@@ -18,18 +23,19 @@ def venv(
     virtualenv_path, create_venv_archive, log_info_section
 ) -> TestVirtualEnvironment:
     log_info_section("Extracting virtualenv archive")
-    venv = TestVirtualEnvironment(virtualenv_path)
-    venv.extract_archive(create_venv_archive)
+    venv = TestVirtualEnvironment.create_from_archive(
+        create_venv_archive, virtualenv_path
+    )
     yield venv
     log_info_section("Removing virtualenv")
     shutil.rmtree(venv.path)
 
 
 @pytest.fixture()
-def pip(venv, log_info_section) -> Pip:
+def pip(venv, log_info_section) -> PackageInstallerProgram:
     log_info_section("Checking poexy-core is installed")
     pip = venv.pip
-    assert_that(pip.show("poexy-core", PipOptions.defaults())).is_equal_to(0)
+    assert_that(pip.show("poexy-core", UvOptions.defaults())).is_equal_to(0)
     return pip
 
 
@@ -61,13 +67,17 @@ def create_venv_archive(
             global_virtualenv_archive_path.mkdir(parents=True, exist_ok=True)
 
             log_info_section("Creating global virtualenv")
-            venv = TestVirtualEnvironment.create_from(global_virtualenv_path)
+            venv = TestVirtualEnvironment.create_from_path(global_virtualenv_path)
 
             log_info_section("Building poexy-core")
             self_archive_path = venv.build(self_project)
 
             log_info_section("Installing poexy-core")
-            venv.pip.install([str(self_archive_path)], PipInstallOptions.defaults())
+            default_install_options = UvInstallOptions.defaults()
+            install_options = UvInstallOptions()
+            install_options.no_build_isolation(True)
+            install_options = default_install_options + install_options.build()
+            venv.pip.install([str(self_archive_path)], install_options)
 
             log_info_section("Creating virtualenv archive")
             archive_path = venv.create_archive(global_virtualenv_archive_path)
@@ -87,7 +97,7 @@ def create_venv_archive(
 
 @pytest.fixture()
 def assert_pip_wheel(
-    build_path, pip: Pip, dist_package_name, log_info_section
+    build_path, pip: PackageInstallerProgram, dist_package_name, log_info_section
 ) -> Callable[[Path], Path]:
     def _assert(archive_path: Path):
         log_info_section("Running pip wheel")
@@ -110,19 +120,16 @@ def assert_pip_wheel(
 
 @pytest.fixture()
 def assert_pip_install(
-    pip: Pip, dist_package_name, log_info_section
+    pip: PackageInstallerProgram, dist_package_name, log_info_section
 ) -> Callable[[Path], Path]:
     def _assert(archive_path: Path):
         log_info_section("Running pip install")
         if dist_package_name() == "poexy_core":
             no_build_isolation = False
-            check_build_dependencies = True
         else:
             no_build_isolation = True
-            check_build_dependencies = True
-        options = PipInstallOptions()
+        options = UvInstallOptions()
         options.no_build_isolation(no_build_isolation)
-        options.check_build_dependencies(check_build_dependencies)
         returncode = pip.install([str(archive_path)], options)
         assert_that(returncode).is_equal_to(0)
 
