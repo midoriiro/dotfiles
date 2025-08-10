@@ -3,7 +3,7 @@ __pycache__/
 *.py[cod]
 
 # Coverage reports
-.coverage
+.coverage*
 htmlcov/
 
 # Environment
