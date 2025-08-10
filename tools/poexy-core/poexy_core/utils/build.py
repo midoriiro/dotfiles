@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import List, Union
 
 from poexy_core.utils import subprocess_rt
-from poexy_core.utils.pip import UvOptions
+from poexy_core.utils.pip_options import UvOptions
 
 logger = logging.getLogger(__name__)
 
@@ -87,8 +87,17 @@ class UvBuild:
                 f"Invalid arguments type: {type(options)}. "
                 f"Expected: {type(BuildOptions)} or {type(List[str])}"
             )
+
+        logs = []
+
+        def log_command(line: str):
+            logger.info(line)
+            logs.append(line)
+
         cmd = [*self.__base_command, *options, str(source_path)]
-        exit_code = subprocess_rt.run(cmd, printer=logger.info)
+        exit_code = subprocess_rt.run(cmd, printer=log_command)
         if exit_code != 0:
-            raise BuildError(f"Failed to build: {cmd}")
+            raise BuildError(
+                f"Failed to build: \n" f"Command: {cmd}\n" f"Logs: \n{"\n".join(logs)}"
+            )
         return exit_code
