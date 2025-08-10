@@ -4,6 +4,7 @@
   "editor.codeActionsOnSave": {
     "source.organizeImports": "explicit"
   },
+  "explorer.autoReveal": false,
   "coverage-gutters.coverageReportFileName": ".coverage",
   "coverage-gutters.showLineCoverage": true,
   "coverage-gutters.showRulerCoverage": true,
@@ -11,5 +12,12 @@
     "tools"
   ],
   "python.testing.unittestEnabled": false,
-  "python.testing.pytestEnabled": true
+  "python.testing.pytestEnabled": true,
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/.pytest_cache": true,
+    "**/*.pyc": true,
+    "**/.venv": true,
+    "**/.coverage*": true
+  }
 }

@@ -24,5 +24,11 @@
       "name": "Mutex-CLI"
     }
   ],
-  "settings": {}
+  "settings": {
+    "cursor.preferNotificationsSameAsChat": true,
+    "editor.bracketPairColorization.independentColorPoolPerBracketType": true,
+    "editor.experimentalEditContextEnabled": false,
+    "editor.minimap.enabled": true,
+    "explorer.autoReveal": false
+  }
 }
