@@ -1,7 +1,21 @@
+import platform
+import signal
 import subprocess
 from typing import Callable, List
 
 Printer = Callable[[str], None]
+
+
+def is_sigterm_exit(exit_code: int) -> bool:
+    system = platform.system()
+
+    if system == "Windows":
+        return exit_code in (0, 1)
+    else:
+        # Fallback for other Unix-like systems
+        if exit_code < 0:
+            return abs(exit_code) == signal.SIGTERM
+        return exit_code == 128 + signal.SIGTERM
 
 
 def run(cmd: List[str], printer: Printer, **kwargs) -> int:
