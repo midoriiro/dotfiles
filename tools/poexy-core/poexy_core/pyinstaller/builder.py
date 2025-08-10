@@ -92,9 +92,7 @@ class PyinstallerBuilder:
 
     def __build_with_venv(self, arguments: PyInstallerArgumentBuilder) -> None:
         with PyinstallerVirtualEnvironment.create() as venv:
-            directory_dependencies = venv.install_dependencies(self.__dependencies)
-            for directory_dependency in directory_dependencies:
-                arguments.paths([directory_dependency.full_path])
+            venv.install_dependencies(self.__dependencies)
             self.__build(arguments)
 
     def build(

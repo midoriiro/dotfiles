@@ -3,7 +3,7 @@ import os
 import site
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Generator, List
+from typing import Generator
 
 from poetry.core.packages.dependency import Dependency
 from poetry.core.packages.directory_dependency import DirectoryDependency
@@ -54,9 +54,7 @@ class PyinstallerVirtualEnvironment(VirtualEnvironment):
 
         yield venv
 
-    def install_dependencies(
-        self, dependencies: DependencyMap
-    ) -> List[DirectoryDependency]:
+    def install_dependencies(self, dependencies: DependencyMap):
         if not self.pip_path.exists():
             raise VirtualEnvironmentError(f"Pip not found in venv: {self.pip_path}")
 
@@ -67,7 +65,6 @@ class PyinstallerVirtualEnvironment(VirtualEnvironment):
             raise VirtualEnvironmentError("No dependencies to install")
 
         requirements = []
-        directory_dependencies = []
         for _, deps in dependencies.items():
             dependency_types = [dependency.__class__.__name__ for dependency in deps]
             if Dependency.__name__ in dependency_types:
@@ -121,10 +118,10 @@ class PyinstallerVirtualEnvironment(VirtualEnvironment):
                     raise VirtualEnvironmentError(
                         "Expected a directory dependency pointing to a directory"
                     )
-                directory_dependencies.append(dependency)
+                requirements.append(dependency.full_path.as_posix())
 
         if len(requirements) == 0:
-            return directory_dependencies
+            return
 
         install_options = UvInstallOptions()
         install_options.no_build_isolation(True)
@@ -139,4 +136,4 @@ class PyinstallerVirtualEnvironment(VirtualEnvironment):
                 f"Failed to install dependencies: {exit_code}"
             )
 
-        return directory_dependencies
+        return
