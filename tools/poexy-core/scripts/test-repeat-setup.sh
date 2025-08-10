@@ -1,6 +1,6 @@
 #!/bin/bash
 
-N=1  # Set the number of repetitions here
+N=1000  # Set the number of repetitions here
 
 # Setup with PIP ~22s
 # Setup with UV ~8s
@@ -13,5 +13,5 @@ for ((i=1; i<=N; i++)); do
         --capture=no \
         --verbose \
         --durations=0 \
-        tests/test_default.py::test_wheel
+        tests/cases/core_functionality/test_default.py::test_wheel
 done
