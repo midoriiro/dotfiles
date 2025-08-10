@@ -1,0 +1,21 @@
+[project]
+name = "binary-dependency-local"
+version = "1.0.0"
+dependencies = [
+    "library @ ../../core_functionality/library/library-1.0.0-py3-none-any.whl",
+    "library @ ../../core_functionality/library",
+]
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.binary-dependency-local]
+source = "src"
+
+[tool.poexy.wheel]
+format = ["binary"]
+
+[tool.poexy.binary]
+name = "binary-dependency-local"
+entry_point = "src.__init__"

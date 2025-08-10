@@ -1,0 +1,13 @@
+[project]
+name = "exclude-by-extension"
+version = "1.0.0"
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.exclude_by_extension]
+source = "src"
+excludes = [
+    "*.exclude"
+]

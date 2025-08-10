@@ -1,0 +1,18 @@
+[project]
+name = "nested-patterns"
+version = "1.0.0"
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.nested_patterns]
+source = "src"
+includes = [
+  "src/resources/**/[a-c]*.txt",
+  "src/resources/**/icon?.png"
+]
+excludes = [
+  "src/resources/**/temp?.txt",
+  "src/resources/**/draft[0-9].md"
+]

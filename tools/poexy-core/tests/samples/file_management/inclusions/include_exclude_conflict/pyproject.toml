@@ -1,0 +1,16 @@
+[project]
+name = "include-exclude-conflict"
+version = "1.0.0"
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.include_exclude_conflict]
+source = "src"
+includes = [
+    "*.include"
+]
+excludes = [
+    "*.include"
+]

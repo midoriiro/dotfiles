@@ -1,0 +1,11 @@
+[project]
+name = "missing-include-file"
+version = "1.0.0"
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.missing_include_file]
+source = "src"
+includes = ["missing-include-file.txt"]

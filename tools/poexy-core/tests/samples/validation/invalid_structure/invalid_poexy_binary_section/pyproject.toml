@@ -1,0 +1,15 @@
+[project]
+name = "invalid-poexy-binary-section"
+version = "1.0.0"
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.invalid_poexy_binary_section]
+source = "src"
+
+[tool.poexy.wheel]
+format = ["binary"]
+
+[tool.poexy.binary]

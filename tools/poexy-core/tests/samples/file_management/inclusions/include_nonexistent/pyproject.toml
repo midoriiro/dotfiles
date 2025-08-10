@@ -1,0 +1,13 @@
+[project]
+name = "include-nonexistent"
+version = "1.0.0"
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.include_nonexistent]
+source = "src"
+includes = [
+    "**/nonexistent/*"
+]

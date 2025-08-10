@@ -1,0 +1,11 @@
+[project]
+name = "missing-exclude-file"
+version = "1.0.0"
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.missing_exclude_file]
+source = "src"
+excludes = ["missing-exclude-file.txt"]

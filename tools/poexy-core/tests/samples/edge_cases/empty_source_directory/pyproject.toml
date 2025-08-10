@@ -1,0 +1,10 @@
+[project]
+name = "empty-source-directory"
+version = "1.0.0"
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.empty_source_directory]
+source = "src"

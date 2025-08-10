@@ -1,0 +1,10 @@
+[project]
+name = "symbolic-link-max-step-reached"
+version = "1.0.0"
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.symbolic_link_max_step_reached]
+source = "src"

@@ -1,0 +1,13 @@
+[project]
+name = "absolute-path-in-includes"
+version = "1.0.0"
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.absolute_path_in_includes]
+source = "src"
+includes = [
+    "/workspace/tools/poexy-core/tests/samples/file_management/file_to_include.txt"
+]

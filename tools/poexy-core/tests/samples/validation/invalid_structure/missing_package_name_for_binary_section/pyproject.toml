@@ -1,0 +1,12 @@
+[project]
+version = "1.0.0"
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.missing_package_name_for_binary_section]
+source = "src"
+
+[tool.poexy.wheel]
+format = ["binary"]

@@ -1,0 +1,13 @@
+[project]
+name = "invalid-glob-pattern"
+version = "1.0.0"
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.invalid_glob_pattern]
+source = "src"
+includes = [
+    "**/*.invalid-####"
+]

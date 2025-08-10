@@ -1,0 +1,13 @@
+[project]
+name = "include-entire-directory"
+version = "1.0.0"
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.include_entire_directory]
+source = "src"
+includes = [
+    "src/resources"
+]

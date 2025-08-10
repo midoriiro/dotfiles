@@ -1,0 +1,10 @@
+[project]
+name = "symbolic-link-two-node-cycle"
+version = "1.0.0"
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.symbolic_link_two_node_cycle]
+source = "src"

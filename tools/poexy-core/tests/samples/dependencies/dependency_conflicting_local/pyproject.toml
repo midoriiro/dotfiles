@@ -1,0 +1,13 @@
+[project]
+name = "dependency-conflicting-local"
+version = "1.0.0"
+dependencies = [
+    "library @ ../library/"
+]
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.dependency_conflicting_local]
+source = "src"

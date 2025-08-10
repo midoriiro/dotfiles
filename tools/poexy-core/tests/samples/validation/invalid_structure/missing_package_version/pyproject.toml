@@ -1,0 +1,6 @@
+[project]
+name = "missing-package-version"
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"

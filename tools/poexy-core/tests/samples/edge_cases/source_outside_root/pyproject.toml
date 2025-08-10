@@ -1,0 +1,10 @@
+[project]
+name = "source-outside-root"
+version = "1.0.0"
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.source_outside_root]
+source = "../../core_functionality/library/src"

@@ -1,0 +1,10 @@
+[project]
+name = "inaccessible-file"
+version = "1.0.0"
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.inaccessible-file]
+source = "src"

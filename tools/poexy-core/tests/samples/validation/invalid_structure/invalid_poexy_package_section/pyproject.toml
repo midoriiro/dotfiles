@@ -1,0 +1,9 @@
+[project]
+name = "invalid-poexy-package-section"
+version = "1.0.0"
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package]

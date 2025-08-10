@@ -1,0 +1,13 @@
+[project]
+name = "include-by-extension"
+version = "1.0.0"
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.include_by_extension]
+source = "src"
+includes = [
+    "*.include"
+]

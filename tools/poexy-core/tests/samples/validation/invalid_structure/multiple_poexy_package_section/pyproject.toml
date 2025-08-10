@@ -1,0 +1,13 @@
+[project]
+name = "multiple-poexy-package-section"
+version = "1.0.0"
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.package_1]
+source = "src/package_1"
+
+[tool.poexy.package.package_2]
+source = "src/package_2"
