@@ -109,6 +109,7 @@ def assert_wheel_build(
     assert_record_manifest,
     assert_pip_install,
     assert_zip_file,
+    log_info_section,
     venv: TestVirtualEnvironment,
 ) -> Callable[[Path], Callable[[List[Path], bool], None]]:
     def _assert(
@@ -118,15 +119,21 @@ def assert_wheel_build(
     ):
         with project(project_path):
             if editable:
+                log_info_section("Building editable wheel")
                 filename = api.build_editable(str(dist_path))
             else:
+                log_info_section("Building wheel")
                 filename = api.build_wheel(str(dist_path))
+
+            log_info_section("Asserting wheel archive")
 
             assert_that(filename).ends_with(".whl")
             assert_that(filename).starts_with(dist_package_name())
             archive_path = dist_path / filename
             assert_that(str(archive_path)).is_file()
             assert_that(zipfile.is_zipfile(archive_path)).is_true()
+
+            log_info_section("Asserting wheel manifests")
 
             if len(_format) == 1 and WheelFormat.Binary in _format:
                 python_tag = current_python_tag
@@ -137,7 +144,10 @@ def assert_wheel_build(
             assert_metadata_manifest(python_tag)
             assert_wheel_manifest(python_tag)
             assert_record_manifest(python_tag)
+
             assert_pip_install(archive_path)
+
+            log_info_section("Asserting wheel contents")
 
             site_packages = venv.site_package / dist_package_name()
 
@@ -201,10 +211,15 @@ def assert_sdist_build(
     assert_pip_install,
     assert_tar_file,
     venv: TestVirtualEnvironment,
+    log_info_section,
 ) -> Callable[[Path], Callable[[List[Path], bool], None]]:
     def _assert(project_path: Path, _format: Set[WheelFormat] = {WheelFormat.Source}):
         with project(project_path):
+            log_info_section("Building sdist")
+
             filename = api.build_sdist(str(dist_path))
+
+            log_info_section("Asserting sdist archive")
 
             assert_that(filename).ends_with(".tar.gz")
             assert_that(filename).starts_with(dist_package_name())
@@ -212,9 +227,13 @@ def assert_sdist_build(
             assert_that(str(archive_path)).is_file()
             assert_that(tarfile.is_tarfile(archive_path)).is_true()
 
+            log_info_section("Asserting sdist manifests")
+
             assert_pkginfo_manifest()
             wheel_path = assert_pip_wheel(archive_path)
             assert_pip_install(wheel_path)
+
+            log_info_section("Asserting sdist contents")
 
             site_packages = venv.site_package / dist_package_name()
 

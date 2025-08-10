@@ -10,6 +10,14 @@ class MarkerFile:
         self.__data = extra or {}
         self.__counter = 0
 
+    @property
+    def extra(self) -> Dict[str, str]:
+        return self.__data
+
+    @extra.setter
+    def extra(self, extra: Dict[str, str]):
+        self.__data = extra
+
     def read(self) -> Dict[str, str]:
         if not self.exists():
             return {}

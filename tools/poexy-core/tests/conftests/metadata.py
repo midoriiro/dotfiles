@@ -84,6 +84,17 @@ def wheel_data_purelib_folder(wheel_metadata) -> Callable[[PythonTag], Path]:
 
 
 @pytest.fixture()
+def wheel_data_data_folder(wheel_metadata) -> Callable[[PythonTag], Path]:
+    def _wheel_data_data_folder(python_tag: PythonTag):
+        metadata = wheel_metadata(python_tag)
+        data_data_folder = metadata.data_data_folder
+        data_data_folder = data_data_folder.relative_to(metadata.root_folder)
+        return data_data_folder
+
+    return _wheel_data_data_folder
+
+
+@pytest.fixture()
 def wheel_data_scripts_folder(wheel_metadata) -> Callable[[PythonTag], Path]:
     def _wheel_data_scripts_folder(python_tag: PythonTag):
         metadata = wheel_metadata(python_tag)

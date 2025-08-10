@@ -6,16 +6,50 @@ import pytest
 from assertpy import assert_that
 from filelock import FileLock
 
+from poexy_core import api
 from poexy_core.utils.pip import (
     PackageInstallerProgram,
     PipWheelOptions,
     UvInstallOptions,
     UvOptions,
 )
+from tests.cases.core_functionality import test_build_self
 from tests.utils.markers import MarkerFile
 from tests.utils.venv import TestVirtualEnvironment
 
 # pylint: disable=redefined-outer-name
+
+
+@pytest.fixture(scope="session")
+def venv_self_build_usage(request, venv_usage_lock_path):
+    prevent_venv_self_build = False
+    lock_path = venv_usage_lock_path / ".lock"
+    lock = FileLock(lock_path)
+
+    with lock:
+        marker_file = MarkerFile(venv_usage_lock_path / ".collected")
+
+        if not marker_file.exists():
+            session: pytest.Session = request.node
+            modules = [item.module.__name__ for item in session.items]
+            self_build_module = test_build_self.__name__.rsplit(".", 1)[-1]
+            if all(self_build_module == module for module in modules):
+                for item in session.items:
+                    for marker in item.own_markers:
+                        if marker.name == "prevent_venv_self_build":
+                            prevent_venv_self_build = True
+            else:
+                prevent_venv_self_build = False
+            usage = {
+                "prevent_venv_self_build": prevent_venv_self_build,
+            }
+            marker_file.extra = usage
+        else:
+            usage = marker_file.read()
+
+        marker_file.touch()
+
+    return usage
 
 
 @pytest.fixture()
@@ -41,6 +75,7 @@ def pip(venv, log_info_section) -> PackageInstallerProgram:
 
 @pytest.fixture(scope="session")
 def create_venv_archive(
+    venv_self_build_usage,
     global_virtualenv_path,
     global_virtualenv_archive_path,
     global_virtualenv_lock_path,
@@ -69,15 +104,22 @@ def create_venv_archive(
             log_info_section("Creating global virtualenv")
             venv = TestVirtualEnvironment.create_from_path(global_virtualenv_path)
 
-            log_info_section("Building poexy-core")
-            self_archive_path = venv.build(self_project)
+            if not venv_self_build_usage["prevent_venv_self_build"]:
+                log_info_section("Building poexy-core")
+                self_archive_path = venv.build(self_project)
 
-            log_info_section("Installing poexy-core")
-            default_install_options = UvInstallOptions.defaults()
-            install_options = UvInstallOptions()
-            install_options.no_build_isolation(True)
-            install_options = default_install_options + install_options.build()
-            venv.pip.install([str(self_archive_path)], install_options)
+                log_info_section("Installing poexy-core")
+                default_install_options = UvInstallOptions.defaults()
+                install_options = UvInstallOptions()
+                install_options.no_build_isolation(True)
+                install_options = default_install_options + install_options.build()
+                venv.pip.install([str(self_archive_path)], install_options)
+            else:
+                log_info_section("Install poexy-core dependencies")
+                requires = api.get_requires_for_build_wheel()
+                install_options = UvInstallOptions()
+                install_options.no_build_isolation(True)
+                venv.pip.install(requires, install_options)
 
             log_info_section("Creating virtualenv archive")
             archive_path = venv.create_archive(global_virtualenv_archive_path)
@@ -129,6 +171,7 @@ def assert_pip_install(
         else:
             no_build_isolation = True
         options = UvInstallOptions()
+        options.verbose(False)
         options.no_build_isolation(no_build_isolation)
         returncode = pip.install([str(archive_path)], options)
         assert_that(returncode).is_equal_to(0)

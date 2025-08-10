@@ -8,15 +8,40 @@ from poexy_core.utils import subprocess_rt
 from tests.utils.markers import MarkerFile
 from tests.utils.servers import GitServer, HttpServer
 
+# pylint: disable=redefined-outer-name
+
+
+@pytest.fixture(scope="session")
+def server_usage(request):
+    session = request.node
+    use_http_server = False
+    use_git_server = False
+    for item in session.items:
+        for marker in item.own_markers:
+            if marker.name == "use_http_server":
+                use_http_server = True
+            elif marker.name == "use_git_server":
+                use_git_server = True
+    usage = {
+        "http_server": use_http_server,
+        "git_server": use_git_server,
+    }
+    return usage
+
 
 @pytest.fixture(scope="session", autouse=True)
 def serve_library_archive(
+    server_usage,
     http_server_path: Path,
     samples_path: Path,
     server_lock_path: Path,
     log_info_section,
     log_info,
 ) -> None:
+    if not server_usage["http_server"]:
+        yield
+        return
+
     lock_path = server_lock_path / ".http.lock"
     lock = FileLock(lock_path)
 
@@ -33,9 +58,17 @@ def serve_library_archive(
             http_server_path.mkdir(parents=True, exist_ok=True)
 
             log_info_section("Serving library archive")
-            library_path = samples_path / "library" / "library-1.0.0-py3-none-any.whl"
+            library_path = (
+                samples_path
+                / "core_functionality"
+                / "library"
+                / "library-1.0.0-py3-none-any.whl"
+            )
             shutil.copy(library_path, http_server_path)
             http_server = HttpServer(http_server_path, 8000, log_info)
+            if http_server.is_port_already_in_use():
+                if not http_server.try_kill_process_using_port():
+                    raise RuntimeError("Port 8000 is already in use")
             http_server.start()
             http_server.wait_for_connection(timeout=30)
 
@@ -55,12 +88,17 @@ def serve_library_archive(
 
 @pytest.fixture(scope="session", autouse=True)
 def serve_library_vcs(
+    server_usage,
     git_server_path: Path,
     samples_path: Path,
     server_lock_path: Path,
     log_info_section,
     log_info,
 ) -> None:
+    if not server_usage["git_server"]:
+        yield
+        return
+
     lock_path = server_lock_path / ".vcs.lock"
     lock = FileLock(lock_path)
 
@@ -84,7 +122,7 @@ def serve_library_vcs(
             bare_path = git_server_path / "library.git"
             bare_path.mkdir(parents=True, exist_ok=True)
 
-            library_path = samples_path / "library"
+            library_path = samples_path / "core_functionality" / "library"
             shutil.copytree(library_path, working_path, dirs_exist_ok=True)
 
             subprocess_rt.run(["git", "init"], printer=log_info, cwd=working_path)
@@ -125,6 +163,9 @@ def serve_library_vcs(
             (bare_path / "git-daemon-export-ok").touch()
 
             git_server = GitServer(bare_path.parent, 8001, log_info)
+            if git_server.is_port_already_in_use():
+                if not git_server.try_kill_process_using_port():
+                    raise RuntimeError("Port 8001 is already in use")
             git_server.start()
             git_server.wait_for_connection(timeout=30)
 
