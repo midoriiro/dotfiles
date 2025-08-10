@@ -3,7 +3,14 @@ from typing import List, Optional, Set, override
 
 from pydantic import BaseModel, Field, model_validator
 
-from poexy_core.packages.files import FilePattern, PackageFiles, ResolvePackageFiles
+from poexy_core.packages.files import (
+    SDIST_EXTENSIONS,
+    WHEEL_EXTENSIONS,
+    FilePattern,
+    FilePatternNoFilesResolvedError,
+    PackageFiles,
+    ResolvePackageFiles,
+)
 from poexy_core.packages.format import (
     DEFAULT_FORMATS,
     DEFAULT_WHEEL_FORMATS,
@@ -12,6 +19,7 @@ from poexy_core.packages.format import (
 )
 from poexy_core.packages.inclusions import Excludes, Includes
 from poexy_core.packages.validators import validate_path
+from poexy_core.utils.symbolic_link import SymbolicLink
 
 # pylint: disable=no-member
 
@@ -81,6 +89,10 @@ class ModulePackage(BasePackage, ResolvePackageFiles):
             self.source = validate_path("source", self.source)
         else:
             self.source = Path(self.name)
+        if not self.source.resolve().is_relative_to(Path.cwd().resolve()):
+            raise ValueError("Source path is outside the root project directory")
+        if not any(self.source.iterdir()):
+            raise ValueError("Source path is empty")
         return self
 
     @override
@@ -89,13 +101,43 @@ class ModulePackage(BasePackage, ResolvePackageFiles):
     ) -> Optional[PackageFiles]:
         if self.source is None:
             raise ValueError("Source is required")
-        file_pattern = FilePattern(glob_pattern=Path("**/*"), path=self.source)
+        file_patterns: List[FilePattern] = []
+        if _format == PackageFormat.Source:
+            extensions_filter = SDIST_EXTENSIONS
+            for extension in extensions_filter:
+                file_patterns.append(
+                    FilePattern(glob_pattern=Path(f"**/*{extension}"), path=self.source)
+                )
+        elif _format == PackageFormat.Wheel:
+            extensions_filter = WHEEL_EXTENSIONS
+            for extension in extensions_filter:
+                file_patterns.append(
+                    FilePattern(glob_pattern=Path(f"**/*{extension}"), path=self.source)
+                )
         if _format == PackageFormat.Source:
             destination_path = self.source
         else:
             destination_path = Path(self.name)
-        resolved = file_pattern.resolve(destination_path)
-        return resolved
+        resolved = []
+        for file_pattern in file_patterns:
+            try:
+                resolved.extend(file_pattern.resolve(destination_path))
+            except FilePatternNoFilesResolvedError:
+                # This is expected if the file pattern does not match any files
+                # Will check at the end of this method if any files were resolved
+                pass
+        if len(resolved) == 0:
+            raise FilePatternNoFilesResolvedError()
+        symlink_file_pattern = FilePattern(glob_pattern=Path("**/*"), path=self.source)
+        for file in symlink_file_pattern.resolve(destination_path):
+            if not file.source.is_symlink():
+                continue
+            symbolic_link = SymbolicLink(file.source)
+            for extension in extensions_filter:
+                if symbolic_link.target.suffix == extension:
+                    resolved.append(file)
+                    break
+        return set(resolved)
 
 
 class WheelPackage(BasePackage):

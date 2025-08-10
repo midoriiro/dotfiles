@@ -1,14 +1,31 @@
+import logging
 from pathlib import Path
 from typing import Any, List, Optional, override
 
 from pydantic import BaseModel, Field, RootModel, model_validator
 
-from poexy_core.packages.files import FilePattern, PackageFiles, ResolvePackageFiles
+from poexy_core.packages.files import (
+    FilePattern,
+    FilePatternNoFilesResolvedError,
+    PackageFiles,
+    ResolvePackageFiles,
+)
 from poexy_core.packages.format import PackageFormat
 from poexy_core.packages.validators import validate_destination
 from poexy_core.pyproject.types import GlobPattern
 
 # pylint: disable=no-member
+
+logger = logging.getLogger(__name__)
+
+
+class InclusionError(Exception):
+    pass
+
+
+class InclusionNoFilesResolvedError(InclusionError):
+    def __init__(self, pattern: str):
+        super().__init__(f"No files resolved for pattern '{pattern}'")
 
 
 class Exclude(BaseModel, ResolvePackageFiles):
@@ -33,8 +50,14 @@ class Exclude(BaseModel, ResolvePackageFiles):
             destination_path = path
         else:
             destination_path = base_path
-        resolved = file_pattern.resolve(destination_path)
-        return resolved
+        try:
+            resolved = file_pattern.resolve(destination_path)
+            return resolved
+        except FilePatternNoFilesResolvedError:
+            logger.warning(
+                f"No files resolved for exclude pattern '{self.path.pattern}'"
+            )
+            return None
 
 
 class Include(BaseModel, ResolvePackageFiles):
@@ -69,8 +92,14 @@ class Include(BaseModel, ResolvePackageFiles):
             destination_path = base_path / path
         else:
             destination_path = self.destination / base_path / path
-        resolved = file_pattern.resolve(destination_path)
-        return resolved
+        try:
+            resolved = file_pattern.resolve(destination_path)
+            return resolved
+        except FilePatternNoFilesResolvedError:
+            logger.warning(
+                f"No files resolved for include pattern '{self.path.pattern}'"
+            )
+            return None
 
 
 IncludesType = List[Include]
