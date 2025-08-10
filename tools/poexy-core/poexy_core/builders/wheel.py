@@ -149,6 +149,12 @@ class WheelBuilder(Builder):
                 return self._metadata.data_purelib_folder
             if path.suffix in platform_lib_extensions:
                 return self._metadata.data_platlib_folder
+            if path.is_relative_to(self.poexy.package.source):
+                # after processing .py files and platform lib related files
+                # and before processing other data files, we should consider that
+                # others files in package source directory should be included in
+                # purelib folder.
+                return self._metadata.data_purelib_folder
             if path.suffix not in WHEEL_EXTENSIONS:
                 return self._metadata.data_data_folder
             return None
