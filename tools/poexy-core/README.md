@@ -315,6 +315,37 @@ excludes = [
 > - `.dll` (Dynamic link libraries on Windows)
 > - `.dylib` (Dynamic libraries on macOS)
 
+#### Including symbolic links
+
+You can include a symlink just like a regular file. The link must:
+- Resolve inside the project base (no escaping),
+- Not be broken,
+- Point to a readable file or directory.
+
+Example (wheel):
+
+```toml
+[tool.poexy.wheel]
+includes = [
+    # "assets/config-link.json" is a symlink (prefer relative) to a file inside the project
+    { path = "assets/config-link.json", destination = "share/assets" }
+]
+```
+
+Example (sdist):
+
+```toml
+[tool.poexy.sdist]
+includes = [
+    # Include a symlink; it will be validated and resolved during packaging
+    "assets/config-link.json"
+]
+```
+
+> **Notes:** 
+> - Relative symlinks are recommended.
+> - Escaping (pointing outside the project), broken links, or unreadable targets will fail the build.
+
 ### Editable Installs (Development Mode)
 
 For development, you can create editable installs that link to your source directory instead of copying files. This allows you to modify your code without reinstalling the package:
@@ -337,7 +368,6 @@ Install in editable mode using pip:
 ```bash
 pip install -e .
 ```
-
 
 > **Note:** Editable installs work by creating a `.pth` file in the wheel that points to your source directory. This means your package files remain in their original location and changes are immediately available without reinstallation.
 
@@ -422,6 +452,40 @@ if installed at system level.
 <a id="testing"></a>
 ## 🧪 Testing
 
+### Running Tests
+
+```bash
+# Run all tests
+poetry run pytest tests
+
+# Run with coverage
+poetry run pytest tests --cov=poexy_core
+
+# Run tests in parallel
+poetry run pytest tests --numprocesses=auto
+```
+
+### Helper Scripts
+
+Two helper scripts are provided for common local workflows:
+
+- scripts/test-default.sh
+  - Purpose: run a representative test with verbose output and timings
+  - Default behavior: executes `tests/test_binary_name.py::test_wheel`
+  - Usage:
+    ```bash
+    bash scripts/test-default.sh
+    ```
+
+- scripts/test-repeat-setup.sh
+  - Purpose: exercise and measure the setup phase repeatedly (useful to benchmark environment bootstrap performance and caching behavior)
+  - Parameter: edit N in the script to control the number of repetitions (default: 1000)
+  - Default behavior: runs `pytest --setup-only` on `tests/cases/core_functionality/test_default.py::test_wheel` in a loop
+  - Usage:
+    ```bash
+    bash scripts/test-repeat-setup.sh
+    ```
+
 ### Test Structure
 
 The test suite uses sample projects and comprehensive fixtures:
@@ -467,18 +531,288 @@ def test_sdist(project, project_path, assert_sdist_build, ...):
         # Assert files in tar file and venv paths...
 ```
 
-### Running Tests
+### Test Infrastructure
 
-```bash
-# Run all tests
-poetry run pytest tests
+Key takeaways (philosophy):
+- Fast feedback: the suite is designed to run in parallel and keep per-test setup minimal.
+- Predictable and safe: isolation is the default; shared resources are explicit and centrally managed.
+- Smart reuse: heavy, repeatable work is done once and reused to save time and energy.
+- Declarative control: tests express needs with simple markers; the infrastructure handles orchestration.
+- Scale-friendly: the same approach works locally and on CI with many workers, without flakiness.
 
-# Run with coverage
-poetry run pytest tests --cov=poexy_core
+This section details the testing infrastructure beyond the generic pattern above.
 
-# Run tests in parallel
-poetry run pytest tests --numprocesses=auto
-```
+- **High-level layout**
+  - `tests/cases/`: Spec-level tests organized by feature area
+  - `tests/samples/`: Realistic sample projects used as test inputs
+  - `tests/conftest.py`: Global `pytest` configuration and marker registration
+  - `tests/conftests/`: Reusable fixtures (assertions, project/session setup, servers, logging)
+  - `tests/utils/`: Test-only helpers (paths, markers, local servers, virtualenv wrapper)
+
+- **Project and working-directory management**
+  - `project()` context manager fixture from `conftests/project.py` switches `cwd` to the sample project root and restores it afterwards; it validates the presence of `pyproject.toml` before yielding
+  - `pyproject()` provides a typed reader (`PyProjectTOML`) of the current project's configuration
+
+- **Virtual environment strategy**
+  - A single, reusable venv is created once per test session, archived, and reused by individual tests to minimize setup time
+  - Session-scoped archive creation happens via `create_venv_archive` (see `conftests/pip.py`), which:
+    - Creates a venv under a session-wide path (`global_virtualenv_path`)
+    - Either builds and installs Poexy-Core into that venv or installs only build requirements depending on `venv_self_build_usage`
+    - Produces a compressed archive (`venv.tar.zst`) stored in `global_virtualenv_archive_path`
+    - Coordinates exclusive creation with a `FileLock` and a `MarkerFile` to be safe across parallel workers
+  - Per-test venv extraction via `venv` fixture uses `TestVirtualEnvironment.create_from_archive(...)` to inflate the archived venv into a test-local directory, ensuring isolation and speed; it also adjusts script shebangs to the new path
+  - `pip` fixture wraps pip/uv via `PackageInstallerProgram` and asserts the expected base packages are present
+
+- **Build and manifest assertions** (`conftests/assert_builds.py`, `conftests/assert_manifests.py`)
+  - `assert_wheel_build(...)` and `assert_sdist_build(...)` orchestrate end-to-end builds via the public backend API (`api.build_wheel`, `api.build_sdist`, `api.build_editable`) inside the `project()` context
+  - They validate generated archives, parse and assert manifests (`METADATA`, `WHEEL`, `RECORD`, `PKG-INFO`) and perform real `pip install` into the test venv
+  - Utilities `assert_zip_file` and `assert_tar_file` support strict/partial content checks, including optional stripping of standard metadata entries
+
+- **Temporary path management** (`conftests/paths.py`)
+  - Function-scoped paths like `tmp_root`, `dist_path`, `dist_temp_path`, `build_path` are provided per test for clean, isolated build artifacts
+  - `SamplePaths` enumerates root directories within `tests/samples/` for discoverability and consistency across tests
+
+- **Local servers for dependency scenarios** (`conftests/servers.py`, `tests/utils/servers.py`)
+  - Session-scoped HTTP and Git servers can be enabled via markers (`use_http_server`, `use_git_server`) and are started only if needed
+  - Servers are started on localhost ports 8000 (HTTP) and 8001 (Git), guarded by `FileLock` and `MarkerFile` to avoid duplication and races in parallel runs
+  - Robust startup/shutdown with port detection, process group handling, and retry/cleanup logic ensures stability on CI and local machines
+
+- **File-operation orchestration for edge cases** (`tests/utils/paths.py`)
+  - Tests that need to manipulate filesystem states (unreadable files, symlinks, cycles, escapes) use `@pytest.mark.file_operation(path=...)` with a `TestPath` instance to declare the operation
+  - Session fixture `file_operations` pre-collects all declared operations; function-scoped `file_operation` executes the matching operation with exclusive locking per sample
+  - Provided implementations include `InaccessiblePath`, `SymlinkPath`, `BrokenSymlinkPath`, `SymlinkSelfLoopPath`, `SymlinkChainCyclePath` (multi-node cycles), `SymlinkEscapingPath`, `SymlinkPointsToUnreadableFilePath`
+  - This design ensures deterministic setup/teardown even under `pytest-xdist` parallelization
+
+  - Base class `TestPath`
+    - Purpose: describes a filesystem manipulation bound to a test sample path
+    - Lifecycle hooks: implement `prepare()` (before test body) and `cleanup()` (after test body)
+    - Context binding: `prefix_from_pytest_localpath(...)` is called by the infra to resolve your relative `path` against the matching `tests/samples/...` directory that mirrors `tests/cases/...`
+    - Sample resolution: computes `sample_path` and `sample_src_path` (either `...<sample_name>/src` or `.../<sample_name>`) for convenience (where src is the source directory of that sample project)
+    - Association: the infra sets `node_id` for the test item so the right operation runs for the right test
+    - Serialization: `to_json()` / `deserialize()` allow passing instances across workers using simple JSON (you can store extra fields)
+
+    Example of extending `TestPath`:
+
+    ```python
+    from pathlib import Path
+    from typing import Any, Dict, override
+    import os
+    from tests.utils.paths import TestPath
+
+    class ReplaceFileContentPath(TestPath):
+        def __init__(self, path: str, new_content: str):
+            super().__init__(path)
+            self._new_content = new_content
+            self._backup_content: str | None = None
+
+        @override
+        def to_json(self) -> Dict[str, Any]:
+            data = super().to_json()
+            data["new_content"] = self._new_content
+            data["backup_content"] = self._backup_content
+            return data
+
+        @override
+        def from_json(self, data: Dict[str, Any]):
+            super().from_json(data)
+            self._new_content = data["new_content"]
+            self._backup_content = data.get("backup_content")
+
+        @override
+        def prepare(self):
+            # self._path was initialized as relative; by now the infra
+            # has prefixed it under the resolved sample path
+            target: Path = self._path
+            if not target.exists() or not target.is_file():
+                raise FileNotFoundError(f"File {target} not found")
+            self._backup_content = target.read_text(encoding="utf-8")
+            target.write_text(self._new_content, encoding="utf-8")
+
+        @override
+        def cleanup(self):
+            if self._backup_content is None:
+                return
+            target: Path = self._path
+            # best-effort restore
+            try:
+                if target.exists() and target.is_file():
+                    target.write_text(self._backup_content, encoding="utf-8")
+            except OSError:
+                pass
+    ```
+
+    Usage in a test:
+
+    ```python
+    import pytest
+    from tests.utils.paths import TestPath
+
+    @pytest.mark.file_operation(path=ReplaceFileContentPath("src/pkg/module.py", "print('patched')\n"))
+    def test_build_respects_modified_source(assert_wheel_build, sample_project, project):
+        project_path = sample_project("core_functionality/minimal")
+        with project(project_path):
+            assert_wheel_build(project_path)
+            # ... assertions about effects of the modification ...
+    ```
+
+- **Global locks and markers** (`tests/utils/markers.py`)
+  - `MarkerFile` is used to coordinate cross-process lifecycle events (e.g., venv creation, server startup, file-operation collection) with a simple reference counting protocol (`touch`/`untouch`)
+  - Combined with `FileLock`, it guarantees single-producer, multi-consumer patterns across workers and safe teardown when the last consumer completes
+  - By default, a `MarkerFile` starts as an empty text file on first creation, then persists JSON content on `touch()`. It can carry arbitrary, JSON-serializable metadata via the `extra` field
+  - Example:
+
+    ```python
+    from pathlib import Path
+    from tests.utils.markers import MarkerFile
+
+    path = Path("/tmp") / ".server_running"
+
+    # Attach arbitrary metadata (stored as JSON)
+    marker = MarkerFile(path, extra={"port": 8000, "purpose": "http-server"})
+
+    # Create or update marker; increments internal counter and writes JSON
+    marker.touch()
+
+    # Read back metadata later (the 'counter' field is stripped from read())
+    info = marker.read()
+    assert info == {"port": 8000, "purpose": "http-server"}
+
+    # Decrement; when the last consumer calls untouch(), the file is removed
+    marker.untouch()
+    ```
+
+  - FileLock pattern example (one-time init with shared usage):
+
+    ```python
+    import shutil
+    from pathlib import Path
+    from filelock import FileLock
+    from tests.utils.markers import MarkerFile
+
+    resource_dir = Path("/tmp/my-shared-resource")
+    locks_dir = resource_dir.parent
+    lock = FileLock(str(locks_dir / ".my-shared-resource.lock"))
+
+    producer = None
+
+    with lock:
+        marker = MarkerFile(resource_dir / ".initialized", extra={"purpose": "example"})
+        if not marker.exists():
+            # One-time initialization guarded by the lock
+            shutil.rmtree(resource_dir, ignore_errors=True)
+            resource_dir.mkdir(parents=True, exist_ok=True)
+            # Others processing...
+            producer = ...
+        else:
+            # Already initialized; read metadata if needed
+            info = marker.read()  # e.g., {"purpose": "example"}
+            # ... optionally act on existing metadata ...
+        # Reference-count this session/test as a consumer
+        marker.touch()
+
+    try:
+        # Use the resource concurrently from multiple workers/tests
+        # ... test logic ...
+        yield
+    finally:
+        # Decrement and cleanup when last consumer finishes
+        with lock:
+            if marker.untouch(wait=False):
+                shutil.rmtree(resource_dir, ignore_errors=True)
+    ```
+    **Variant using wait=True (cooperative teardown):** This approach blocks until all other consumers have called `untouch()`, then removes the marker file and returns `True` for the last caller. You can pass a timeout in seconds to prevent indefinite blocking.
+    ```python
+        if marker.untouch(wait=producer is not None):
+            shutil.rmtree(resource_dir, ignore_errors=True)
+    ```
+
+- **Logging and diagnostics** (`conftests/logger.py`)
+  - Consistent, session-wide logging with `root_logger`, plus helpers `log_info` and `log_info_section` for structured output around build steps and assertions
+
+- **PyInstaller config isolation**
+  - `pyinstaller_path` fixture sets `PYINSTALLER_CONFIG_DIR` per test function to avoid cross-test contamination when PyInstaller writes cache/config files
+
+- **Pytest markers** (registered in `tests/conftest.py`)
+  - `prevent_venv_self_build`: conditionally skip building Poexy-Core into the session venv
+  - `use_http_server`: enable and prepare the session HTTP server
+  - `use_git_server`: enable and prepare the session Git server
+  - `file_operation`: declare a filesystem manipulation to run for the test
+
+  Basic marker usage examples:
+
+  ```python
+  import pytest
+
+  # Enable the session HTTP server for this test
+  @pytest.mark.use_http_server
+  def test_with_http_server(sample_project, project, assert_wheel_build):
+      project_path = sample_project("dependencies/url/simple")
+      with project(project_path):
+          assert_wheel_build(project_path)
+
+  # Enable the session Git server for this test
+  @pytest.mark.use_git_server
+  def test_with_git_server(sample_project, project, assert_sdist_build):
+      project_path = sample_project("dependencies/git/simple")
+      with project(project_path):
+          assert_sdist_build(project_path)
+
+  # Apply a simple file operation before the test body and clean it after
+  from tests.utils.paths import InaccessiblePath
+
+  @pytest.mark.file_operation(path=InaccessiblePath("src/pkg/data.txt"))
+  def test_with_file_operation(sample_project, project, assert_wheel_build):
+      project_path = sample_project("edge_cases/inaccessible_file")
+      with project(project_path):
+          assert_wheel_build(project_path)
+
+  # Prevent building poexy-core into the session venv during venv bootstrap
+  # Useful when you only need dependencies installed for faster setup
+  @pytest.mark.prevent_venv_self_build
+  def test_without_self_build(sample_project, project, assert_sdist_build):
+      project_path = sample_project("core_functionality/minimal")
+      with project(project_path):
+          assert_sdist_build(project_path)
+  ```
+
+  > Info
+  >
+  > - `prevent_venv_self_build` is a session-wide opt-out that only applies when **all collected tests** in the session are marked with it. If even one collected test is not marked, Poexy-Core will be built/installed into the session virtual environment.
+  > - A similar session-level logic is applied to `use_http_server` and `use_git_server`: servers are started only if **at least one collected test** has the corresponding marker. If no test is marked, the servers are not started.
+  > - `file_operation`: tests that depend on the same sample path are serialized—executed sequentially—to avoid contention on shared sample resources, while allowing other tests to run in parallel.
+
+- **Typical end-to-end test flow**
+  1. Resolve sample path via `sample_project("<name>")`
+  2. Enter `with project(project_path): ...`
+  3. Build using `assert_wheel_build` and/or `assert_sdist_build`
+  4. Validate manifests and archive contents using assertion fixtures
+  5. Optionally execute installed binary via `execute_binary` and assert output
+
+#### Parallelization and shared resources (details)
+
+The test suite is optimized for parallel execution (e.g., with `pytest-xdist`). It relies on an explicit coordination model to minimize total runtime while preserving deterministic behavior and strict test isolation:
+
+- Goals: avoid redundant heavy work (e.g., creating venvs/servers), maximize resource reuse across workers, and keep tests isolated and reproducible.
+- Coordination primitives:
+  - `FileLock`: guarantees mutual exclusion for one-time initialization/teardown across workers.
+  - `MarkerFile`: reference-counted lifecycle: `touch()` increments and persists JSON metadata; `untouch(wait=...)` decrements and removes the file on the last consumer.
+  - Session markers (`prevent_venv_self_build`, `use_http_server`, `use_git_server`) drive whether session-scoped resources are created at all.
+- Patterns used:
+  - Single-producer / multi-consumer for session resources (venv archive, HTTP/Git servers): create once under a lock; each consumer calls `touch()`; last `untouch()` performs teardown.
+  - Per-sample serialization for destructive file operations to ensure correctness under concurrency.
+- Do:
+  - Guard any shared resource init/teardown with `FileLock` + `MarkerFile` and keep lock scopes minimal.
+  - Keep operations idempotent, use `try/finally` to guarantee `untouch()`/cleanup.
+  - Prefer existing fixtures (session venv, servers) instead of ad-hoc resources in tests.
+  - Store metadata in `MarkerFile.extra` to communicate state across workers when needed.
+- Don’t:
+  - Mutate `tests/samples/` outside declared `@pytest.mark.file_operation` paths.
+  - Start ad-hoc servers or bind fixed ports outside the provided server fixtures.
+  - Write to global paths outside test tmp roots.
+- Extending infra:
+  - For any new shared resource, replicate the lock/marker pattern (one-time init under lock; `marker.touch()` per consumer; `marker.untouch(wait=...)` on teardown) and document the chosen marker name and metadata.
+- Performance notes:
+  - Heavy tasks (venv creation, server bootstrap) occur once per session when needed. If all collected tests opt-out via `prevent_venv_self_build`, Poexy-Core isn’t installed into the session venv; otherwise it is. Servers start only if at least one collected test requires them.
 
 <a id="project-structure"></a>
 ## 📁 Project Structure
