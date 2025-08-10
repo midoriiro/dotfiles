@@ -5,6 +5,7 @@ from poetry.core.masonry.metadata import Metadata
 
 from poexy_core.builders.hooks.hook import HookBuilder
 from poexy_core.builders.types import FilePathCallback, FilePathPredicate
+from poexy_core.packages.files import SDIST_EXTENSIONS, WHEEL_EXTENSIONS
 from poexy_core.packages.format import PackageFormat
 from poexy_core.pyproject.tables.poexy import Poexy
 
@@ -31,16 +32,34 @@ class PackageFilesHookBuilder(HookBuilder):
             logger.info("Resolving package files...")
             resolved = self.__poexy.resolve_package_files(self.__format)
             inclusions = self.__poexy.resolve_inclusions(self.__format)
+            excludes = [path.source for path in inclusions.excludes]
 
             logger.info(f"Resolved {len(resolved)} package files.")
 
             count = 0
 
             for file in resolved:
-                if file.source in inclusions.excludes:
+                relative_to_source_package = file.source.is_relative_to(
+                    self.__poexy.package.source
+                )
+                if not relative_to_source_package:
+                    continue
+                if (
+                    self.__format == PackageFormat.Source
+                    and file.source.suffix not in SDIST_EXTENSIONS
+                    and not relative_to_source_package
+                ):
+                    continue
+                if (
+                    self.__format == PackageFormat.Wheel
+                    and file.source.suffix not in WHEEL_EXTENSIONS
+                    and not relative_to_source_package
+                ):
+                    continue
+                if file.source in excludes:
                     logger.info(f"Excluding file: {file.source}")
                     continue
-                destination = self.__destination_predicate(file.destination)
+                destination = self.__destination_predicate(file.source)
                 if destination is None:
                     logger.info(f"Excluding file: {file.source}")
                     continue

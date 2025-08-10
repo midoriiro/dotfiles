@@ -6,6 +6,7 @@ from poetry.core.masonry.metadata import Metadata
 
 from poexy_core.builders.hooks.hook import HookBuilder
 from poexy_core.builders.types import FilePathCallback
+from poexy_core.packages.files import SDIST_EXTENSIONS, WHEEL_EXTENSIONS
 from poexy_core.packages.format import PackageFormat
 from poexy_core.pyproject.tables.poexy import Poexy
 
@@ -38,6 +39,19 @@ class IncludeFilesHookBuilder(HookBuilder):
             count = 0
 
             for file in resolved.includes:
+                relative_to_source_package = file.source.is_relative_to(
+                    self.__poexy.package.source
+                )
+                external_python_file = (
+                    not relative_to_source_package and file.source.suffix == ".py"
+                )
+                if relative_to_source_package:
+                    continue
+                if not external_python_file and (
+                    file.source.suffix in SDIST_EXTENSIONS
+                    or file.source.suffix in WHEEL_EXTENSIONS
+                ):
+                    continue
                 if file.source in exclusions:
                     logger.info(f"Excluding file: {file.source}")
                     continue
