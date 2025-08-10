@@ -57,6 +57,8 @@ class GlobPattern(BaseModel):
             glob_pattern = None
         elif len(glob_pattern) == 0 and path.is_dir():
             glob_pattern = Path("**/*")
-        else:
+        elif len(glob_pattern) > 0:
             glob_pattern = Path(glob_pattern)
+        else:
+            glob_pattern = None
         return path, glob_pattern

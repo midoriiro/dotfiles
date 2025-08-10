@@ -54,6 +54,19 @@ class Poexy(BaseModel):
             resolved_files = self.package.resolve(_format, base_path)
             if resolved_files is None:
                 raise ValueError("No package files found")
+            resolved_inclusions = self.resolve_inclusions(_format)
+            resolved_files = resolved_inclusions.apply_includes(resolved_files)
+            resolved_files = resolved_inclusions.apply_excludes(resolved_files)
+            if _format == PackageFormat.Wheel:
+                if self.package.source.name != self.package.name:
+                    for file in resolved_files:
+                        if file.source.is_relative_to(self.package.source):
+                            parts = list(file.destination.parts)
+                            for index, part in enumerate(parts):
+                                if part == self.package.source.name:
+                                    parts.pop(index)
+                                    file.destination = Path(*parts)
+                                    break
             self.__resolved_package_files = resolved_files
         return self.__resolved_package_files
 

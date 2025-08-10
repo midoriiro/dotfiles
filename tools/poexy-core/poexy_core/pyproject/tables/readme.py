@@ -5,6 +5,7 @@ from typing import Any, Dict, Optional
 from poetry.core.packages.package import Package
 from pydantic import BaseModel, Field, model_validator
 
+from poexy_core.packages.validators import validate_path
 from poexy_core.pyproject.types import GlobPattern
 
 # pylint: disable=no-member
@@ -33,6 +34,7 @@ class Readme(BaseModel):
             raise ValueError("File is required")
         if isinstance(file, str):
             file = GlobPattern(pattern=Path(file))
+            validate_path("file", file.pattern)
         content_type = data.get("content-type", None)
         if content_type is not None:
             content_type = ReadmeContentType(content_type)
