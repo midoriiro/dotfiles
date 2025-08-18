@@ -29,6 +29,7 @@ pytest-repeat = "^0.9.4"
 assertpy = "^1.1"
 coverage = "^7.3.2"
 psutil = "^7.0.0"
+hypothesis = "^6.138.2"
 
 [tool.poexy.sdist]
 includes = [

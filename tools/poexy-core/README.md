@@ -265,8 +265,8 @@ includes = [
 # Control wheel contents precisely
 [tool.poexy.wheel]
 includes = [
-    { path = "docs", destination = "share/docs" },
-    { path = "config", destination = "etc" }
+    { path = "docs", destination = "data" },
+    { path = "config", destination = "config" }
 ]
 excludes = [
     "tests",          # Exclude test files
@@ -277,24 +277,11 @@ excludes = [
 
 **Result:**
 - **Source distribution:** Includes docs, examples, and changelog
-- **Wheel:** Installs docs to `$prefix/share/my-package/docs` and config to `$prefix/etc/my-package/`
+- **Wheel:** Places docs in `$prefix/share/my-package/docs` and config in `$prefix/etc/my-package/` on Linux systems
 
-> **Note:** With the configuration below:
->
-> ```toml
-> [tool.poexy.wheel]
-> includes = [
->     { path = "docs", destination = "share/docs" }
-> ]
-> ```
->
-> the `docs` directory will be installed at:  
-> `$prefix/share/my-package/docs`  
-> where `$prefix` is the installation prefix (such as `/usr/local` or your virtual environment), and `my-package` is the value of the `name` field in your `[project]` section.
->
-> **Limitation:** At this time, there is no way to include a directory so that it is placed directly alongside your package at the root of the wheel. All included files must be mapped to a subdirectory under `$prefix/`.
+> **Note:** All included files are mapped to platform-specific directories under the installation prefix. See [platform-specific configuration](#platform-directories) for detailed platform directory mappings.
 
-> **Note:** Defaults exclusions 
+> **Default exclusions** 
 >
 > The following directories are automatically excluded from all packages and do not need to be specified in `excludes`:
 > - `__pycache__`
@@ -345,6 +332,111 @@ includes = [
 > **Notes:** 
 > - Relative symlinks are recommended.
 > - Escaping (pointing outside the project), broken links, or unreadable targets will fail the build.
+
+<a id="platform-directories"></a>
+#### Platform Directories (Wheel Only)
+
+When building wheels, you can specify where files should be installed using the `destination` field. This allows precise control over file placement in the target system.
+
+Example (wheel with platform directories):
+
+```toml
+[tool.poexy.wheel]
+includes = [
+    # Configuration files go to platform data directory
+    { path = "app.json", destination = "data" },
+    
+    # Static assets go to shared resources  
+    { path = "assets/**/*", destination = "config" },
+    
+    # Cache templates go to cache directory
+    { path = "templates/**/*", destination = "cache" }
+]
+```
+
+Available platform directories:
+- `data`    - Application data files (platform-specific data)
+- `config`  - Application configuration resources and assets
+- `cache`   - Application Cache files and temporary resources
+
+Example file placement results:
+```
+# Input files examples by platform:
+
+# Linux:
+assets/logo.png     → ${prefix}/share/my_package/assets/logo.png
+app.json            → ${prefix}/etc/my_package/app.json
+templates/base.html → ${prefix}/var/cache/my_package/cache/templates/base.html
+
+# macOS:
+assets/logo.png     → ${prefix}/Application Support/my_package/assets/logo.png
+app.json            → ${prefix}/Preferences/my_package/app.json
+templates/base.html → ${prefix}/Caches/my_package/cache/templates/base.html
+
+# Windows:
+assets/logo.png     → ${prefix}/my_package/share/assets/logo.png
+app.json            → ${prefix}/my_package/config/app.json
+templates/base.html → ${prefix}/my_package/cache/templates/base.html
+```
+
+> **Notes:**
+> - Platform directories are only supported for wheel packages, not source distributions
+> - Files without a `destination` are automatically placed based on their type and location
+> - Platform directories follow the wheel specification for data file placement
+
+#### Automatic File Type Detection
+
+Poexy-Core automatically determines the optimal placement for files based on their location and type, reducing the need for manual configuration:
+
+**Source files** (files under the source directory):
+- Placed in `purelib` (pure Python library directory)
+- Example: `src/my_package/module.py` → `{site-packages}/my_package/module.py`
+
+**Platform files** (files outside the source directory):
+- Automatically treated as platform-specific content
+- Placed in `data` directory by default if no `destination` is specified
+
+**Symbolic links**:
+- Validated for security:
+  - no cross-references between the source directory and other directories within the project (including cross-references between platform-specific directories)
+  - no symlinks escaping the project directory, including escapes detection during symlink chain resolution
+  - no symlink cycles (no self-loops or multi-node cycles)
+  - no broken symlinks
+  - all symlink targets are readable
+- Resolved and packaged based on their target type
+- Relative symlinks are preferred for portability
+
+**Binary files** (`.so`, `.dll`, `.dylib`):
+- Automatically detected and placed in appropriate platform-specific locations
+- Handled according to wheel specification requirements
+
+This automatic detection ensures optimal package structure without requiring extensive manual configuration, while still allowing fine-grained control when needed through explicit `destination` settings.
+
+### 6. Complex Dependencies
+
+Poexy-Core handles various complex dependency scenarios that are common in real-world projects:
+
+#### Mixed Local and Remote Dependencies
+
+```toml
+[project]
+dependencies = [
+    # Remote PyPI packages
+    "click>=8.0.0",
+    "pydantic>=2.0.0",
+    
+    # Local file dependency
+    "my-utils @ file:///path/to/local/my-utils-1.0.0.tar.gz",
+    
+    # VCS dependency
+    "my-utils @ git+https://github.com/user/my-utils.git@v1.2.3",
+]
+
+[tool.poexy.binary.my_app]
+entrypoint = "my_app.cli"
+```
+
+> **Notes:** When generating binaries, if there are conflicts between local and remote dependencies (as shown in the example above), Poexy-Core will attempt to install only the most recent version (if the version can be determined). If version comparison is not possible, the remote version will be installed by default.
 
 ### Editable Installs (Development Mode)
 
@@ -787,6 +879,118 @@ This section details the testing infrastructure beyond the generic pattern above
   3. Build using `assert_wheel_build` and/or `assert_sdist_build`
   4. Validate manifests and archive contents using assertion fixtures
   5. Optionally execute installed binary via `execute_binary` and assert output
+
+#### Path assertion markers (`AssertPath`)
+
+The test framework provides a sophisticated path assertion system with markers to specify file types, destinations, and package targets. This allows precise control over which files should be included or excluded from builds.
+
+##### Marker syntax
+
+Markers are embedded directly in path strings using colon notation:
+```python
+# Basic syntax: [exclude_mark] [target_mark] PATH [kind_marks]
+expected_files = [
+    "__init__.py",                # Default: included in all packages (purelib)
+    "whl:my_script:bin",          # Binary script: wheel package only
+    "tar:config.json:plat:data",  # Data file: source distribution only
+    "!:temp/debug.log",           # Excluded from all packages
+]
+```
+
+##### Marker types
+
+**Exclude marker** `[!:]`
+- `!:` - Exclude path from all packages
+
+> Must be at the beginning of the path
+
+**Target markers** `[tar: | whl: | all:]`
+- `tar:` - Assert only in source distribution (tar.gz)
+- `whl:` - Assert only in wheel package
+- `all:` - Assert in both packages (default behavior)
+
+> Must be at the beginning of the path (after exclude marker)
+
+**Kind markers** `[:file | :ln | :plat | :data | :cfg | :cache | :purelib | :platlib | :bin]`
+- **File types:**
+  - `:file` - Regular file (default)
+  - `:ln` - Symbolic link
+- **Platform types:**
+  - `:plat`   - Platform-specific content
+  - `:data`   - Platform-specific data subdirectory
+  - `:cfg`    - Platform-specific confgiration subdirectory  
+  - `:cache`  - Paltform-specific cache subdirectory
+- **Destinations:**
+  - `:purelib` - Pure Python library directory (default). Will be resolved to source package directory for in Tar context
+  - `:platlib` - Platform-specific library directory. Not used in Tar context
+  - `:bin` - Binary/script directory
+
+> Must be at the end of the path
+
+##### Usage examples
+
+```python
+from tests.utils.asserts import AssertPaths
+
+# Define expected files with markers
+expected_files = [
+    # Regular Python files (default: all packages, purelib)
+    "__init__.py",
+    "core.py",
+    
+    # Platform-specific files
+    "native.so:plat:platlib",
+    
+    # Binary scripts (wheel only)
+    "whl:my_script:bin",
+    "whl:helper.sh:bin",
+    
+    # Data files (source distribution only)  
+    "tar:templates/config.json:plat:data",
+    "tar:docs/README.txt:plat:data",
+    
+    # Symbolic links
+    "tar:lib/symlink_target:ln",
+    
+    # Excluded files
+    "!:temp/build.log",
+    "!:cache/debug.cache",
+]
+
+# Create assertion helper
+paths = AssertPaths(expected_files)
+
+# Filter by package type
+wheel_files = paths.included(target=AssertPathPackageTarget.Wheel)
+tar_files = paths.included(target=AssertPathPackageTarget.Tar)
+
+# Filter by file kind
+binary_files = paths.binaries()
+symlinks = paths.links()
+excluded = paths.excluded()
+
+# Use in assertions
+assert_zip_file.assert_has_files(wheel_files)
+assert_tar_file.assert_has_files(tar_files)
+```
+
+##### Advanced features
+
+**Variable expansion** for binary paths:
+```python
+# Use $BINARY placeholder for dynamic binary names
+expected_files = ["whl:$BINARY:bin"] # resolved from package name
+paths = AssertPaths(expected_files)
+paths.expand("my_script", AssertPathKind.Binary)
+# Results in: "bin/my_script"
+```
+
+**Base path remapping** for nested structures:
+```python
+paths = AssertPaths(["subdir/file.py", "subdir/module.py"])
+paths.remap_base_path(Path("src"))
+# Results in: "my_package/subdir/file.py", "my_package/subdir/module.py"
+```
 
 #### Parallelization and shared resources (details)
 
