@@ -7,8 +7,8 @@ from typing import Generator, List
 
 from virtualenv import cli_run
 
-from poexy_core.utils.build import BuildOptions, UvBuild
-from poexy_core.utils.pip import PackageInstallerProgram, Pip, Uv
+from poexy_core.utils.pip.build import BuildOptions, UvBuild
+from poexy_core.utils.pip.managers import PackageInstallerProgram, Pip, Uv
 
 logger = logging.getLogger(__name__)
 

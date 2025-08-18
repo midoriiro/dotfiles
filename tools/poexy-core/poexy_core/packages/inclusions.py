@@ -1,17 +1,11 @@
 import logging
 from pathlib import Path
-from typing import Any, List, Optional, override
+from typing import Any, Iterator, List, Optional
 
 from pydantic import BaseModel, Field, RootModel, model_validator
 
-from poexy_core.packages.files import (
-    FilePattern,
-    FilePatternNoFilesResolvedError,
-    PackageFiles,
-    ResolvePackageFiles,
-)
+from poexy_core.packages.files.models import PlatformDirectory
 from poexy_core.packages.format import PackageFormat
-from poexy_core.packages.validators import validate_destination
 from poexy_core.pyproject.types import GlobPattern
 
 # pylint: disable=no-member
@@ -28,85 +22,41 @@ class InclusionNoFilesResolvedError(InclusionError):
         super().__init__(f"No files resolved for pattern '{pattern}'")
 
 
-class Exclude(BaseModel, ResolvePackageFiles):
+class Exclude(BaseModel):
     path: GlobPattern = Field(
         description="Path to exclude from the built archive",
     )
     formats: Optional[List[PackageFormat]] = Field(
         default=None,
-        description="List of package formats to exclude. If not specified, all formats "
-        "will be excluded.",
+        description="List of package formats to apply exclusion. "
+        "If not specified, all formats will be applied.",
     )
 
-    @override
-    def resolve(
-        self, _format: PackageFormat, base_path: Path
-    ) -> Optional[PackageFiles]:
-        if self.formats is not None and _format not in self.formats:
-            return None
-        path, glob_pattern = self.path.split()
-        file_pattern = FilePattern(glob_pattern=glob_pattern, path=path)
-        if _format == PackageFormat.Source:
-            destination_path = path
-        else:
-            destination_path = base_path
-        try:
-            resolved = file_pattern.resolve(destination_path)
-            return resolved
-        except FilePatternNoFilesResolvedError:
-            logger.warning(
-                f"No files resolved for exclude pattern '{self.path.pattern}'"
-            )
-            return None
 
-
-class Include(BaseModel, ResolvePackageFiles):
+class Include(BaseModel):
     path: GlobPattern = Field(description="Path to include in the built archive")
-    destination: Optional[Path] = Field(
-        description="Relative path to the include path in the built archive",
+    destination: Optional[PlatformDirectory] = Field(
+        description="Platform directory to include the file in the built archive",
         default=None,
     )
     formats: Optional[List[PackageFormat]] = Field(
         default=None,
-        description="List of package formats to include. If not specified, all formats "
-        "will be included.",
+        description="List of package formats to apply inclusion. "
+        "If not specified, all formats will be applied.",
     )
-
-    @model_validator(mode="after")
-    def validate_model(self) -> "Include":
-        if self.destination is not None:
-            validate_destination("destination", self.destination)
-        return self
-
-    @override
-    def resolve(
-        self, _format: PackageFormat, base_path: Path
-    ) -> Optional[PackageFiles]:
-        if self.formats is not None and _format not in self.formats:
-            return None
-        path, glob_pattern = self.path.split()
-        file_pattern = FilePattern(glob_pattern=glob_pattern, path=path)
-        if _format == PackageFormat.Source:
-            destination_path = path
-        elif self.destination is None:
-            destination_path = base_path / path
-        else:
-            destination_path = self.destination / base_path / path
-        try:
-            resolved = file_pattern.resolve(destination_path)
-            return resolved
-        except FilePatternNoFilesResolvedError:
-            logger.warning(
-                f"No files resolved for include pattern '{self.path.pattern}'"
-            )
-            return None
 
 
 IncludesType = List[Include]
 ExcludesType = List[Exclude]
 
 
-class Includes(RootModel[IncludesType], ResolvePackageFiles):
+class Includes(RootModel[IncludesType]):
+    def __len__(self) -> int:
+        return len(self.root)
+
+    def __iter__(self) -> Iterator[Include]:
+        return iter(self.root)
+
     @model_validator(mode="before")
     @classmethod
     def validate_model(cls, data: Any) -> Any:
@@ -123,19 +73,14 @@ class Includes(RootModel[IncludesType], ResolvePackageFiles):
                 )
         return data
 
-    @override
-    def resolve(
-        self, _format: PackageFormat, base_path: Path
-    ) -> Optional[PackageFiles]:
-        resolved = []
-        for item in self.root:
-            resolved_item = item.resolve(_format, base_path)
-            if resolved_item is not None:
-                resolved.extend(resolved_item)
-        return set(resolved)
 
+class Excludes(RootModel[ExcludesType]):
+    def __len__(self) -> int:
+        return len(self.root)
 
-class Excludes(RootModel[ExcludesType], ResolvePackageFiles):
+    def __iter__(self) -> Iterator[Include]:
+        return iter(self.root)
+
     @model_validator(mode="before")
     @classmethod
     def validate_model(cls, data: Any) -> Any:
@@ -150,14 +95,3 @@ class Excludes(RootModel[ExcludesType], ResolvePackageFiles):
                     formats=item.get("formats", None),
                 )
         return data
-
-    @override
-    def resolve(
-        self, _format: PackageFormat, base_path: Path
-    ) -> Optional[PackageFiles]:
-        resolved = []
-        for item in self.root:
-            resolved_item = item.resolve(_format, base_path)
-            if resolved_item is not None:
-                resolved.extend(resolved_item)
-        return set(resolved)

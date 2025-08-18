@@ -12,7 +12,7 @@ from poetry.core.packages.url_dependency import URLDependency
 from poetry.core.packages.vcs_dependency import VCSDependency
 
 from poexy_core.pyproject.toml import DependencyMap
-from poexy_core.utils.pip import UvInstallOptions
+from poexy_core.utils.pip.options import UvInstallOptions
 from poexy_core.utils.venv import VirtualEnvironment, VirtualEnvironmentError
 
 logger = logging.getLogger(__name__)

@@ -29,7 +29,7 @@ class LicenseHookBuilder(HookBuilder):
             if files is None:
                 return
             for file in files:
-                source = Path(file).resolve()
+                source = Path(file).absolute()
                 destination = self.__destination_path / Path(file).name
                 self.__files.append((source, destination))
 

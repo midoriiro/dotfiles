@@ -1,9 +1,9 @@
 from pathlib import Path
-from typing import Any, List, Optional, override
+from typing import TYPE_CHECKING, Optional, Self
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, PrivateAttr, model_validator
 
-from poexy_core.packages.files import PackageFile, PackageFiles, ResolvedPackageFiles
+from poexy_core.packages.files.collections import FrozenFiles, InclusionFiles
 from poexy_core.packages.format import PackageFormat
 from poexy_core.packages.package import (
     BinaryPackage,
@@ -14,7 +14,11 @@ from poexy_core.packages.package import (
 from poexy_core.pyproject.tables.license import License
 from poexy_core.pyproject.tables.readme import Readme
 
-# pylint: disable=no-member,attribute-defined-outside-init
+if TYPE_CHECKING:
+    from poexy_core.packages.files.resolvers.models import PackageResolver
+
+
+# pylint: disable=no-member
 
 
 class Poexy(BaseModel):
@@ -34,83 +38,49 @@ class Poexy(BaseModel):
     license: Optional[License] = Field(
         description="License configuration", default=None
     )
-
-    @override
-    def model_post_init(self, __context: Any, /) -> None:
-        self.__resolved_package_files: Optional[PackageFiles] = None
-        self.__resolved_inclusions_files: Optional[ResolvedPackageFiles] = None
+    _resolved_package_files: Optional[FrozenFiles] = PrivateAttr(default=None)
+    _resolved_inclusions_files: Optional[InclusionFiles] = PrivateAttr(default=None)
+    _package_resolver: Optional["PackageResolver"] = PrivateAttr(default=None)
 
     @model_validator(mode="after")
-    def validate_model(self) -> "Poexy":
+    def validate_model(self) -> Self:
         if self.wheel is None:
             # We need a default wheel package configuration to build a wheel.
             # This is useful in api.py to determine which builder to use (whl or binary)
             self.wheel = WheelPackage()
         return self
 
-    def resolve_package_files(self, _format: PackageFormat) -> PackageFiles:
-        if self.__resolved_package_files is None:
-            base_path = Path(self.package.name)
-            resolved_files = self.package.resolve(_format, base_path)
-            if resolved_files is None:
-                raise ValueError("No package files found")
-            resolved_inclusions = self.resolve_inclusions(_format)
-            resolved_files = resolved_inclusions.apply_includes(resolved_files)
-            resolved_files = resolved_inclusions.apply_excludes(resolved_files)
-            if _format == PackageFormat.Wheel:
-                if self.package.source.name != self.package.name:
-                    for file in resolved_files:
-                        if file.source.is_relative_to(self.package.source):
-                            parts = list(file.destination.parts)
-                            for index, part in enumerate(parts):
-                                if part == self.package.source.name:
-                                    parts.pop(index)
-                                    file.destination = Path(*parts)
-                                    break
-            self.__resolved_package_files = resolved_files
-        return self.__resolved_package_files
+    def _get_package_resolver(self, _format: PackageFormat) -> "PackageResolver":
+        from poexy_core.packages.files.resolvers.models import PackageResolver
 
-    def resolve_inclusions(self, _format: PackageFormat) -> ResolvedPackageFiles:
-        if self.__resolved_inclusions_files is None:
-            includes: List[PackageFile] = []
-            excludes: List[PackageFile] = []
-            base_path = Path(self.package.name)
-            if self.package.includes is not None:
-                resolved_files = self.package.resolve_includes(_format, base_path)
-                if resolved_files is not None:
-                    includes.extend(resolved_files)
-            if self.package.excludes is not None:
-                resolved_files = self.package.resolve_excludes(_format, base_path)
-                if resolved_files is not None:
-                    excludes.extend(resolved_files)
-            if self.wheel is not None and _format in PackageFormat.Wheel:
-                if self.wheel.includes is not None:
-                    resolved_files = self.wheel.resolve_includes(_format, base_path)
-                    if resolved_files is not None:
-                        includes.extend(resolved_files)
-                if self.wheel.excludes is not None:
-                    resolved_files = self.wheel.resolve_excludes(_format, base_path)
-                    if resolved_files is not None:
-                        excludes.extend(resolved_files)
-            if self.sdist is not None and _format in PackageFormat.Source:
-                if self.sdist.includes is not None:
-                    resolved_files = self.sdist.resolve_includes(_format, base_path)
-                    if resolved_files is not None:
-                        includes.extend(resolved_files)
-                if self.sdist.excludes is not None:
-                    resolved_files = self.sdist.resolve_excludes(_format, base_path)
-                    if resolved_files is not None:
-                        excludes.extend(resolved_files)
-            if self.binary is not None and _format in PackageFormat.Binary:
-                if self.binary.includes is not None:
-                    resolved_files = self.binary.resolve_includes(_format, base_path)
-                    if resolved_files is not None:
-                        includes.extend(resolved_files)
-                if self.binary.excludes is not None:
-                    resolved_files = self.binary.resolve_excludes(_format, base_path)
-                    if resolved_files is not None:
-                        excludes.extend(resolved_files)
-            self.__resolved_inclusions_files = ResolvedPackageFiles(
-                includes=set(includes), excludes=set(excludes)
-            )
-        return self.__resolved_inclusions_files
+        if self._package_resolver is not None:
+            return self._package_resolver
+
+        self._package_resolver = PackageResolver(
+            format=_format,
+            project_path=Path.cwd(),
+            source_path=self.package.source,
+            poexy=self,
+        )
+
+        return self._package_resolver
+
+    def resolve_module_files(self, _format: PackageFormat) -> FrozenFiles:
+        if self._resolved_package_files is not None:
+            return self._resolved_package_files
+
+        resolver = self._get_package_resolver(_format)
+
+        self._resolved_package_files = resolver.resolve_module_files()
+
+        return self._resolved_package_files
+
+    def resolve_inclusions(self, _format: PackageFormat) -> InclusionFiles:
+        if self._resolved_inclusions_files is not None:
+            return self._resolved_inclusions_files
+
+        resolver = self._get_package_resolver(_format)
+
+        self._resolved_inclusions_files = resolver.resolve_inclusions()
+
+        return self._resolved_inclusions_files

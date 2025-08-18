@@ -1,11 +1,8 @@
 from typing import override
 
-from poetry.core.masonry.metadata import Metadata
-
 from poexy_core.builders.binary import BinaryBuilder
 from poexy_core.builders.hooks.hook import HookBuilder
 from poexy_core.builders.types import FilePathCallback
-from poexy_core.packages.format import PackageFormat
 
 
 class BinaryHookBuilder(HookBuilder):
@@ -26,7 +23,3 @@ class BinaryHookBuilder(HookBuilder):
         with self._hook_add_files():
             for source, destination in self.__files:
                 callback(source, self.__destination / destination)
-
-    @override
-    def add_metadata(self, metadata: Metadata, _format: PackageFormat):
-        pass

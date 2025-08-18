@@ -121,7 +121,7 @@ class PyinstallerBuilder:
             dist_path = self.__project_path / "dist"
         work_path = str(build_path or self.__project_path / "build" / "temp")
 
-        collect_submodules = self.__package_source_path.resolve()
+        collect_submodules = self.__package_source_path.absolute()
 
         arguments = PyInstallerArgumentBuilder()
         arguments.executable_name(self.__executable_name)

@@ -14,6 +14,7 @@ from poexy_core.builders.hooks.include_files import IncludeFilesHookBuilder
 from poexy_core.builders.hooks.license import LicenseHookBuilder
 from poexy_core.builders.hooks.package_files import PackageFilesHookBuilder
 from poexy_core.builders.hooks.readme import ReadmeHookBuilder
+from poexy_core.builders.hooks.symlink_files import SymlinkFilesHookBuilder
 from poexy_core.manifest.manifest import PackageInfoManifest
 from poexy_core.packages.format import PackageFormat
 from poexy_core.pyproject.tables.poexy import Poexy
@@ -47,7 +48,9 @@ class SdistBuilder(Builder):
     ):
         if _format != PackageFormat.Source:
             raise ValueError(f"Invalid format: {_format}")
+
         super().__init__(poetry, poexy, _format, sdist_directory, config_settings)
+
         self.__metadata = SdistMetadata(
             self.temp_destination_directory,
             self.poetry.package.name,
@@ -56,9 +59,6 @@ class SdistBuilder(Builder):
         self.__manifest = PackageInfoManifest(self.__metadata.root_folder)
         self.__archive: Optional[tarfile.TarFile] = None
 
-        self._hooks.append(
-            ReadmeHookBuilder(self.poetry, self.poexy, self.__metadata.root_folder)
-        )
         self._hooks.append(
             PackageFilesHookBuilder(
                 self.poexy, self.format, lambda path: self.__metadata.root_folder
@@ -69,11 +69,23 @@ class SdistBuilder(Builder):
                 self.poexy, self.format, self.__metadata.root_folder
             )
         )
+        self._hooks.append(
+            SymlinkFilesHookBuilder(
+                self.poexy, self.format, lambda path: self.__metadata.root_folder
+            )
+        )
+        self._hooks.append(
+            ReadmeHookBuilder(self.poetry, self.poexy, self.__metadata.root_folder)
+        )
         self._hooks.append(LicenseHookBuilder(self.poexy, self.__metadata.root_folder))
 
     def __add_files(self):
         for hook in self._hooks:
             hook.add_files(self.__add_files_to_archive)
+
+    def __add_links(self):
+        for hook in self._hooks:
+            hook.add_links(self.__add_links_to_archive)
 
     @contextmanager
     def __create_archive(self) -> Generator[None, None, None]:
@@ -89,6 +101,13 @@ class SdistBuilder(Builder):
         self.__archive = None
 
     def __add_files_to_archive(self, source: Path, destination: Path):
+        if self.__archive is None:
+            raise ValueError("Archive not created")
+        relative_path = destination.relative_to(self.__metadata.root_folder.parent)
+        logger.info(f"Adding: {relative_path}")
+        self.__archive.add(source, arcname=relative_path)
+
+    def __add_links_to_archive(self, source: Path, destination: Path, _: Path):
         if self.__archive is None:
             raise ValueError("Archive not created")
         relative_path = destination.relative_to(self.__metadata.root_folder.parent)
@@ -123,6 +142,8 @@ class SdistBuilder(Builder):
             self.__manifest.write()
             logger.info("Adding files...")
             self.__add_files()
+            logger.info("Adding links...")
+            self.__add_links()
             logger.info("Adding pkginfo and pyproject files...")
             self.__add_pkginfo_and_pyproject_to_archive()
 

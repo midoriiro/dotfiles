@@ -1,16 +1,8 @@
 from pathlib import Path
-from typing import List, Optional, Set, override
+from typing import List, Optional, Self, Set
 
 from pydantic import BaseModel, Field, model_validator
 
-from poexy_core.packages.files import (
-    SDIST_EXTENSIONS,
-    WHEEL_EXTENSIONS,
-    FilePattern,
-    FilePatternNoFilesResolvedError,
-    PackageFiles,
-    ResolvePackageFiles,
-)
 from poexy_core.packages.format import (
     DEFAULT_FORMATS,
     DEFAULT_WHEEL_FORMATS,
@@ -19,7 +11,6 @@ from poexy_core.packages.format import (
 )
 from poexy_core.packages.inclusions import Excludes, Includes
 from poexy_core.packages.validators import validate_path
-from poexy_core.utils.symbolic_link import SymbolicLink
 
 # pylint: disable=no-member
 
@@ -35,37 +26,23 @@ class BasePackage(BaseModel):
     _default_formats: List[PackageFormat]
 
     @model_validator(mode="after")
-    def validate_package(self) -> "BasePackage":
+    def validate_package(self) -> Self:
         if self.includes is not None:
-            for include in self.includes.root:
+            for include in self.includes:
                 if include.formats is not None and not self._is_format_allowed:
                     raise ValueError("formats are not allowed in includes")
                 if include.formats is None:
                     include.formats = self._default_formats
         if self.excludes is not None:
-            for exclude in self.excludes.root:
+            for exclude in self.excludes:
                 if exclude.formats is not None and not self._is_format_allowed:
                     raise ValueError("formats are not allowed in excludes")
                 if exclude.formats is None:
                     exclude.formats = self._default_formats
         return self
 
-    def resolve_includes(
-        self, _format: PackageFormat, base_path: Path
-    ) -> Optional[PackageFiles]:
-        if self.includes is None:
-            return None
-        return self.includes.resolve(_format, base_path)
 
-    def resolve_excludes(
-        self, _format: PackageFormat, base_path: Path
-    ) -> Optional[PackageFiles]:
-        if self.excludes is None:
-            return None
-        return self.excludes.resolve(_format, base_path)
-
-
-class ModulePackage(BasePackage, ResolvePackageFiles):
+class ModulePackage(BasePackage):
     _is_format_allowed: bool = True
     _default_formats: List[PackageFormat] = DEFAULT_FORMATS
 
@@ -76,7 +53,7 @@ class ModulePackage(BasePackage, ResolvePackageFiles):
     )
 
     @model_validator(mode="after")
-    def validate_module_package(self) -> "ModulePackage":
+    def validate_module_package(self) -> Self:
         if self.includes is not None:
             for include in self.includes.root:
                 if include.formats is None:
@@ -89,55 +66,11 @@ class ModulePackage(BasePackage, ResolvePackageFiles):
             self.source = validate_path("source", self.source)
         else:
             self.source = Path(self.name)
-        if not self.source.resolve().is_relative_to(Path.cwd().resolve()):
+        if not self.source.resolve().is_relative_to(Path.cwd().absolute()):
             raise ValueError("Source path is outside the root project directory")
         if not any(self.source.iterdir()):
             raise ValueError("Source path is empty")
         return self
-
-    @override
-    def resolve(
-        self, _format: PackageFormat, base_path: Path
-    ) -> Optional[PackageFiles]:
-        if self.source is None:
-            raise ValueError("Source is required")
-        file_patterns: List[FilePattern] = []
-        if _format == PackageFormat.Source:
-            extensions_filter = SDIST_EXTENSIONS
-            for extension in extensions_filter:
-                file_patterns.append(
-                    FilePattern(glob_pattern=Path(f"**/*{extension}"), path=self.source)
-                )
-        elif _format == PackageFormat.Wheel:
-            extensions_filter = WHEEL_EXTENSIONS
-            for extension in extensions_filter:
-                file_patterns.append(
-                    FilePattern(glob_pattern=Path(f"**/*{extension}"), path=self.source)
-                )
-        if _format == PackageFormat.Source:
-            destination_path = self.source
-        else:
-            destination_path = Path(self.name)
-        resolved = []
-        for file_pattern in file_patterns:
-            try:
-                resolved.extend(file_pattern.resolve(destination_path))
-            except FilePatternNoFilesResolvedError:
-                # This is expected if the file pattern does not match any files
-                # Will check at the end of this method if any files were resolved
-                pass
-        if len(resolved) == 0:
-            raise FilePatternNoFilesResolvedError()
-        symlink_file_pattern = FilePattern(glob_pattern=Path("**/*"), path=self.source)
-        for file in symlink_file_pattern.resolve(destination_path):
-            if not file.source.is_symlink():
-                continue
-            symbolic_link = SymbolicLink(file.source)
-            for extension in extensions_filter:
-                if symbolic_link.target.suffix == extension:
-                    resolved.append(file)
-                    break
-        return set(resolved)
 
 
 class WheelPackage(BasePackage):
@@ -172,7 +105,7 @@ class BinaryPackage(BasePackage):
     )
 
     @model_validator(mode="after")
-    def validate_binary_package(self) -> "BinaryPackage":
+    def validate_binary_package(self) -> Self:
         if self.entry_point is not None:
             entry_point = Path(self.entry_point.replace(".", "/") + ".py")
             if not entry_point.exists():

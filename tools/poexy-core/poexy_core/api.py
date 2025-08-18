@@ -183,7 +183,7 @@ def get_requires_for_build_wheel(
     logger.info(f"config_settings: {config_settings}")
 
     try:
-        pyproject = PyProjectTOML(path=Path.cwd().resolve())
+        pyproject = PyProjectTOML(path=Path.cwd().absolute())
         logger.info("Pyproject loaded successfully")
         required_packages = pyproject.build_system.requires
         logger.info(f"Required packages: {required_packages}")

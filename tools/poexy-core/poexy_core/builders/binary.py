@@ -29,6 +29,7 @@ class BinaryBuilder(WheelBuilder):
     ):
         if _format != PackageFormat.Binary:
             raise ValueError(f"Invalid format: {_format}")
+
         super().__init__(
             poetry,
             poexy,
@@ -37,6 +38,7 @@ class BinaryBuilder(WheelBuilder):
             metadata_directory,
             config_settings,
         )
+
         python_tag = PythonTag.from_current_environment()
         self._init_metadata(python_tag)
         self._manifests = Manifests(self._metadata.dist_info_folder)
@@ -47,7 +49,7 @@ class BinaryBuilder(WheelBuilder):
             self._manifests.record.set(source, destination)
 
         add_file(executable[0], executable[1])
-        self._add_files_to_archive(executable[0], executable[1])
+        self._add_file_to_archive(executable[0], executable[1])
 
     @override
     def _add_wheel(self):

@@ -57,13 +57,13 @@ class EditableBuilder(WheelBuilder):
 
     def __add_pth(self) -> None:
         package_name = self.poetry.package.name
-        source = self.poexy.package.source.resolve().as_posix()
+        source = self.poexy.package.source.absolute().as_posix()
         source_path = self._metadata.root_folder / f"{package_name}.pth"
         logger.info(f"Adding pth file: {source_path}")
         with open(source_path, "w", encoding="utf-8") as f:
             logger.info(f"With content: {source}")
             f.write(source)
-        self._add_files_to_archive(source_path, source_path)
+        self._add_file_to_archive(source_path, source_path)
 
     @override
     @contextmanager

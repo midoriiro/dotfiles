@@ -1,12 +1,10 @@
 from pathlib import Path
 from typing import override
 
-from poetry.core.masonry.metadata import Metadata
 from poetry.core.poetry import Poetry
 
 from poexy_core.builders.hooks.hook import HookBuilder
 from poexy_core.builders.types import FilePathCallback
-from poexy_core.packages.format import PackageFormat
 from poexy_core.pyproject.tables.poexy import Poexy
 
 
@@ -37,7 +35,3 @@ class ReadmeHookBuilder(HookBuilder):
             return
         for file in self.__files:
             callback(file[0], file[1])
-
-    @override
-    def add_metadata(self, metadata: Metadata, _format: PackageFormat):
-        pass

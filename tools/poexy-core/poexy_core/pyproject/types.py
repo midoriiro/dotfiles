@@ -31,7 +31,7 @@ class GlobPattern(BaseModel):
             )
         files = []
         for file in glob.glob(str(self.pattern)):
-            path = Path(file).resolve()
+            path = Path(file).absolute()
             path = path.relative_to(current_working_directory)
             if path.is_file():
                 files.append(path)
@@ -53,10 +53,12 @@ class GlobPattern(BaseModel):
         path = Path("".join(path))
         if path.is_absolute():
             path = path.relative_to(path.parent)
-        if len(glob_pattern) == 0 and path.is_file():
+        if len(glob_pattern) == 0 and path.is_file() and not path.is_symlink():
             glob_pattern = None
-        elif len(glob_pattern) == 0 and path.is_dir():
+        elif len(glob_pattern) == 0 and path.is_dir() and not path.is_symlink():
             glob_pattern = Path("**/*")
+        elif len(glob_pattern) == 0 and path.is_symlink():
+            glob_pattern = None
         elif len(glob_pattern) > 0:
             glob_pattern = Path(glob_pattern)
         else:

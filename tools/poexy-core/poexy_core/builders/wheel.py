@@ -15,11 +15,13 @@ from poexy_core.builders.builder import Builder, PythonTag
 from poexy_core.builders.hooks.include_files import IncludeFilesHookBuilder
 from poexy_core.builders.hooks.license import LicenseHookBuilder
 from poexy_core.builders.hooks.package_files import PackageFilesHookBuilder
+from poexy_core.builders.hooks.symlink_files import SymlinkFilesHookBuilder
 from poexy_core.builders.types import FilePathPredicate
 from poexy_core.manifest.manifest import MetadataManifest, RecordManifest, WheelManifest
-from poexy_core.packages.files import WHEEL_EXTENSIONS
 from poexy_core.packages.format import PackageFormat
 from poexy_core.pyproject.tables.poexy import Poexy
+from poexy_core.utils.constants import WHEEL_EXTENSIONS
+from poexy_core.utils.symbolic_link import SymbolicLinkMode
 
 logger = logging.getLogger(__name__)
 
@@ -99,12 +101,15 @@ class WheelBuilder(Builder):
     ):
         if _format != PackageFormat.Wheel:
             raise ValueError(f"Invalid format: {_format}")
+
         super().__init__(poetry, poexy, _format, wheel_directory, config_settings)
+
         self._metadata_directory = metadata_directory
         python_tag = PythonTag(impl="py", major=sys.version_info.major)
         self._init_metadata(python_tag)
         self._manifests = Manifests(self._metadata.dist_info_folder)
         self.__archive: Optional[zipfile.ZipFile] = None
+        self.__symlink_mode = SymbolicLinkMode.Copy
 
         self._hooks.append(
             PackageFilesHookBuilder(
@@ -114,6 +119,11 @@ class WheelBuilder(Builder):
         self._hooks.append(
             IncludeFilesHookBuilder(
                 self.poexy, self.format, self._metadata.data_data_folder
+            )
+        )
+        self._hooks.append(
+            SymlinkFilesHookBuilder(
+                self.poexy, self.format, self.__filter_file_destination_path()
             )
         )
         self._hooks.append(
@@ -145,6 +155,10 @@ class WheelBuilder(Builder):
         platform_lib_extensions = set(WHEEL_EXTENSIONS)
 
         def predicate(path: Path) -> Optional[Path]:
+            if path.suffix == "" and path.is_relative_to(self.poexy.package.source):
+                # see comment below.
+                # this special case is for symlink files target file without extension
+                return self._metadata.data_purelib_folder
             if path.suffix in pure_lib_extensions:
                 return self._metadata.data_purelib_folder
             if path.suffix in platform_lib_extensions:
@@ -165,10 +179,25 @@ class WheelBuilder(Builder):
         def add_file(source: Path, destination: Path):
             logger.info(f"Recording file: {destination.name}")
             self._manifests.record.set(source, destination)
-            self._add_files_to_archive(source, destination)
+            self._add_file_to_archive(source, destination)
 
         for hook in self._hooks:
             hook.add_files(add_file)
+
+    def _add_links(self):
+        def add_link(source: Path, destination: Path, target: Path):
+            logger.info(f"Recording link: {destination.name}")
+            if target.is_dir():
+                self._manifests.record.set(source, destination)
+                self._add_file_to_archive(source, destination)
+            elif target.is_file():
+                self._manifests.record.set(target, destination)
+                self._add_file_to_archive(target, destination)
+            else:
+                raise ValueError(f"Symlink target is not a file or directory: {target}")
+
+        for hook in self._hooks:
+            hook.add_links(add_link)
 
     def _add_wheel(self):
         self._manifests.wheel.set("Wheel-Version", "1.0")
@@ -189,7 +218,7 @@ class WheelBuilder(Builder):
         self.__archive.close()
         self.__archive = None
 
-    def _add_files_to_archive(self, source: Path, destination: Path):
+    def _add_file_to_archive(self, source: Path, destination: Path):
         if self.__archive is None:
             raise ValueError("Archive not created")
         relative_path = destination.relative_to(self._metadata.root_folder)
@@ -199,13 +228,13 @@ class WheelBuilder(Builder):
     def _add_dist_info_files_to_archive(self):
         if self.__archive is None:
             raise ValueError("Archive not created")
-        self._add_files_to_archive(
+        self._add_file_to_archive(
             self._manifests.metadata.path, self._manifests.metadata.path
         )
-        self._add_files_to_archive(
+        self._add_file_to_archive(
             self._manifests.wheel.path, self._manifests.wheel.path
         )
-        self._add_files_to_archive(
+        self._add_file_to_archive(
             self._manifests.record.path, self._manifests.record.path
         )
 
@@ -237,6 +266,8 @@ class WheelBuilder(Builder):
             self._add_wheel()
             logger.info("Adding files...")
             self._add_files()
+            logger.info("Adding links...")
+            self._add_links()
             logger.info("Writing manifests...")
             self._manifests.write()
             logger.info("Adding dist-info files...")

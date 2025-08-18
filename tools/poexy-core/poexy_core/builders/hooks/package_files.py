@@ -1,19 +1,20 @@
 import logging
 from typing import override
 
-from poetry.core.masonry.metadata import Metadata
-
 from poexy_core.builders.hooks.hook import HookBuilder
 from poexy_core.builders.types import FilePathCallback, FilePathPredicate
-from poexy_core.packages.files import SDIST_EXTENSIONS, WHEEL_EXTENSIONS
+from poexy_core.packages.files.models import SourcePackageFile
 from poexy_core.packages.format import PackageFormat
 from poexy_core.pyproject.tables.poexy import Poexy
 
 logger = logging.getLogger(__name__)
 
 
-class PackageFilesHookBuilder(HookBuilder):
+class PackageFilesHookBuilderError(Exception):
+    pass
 
+
+class PackageFilesHookBuilder(HookBuilder):
     def __init__(
         self,
         poexy: Poexy,
@@ -30,7 +31,8 @@ class PackageFilesHookBuilder(HookBuilder):
     def build(self):
         with self._hook_build():
             logger.info("Resolving package files...")
-            resolved = self.__poexy.resolve_package_files(self.__format)
+            resolved = self.__poexy.resolve_module_files(self.__format)
+            resolved = resolved.filter_by_type(SourcePackageFile)
             inclusions = self.__poexy.resolve_inclusions(self.__format)
             excludes = [path.source for path in inclusions.excludes]
 
@@ -39,32 +41,25 @@ class PackageFilesHookBuilder(HookBuilder):
             count = 0
 
             for file in resolved:
-                relative_to_source_package = file.source.is_relative_to(
-                    self.__poexy.package.source
-                )
-                if not relative_to_source_package:
-                    continue
-                if (
-                    self.__format == PackageFormat.Source
-                    and file.source.suffix not in SDIST_EXTENSIONS
-                    and not relative_to_source_package
-                ):
-                    continue
-                if (
-                    self.__format == PackageFormat.Wheel
-                    and file.source.suffix not in WHEEL_EXTENSIONS
-                    and not relative_to_source_package
-                ):
-                    continue
+                if not isinstance(file, SourcePackageFile):
+                    raise PackageFilesHookBuilderError(
+                        f"File {file.source} is not a source package file"
+                    )
+
                 if file.source in excludes:
                     logger.info(f"Excluding file: {file.source}")
                     continue
+
                 destination = self.__destination_predicate(file.source)
+
                 if destination is None:
                     logger.info(f"Excluding file: {file.source}")
                     continue
+
                 logger.info(f"Including file: {file.source}")
+
                 self.__files.append((file.source, destination / file.destination))
+
                 count += 1
 
             logger.info(f"{count} files ready to be packaged.")
@@ -74,7 +69,3 @@ class PackageFilesHookBuilder(HookBuilder):
         with self._hook_add_files():
             for source, destination in self.__files:
                 callback(source, destination)
-
-    @override
-    def add_metadata(self, metadata: Metadata, _format: PackageFormat):
-        pass
