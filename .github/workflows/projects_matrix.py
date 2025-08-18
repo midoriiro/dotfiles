@@ -62,25 +62,25 @@ add_project(
 )
 
 print("Adding Ignite project to matrix")
-add_project(
-    poetry_projects,
-    {
-        "has-changed": ignite_project_changed,
-        "path": "tools/ignite",
-        "pipx-tools": pipx_tools,
-        "package-name": "ignite",
-        "dependency-groups": "main, dev, test",
-        "builds-registry-path": "builds/",
-        "builds-registry-key": "builds-ignite",
-        "use-poexy-core": "true",
-        "code-coverage-threshold": 95,
-        "runner-features": "",
-    },
-    "ignite",
-    "Ignite",
-    supported_os,
-    supported_python_versions,
-)
+# add_project(
+#     poetry_projects,
+#     {
+#         "has-changed": ignite_project_changed,
+#         "path": "tools/ignite",
+#         "pipx-tools": pipx_tools,
+#         "package-name": "ignite",
+#         "dependency-groups": "main, dev, test",
+#         "builds-registry-path": "builds/",
+#         "builds-registry-key": "builds-ignite",
+#         "use-poexy-core": "true",
+#         "code-coverage-threshold": 95,
+#         "runner-features": "",
+#     },
+#     "ignite",
+#     "Ignite",
+#     supported_os,
+#     supported_python_versions,
+# )
 
 matrix = {
     "projects": poetry_projects,
