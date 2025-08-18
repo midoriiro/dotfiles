@@ -1,0 +1,13 @@
+[project]
+name = "symbolic-link-glob-absolute-directory-target"
+version = "1.0.0"
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.symbolic_link_glob_absolute_directory_target]
+source = "src"
+includes = [
+    { path = "symlink*" }
+]

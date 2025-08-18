@@ -1,0 +1,10 @@
+[project]
+name = "symbolic-link-multi-hop-chain-resolves-to-directory"
+version = "1.0.0"
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.symbolic_link_multi_hop_chain_resolves_to_directory]
+source = "src"

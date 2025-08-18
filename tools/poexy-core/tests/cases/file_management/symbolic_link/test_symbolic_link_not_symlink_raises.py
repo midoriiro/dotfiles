@@ -16,3 +16,26 @@ Edge case significance:
 Ensures clear guardrails on the API surface so that only true symlink paths are
 accepted, reducing accidental misuse and improving error messages.
 """
+
+from pathlib import Path
+
+import pytest
+
+from poexy_core.utils.symbolic_link import NotSymlinkError, SymbolicLink
+
+
+@pytest.mark.parametrize("path", ["file", "directory/"])
+@pytest.mark.prevent_venv_use
+def test_symbolic_link_not_symlink_raises(tmp_path, path):
+    is_directory = path.endswith("/")
+    full_path = tmp_path / path
+    if is_directory:
+        full_path.mkdir()
+    else:
+        full_path.touch()
+
+    with pytest.raises(
+        NotSymlinkError,
+        match="Not a symbolic link",
+    ):
+        SymbolicLink(full_path, Path.cwd())

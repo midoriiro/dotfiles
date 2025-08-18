@@ -1,30 +1,29 @@
 """
-Test case: Multi-hop non-cyclical symlink chain resolves to a directory
+Test case: Symbolic link pointing to a directory
 
-This test ensures that poexy-core correctly resolves a multi-hop chain of
-symlinks (a -> b -> c -> ...) that terminates at a directory within the
-project, without cycles.
+This test verifies that poexy-core correctly handles a symbolic link in the
+source directory whose final resolved target is a directory.
 
 Test scenario:
-- The source directory contains a short chain of symlinks that ultimately
-  resolves to a directory inside the project root
-- No cycles and the chain length is reasonable (well below max steps)
+- A symlink exists in the source directory pointing (directly or via a chain)
+  to a directory inside the project root
+- The build system encounters this symlink during file discovery
 
 Expected behavior:
-- The chain is resolved hop-by-hop to its directory target
-- The build proceeds successfully according to policy
-- No cycle-related or max-step errors are raised
+- Directory traversal protections are applied consistently
+- The symlink is handled in a predictable way: followed, preserved, or resolved
+  according to project policy
+- Package integrity is maintained
 
 Edge case significance:
-Complements the multi-hop-to-file test by covering directory targets, ensuring
-consistent handling across target types.
+Ensures directory-target symlinks do not lead to accidental traversal or
+ambiguous inclusion of files during builds.
 """
 
 import pytest
 
 from tests.conftests.paths import SamplePaths
 from tests.utils.asserts import AssertPaths
-from tests.utils.paths import SymlinkMultiNodeHopPath
 
 # pylint: disable=redefined-outer-name
 
@@ -38,12 +37,10 @@ expected_files = [
 @pytest.fixture()
 def project_path(sample_project):
     return sample_project(
-        SamplePaths.FileManagementSymbolicLink
-        / "symbolic_link_multi_hop_chain_resolves_to_directory"
+        SamplePaths.FileManagementSymbolicLink / "symbolic_link_point_to_directory"
     )
 
 
-@pytest.mark.file_operation(path=SymlinkMultiNodeHopPath("src/symlink", "src/target"))
 def test_wheel(
     project,
     project_path,
@@ -68,7 +65,6 @@ def test_wheel(
         assert_venv_files(venv_files)
 
 
-@pytest.mark.file_operation(path=SymlinkMultiNodeHopPath("src/symlink", "src/target"))
 def test_sdist(
     project,
     project_path,

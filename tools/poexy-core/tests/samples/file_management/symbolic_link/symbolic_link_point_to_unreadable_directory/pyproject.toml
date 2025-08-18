@@ -1,0 +1,11 @@
+[project]
+name = "symbolic-link-point-to-unreadable-directory"
+version = "1.0.0"
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.symbolic_link_point_to_unreadable_directory]
+source = "src"
+includes = ["symlink"]

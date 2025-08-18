@@ -1,0 +1,13 @@
+[project]
+name = "symbolic-link-glob-nested-symlinks"
+version = "1.0.0"
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.symbolic_link_glob_nested_symlinks]
+source = "src"
+includes = [
+    "*/symlink*"
+]

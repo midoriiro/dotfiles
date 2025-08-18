@@ -1,49 +1,46 @@
 """
-Test case: Multi-hop non-cyclical symlink chain resolves to a directory
+Test case: Glob pattern matching symbolic link with literal name (file target)
 
-This test ensures that poexy-core correctly resolves a multi-hop chain of
-symlinks (a -> b -> c -> ...) that terminates at a directory within the
-project, without cycles.
+This test verifies that poexy-core correctly handles a symbolic link when it
+is included via a literal glob pattern that matches the symlink by its exact name
+(no wildcard patterns), where the symlink resolves to a regular file.
 
 Test scenario:
-- The source directory contains a short chain of symlinks that ultimately
-  resolves to a directory inside the project root
-- No cycles and the chain length is reasonable (well below max steps)
+- A symlink exists in the source directory pointing to a regular file
+- The inclusion glob pattern is literal, matching the symlink by its exact name 
+  (e.g., "mylink")
+- No wildcard patterns or glob expansions are used, just the literal name of the symlink
 
 Expected behavior:
-- The chain is resolved hop-by-hop to its directory target
-- The build proceeds successfully according to policy
-- No cycle-related or max-step errors are raised
+- The symlink is correctly identified and included via the literal name match
+- The file target is resolved and handled according to symlink resolution policy
+- Package build succeeds with the symlink content properly included
+- Both wheel and sdist builds handle the literal symlink inclusion correctly
 
 Edge case significance:
-Complements the multi-hop-to-file test by covering directory targets, ensuring
-consistent handling across target types.
+Ensures that literal name-based inclusion of symlinks (without wildcard patterns)
+works correctly when the target is a file, validating the glob resolution
+system's handling of literal symlink name matches.
 """
 
 import pytest
 
 from tests.conftests.paths import SamplePaths
 from tests.utils.asserts import AssertPaths
-from tests.utils.paths import SymlinkMultiNodeHopPath
 
 # pylint: disable=redefined-outer-name
 
-expected_files = [
-    "__init__.py",
-    "!:symlink:ln",
-    "!:target/not-included",
-]
+expected_files = ["__init__.py", "symlink:ln", "target"]
 
 
 @pytest.fixture()
 def project_path(sample_project):
     return sample_project(
         SamplePaths.FileManagementSymbolicLink
-        / "symbolic_link_multi_hop_chain_resolves_to_directory"
+        / "symbolic_link_glob_literal_file_target"
     )
 
 
-@pytest.mark.file_operation(path=SymlinkMultiNodeHopPath("src/symlink", "src/target"))
 def test_wheel(
     project,
     project_path,
@@ -68,7 +65,6 @@ def test_wheel(
         assert_venv_files(venv_files)
 
 
-@pytest.mark.file_operation(path=SymlinkMultiNodeHopPath("src/symlink", "src/target"))
 def test_sdist(
     project,
     project_path,
