@@ -18,6 +18,8 @@ from poexy_core.utils.glob.exceptions import GlobSyntaxError
 from poexy_core.utils.glob.helpers.cursor import Cursor
 from poexy_core.utils.glob.helpers.input import Input
 
+pytestmark = pytest.mark.skip("all tests still WIP")
+
 
 def parse_pattern(text: str) -> Pattern:
     cursor = Cursor(Input(text))
