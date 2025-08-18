@@ -29,6 +29,13 @@
     "editor.bracketPairColorization.independentColorPoolPerBracketType": true,
     "editor.experimentalEditContextEnabled": false,
     "editor.minimap.enabled": true,
-    "explorer.autoReveal": false
+    "explorer.autoReveal": false,
+    "python.analysis.autoImportCompletions": false,
+    "python.analysis.diagnosticMode": "openFilesOnly",
+    "python.analysis.useLibraryCodeForTypes": false,
+    "python.analysis.stubPath": "",
+    "python.languageServer": "None",
+    "python.analysis.indexing": false,
+    "python.formatting.provider": "black",
   }
 }
