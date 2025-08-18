@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import List, Union
 
 from poexy_core.utils import subprocess_rt
-from poexy_core.utils.pip_options import UvOptions
+from poexy_core.utils.pip.options import UvOptions
 
 logger = logging.getLogger(__name__)
 

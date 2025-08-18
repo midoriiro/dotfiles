@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import List, Union, override
 
 from poexy_core.utils import subprocess_rt
-from poexy_core.utils.pip_options import (
+from poexy_core.utils.pip.options import (
     PackageInstallerProgramOptions,
     PipInstallOptions,
     PipOptions,
