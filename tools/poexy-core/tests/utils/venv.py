@@ -5,7 +5,7 @@ from pathlib import Path
 from virtualenv import cli_run
 
 from poexy_core.utils import subprocess_rt
-from poexy_core.utils.pip import PackageInstallerProgram
+from poexy_core.utils.pip.managers import PackageInstallerProgram
 from poexy_core.utils.venv import VirtualEnvironment, VirtualEnvironmentError
 
 logger = logging.getLogger(__name__)

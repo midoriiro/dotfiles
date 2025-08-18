@@ -13,7 +13,7 @@ Test scenario:
 
 Expected behavior:
 - Python files (.py) are correctly placed in purelib directories
-- Documentation files (.md) are correctly placed in data directories  
+- Documentation files (.md) are correctly placed in data directories 
 - File inclusion/exclusion rules are properly applied during packaging
 - Forbidden directories are correctly excluded from package contents
 
@@ -23,16 +23,23 @@ content types. Proper file type distribution ensures that packages are organized
 correctly and that different file types are accessible in appropriate locations.
 """
 
-from pathlib import Path
-
 import pytest
-from assertpy import assert_that
 
-from poexy_core.packages.files import FORBIDDEN_DIRS
 from tests.conftests.paths import SamplePaths
-from tests.utils.venv import TestVirtualEnvironment
+from tests.utils.asserts import AssertPaths
 
 # pylint: disable=redefined-outer-name
+
+expected_files = [
+    "__init__.py",
+    "tar:module.py:plat:data",
+    "docs/test.md:plat:data",
+    "tar:docs/test.txt:plat:data",
+    "tar:docs/subdir/test.txt:plat:data",
+    "tar:docs/subdir/test.rst:plat:data",
+    "tar:docs/subdir/subsubdir/test.txt:plat:data",
+    "docs/subdir/subsubdir/test.md:plat:data",
+]
 
 
 @pytest.fixture()
@@ -43,75 +50,46 @@ def project_path(sample_project):
 def test_wheel(
     project,
     project_path,
-    venv: TestVirtualEnvironment,
-    dist_package_name,
-    default_python_tag,
-    wheel_data_purelib_folder,
-    wheel_data_data_folder,
     assert_wheel_build,
+    assert_venv_files,
+    prepare_zip_files,
+    prepare_venv_files,
 ):
     with project(project_path):
         assert_zip_file = assert_wheel_build(project_path)
+
+        zip_files = AssertPaths(expected_files)
+        prepare_zip_files(zip_files)
+
         assert_zip_file(
-            [
-                wheel_data_purelib_folder(default_python_tag)
-                / dist_package_name()
-                / "__init__.py",
-                wheel_data_data_folder(default_python_tag)
-                / "share"
-                / dist_package_name()
-                / "docs"
-                / "test.md",
-                wheel_data_data_folder(default_python_tag)
-                / "share"
-                / dist_package_name()
-                / "docs"
-                / "subdir"
-                / "subsubdir"
-                / "test.md",
-            ],
+            zip_files,
             strict=True,
         )
 
-        purelib_path = venv.site_package / "includes"
-        data_path = venv.path / "share" / "includes"
-
-        assert_that(purelib_path.exists()).is_true()
-        assert_that(data_path.exists()).is_true()
-
-        purelib_path = purelib_path.relative_to(venv.path)
-        data_path = data_path.relative_to(venv.path)
-        purelib_glob_pattern = f"{purelib_path}/**/*"
-        data_glob_pattern = f"{data_path}/**/*"
-
-        for file in purelib_path.rglob(purelib_glob_pattern):
-            if not file.is_file():
-                continue
-            if any(part in FORBIDDEN_DIRS for part in file.parts):
-                continue
-            assert_that(file.suffix).is_equal_to(".py")
-
-        for file in data_path.rglob(data_glob_pattern):
-            if not file.is_file():
-                continue
-            if any(part in FORBIDDEN_DIRS for part in file.parts):
-                continue
-            assert_that(file.suffix).is_equal_to(".md")
+        venv_files = AssertPaths(expected_files)
+        prepare_venv_files(venv_files)
+        assert_venv_files(venv_files)
 
 
-def test_sdist(project, project_path, assert_sdist_build):
+def test_sdist(
+    project,
+    project_path,
+    assert_sdist_build,
+    assert_venv_files,
+    prepare_tar_files,
+    prepare_venv_files,
+):
     with project(project_path):
         assert_tar_file = assert_sdist_build(project_path)
+
+        tar_files = AssertPaths(expected_files)
+        prepare_tar_files(tar_files)
+
         assert_tar_file(
-            [
-                Path("module.py"),
-                Path("src") / "__init__.py",
-                Path("docs") / "test.md",
-                Path("docs") / "test.txt",
-                Path("docs") / "subdir" / "test.txt",
-                Path("docs") / "subdir" / "test.rst",
-                Path("docs") / "subdir" / "subsubdir" / "test.txt",
-                Path("docs") / "subdir" / "subsubdir" / "test.md",
-            ],
+            tar_files,
             strict=True,
         )
+
+        venv_files = AssertPaths(expected_files)
+        prepare_venv_files(venv_files)
+        assert_venv_files(venv_files)

@@ -24,15 +24,19 @@ ensures that complex directory structures are preserved and that packages
 contain all intended content without manual specification of individual files.
 """
 
-from pathlib import Path
-
 import pytest
-from assertpy import assert_that
 
 from tests.conftests.paths import SamplePaths
-from tests.utils.venv import TestVirtualEnvironment
+from tests.utils.asserts import AssertPaths
 
 # pylint: disable=redefined-outer-name
+
+expected_files = [
+    "__init__.py",
+    "resources/data.txt:purelib",
+    "resources/nested/data.json:purelib",
+    "resources/nested/deeper/deep.txt:purelib",
+]
 
 
 @pytest.fixture()
@@ -46,105 +50,45 @@ def test_wheel(
     project,
     project_path,
     assert_wheel_build,
-    wheel_data_purelib_folder,
-    default_python_tag,
-    dist_package_name,
-    package_name,
-    venv: TestVirtualEnvironment,
+    assert_venv_files,
+    prepare_zip_files,
+    prepare_venv_files,
 ):
     with project(project_path):
         assert_zip_file = assert_wheel_build(project_path)
+
+        zip_files = AssertPaths(expected_files)
+        prepare_zip_files(zip_files)
+
         assert_zip_file(
-            [
-                wheel_data_purelib_folder(default_python_tag)
-                / dist_package_name()
-                / "__init__.py",
-                wheel_data_purelib_folder(default_python_tag)
-                / dist_package_name()
-                / "resources"
-                / "data.txt",
-                wheel_data_purelib_folder(default_python_tag)
-                / dist_package_name()
-                / "resources"
-                / "nested"
-                / "data.json",
-                wheel_data_purelib_folder(default_python_tag)
-                / dist_package_name()
-                / "resources"
-                / "nested"
-                / "deeper"
-                / "deep.txt",
-            ],
+            zip_files,
             strict=True,
         )
-        purelib_path = venv.site_package / dist_package_name() / "__init__.py"
-        assert_that(purelib_path.exists()).is_true()
-        purelib_path = (
-            venv.site_package / dist_package_name() / "resources" / "data.txt"
-        )
-        assert_that(purelib_path.exists()).is_true()
-        purelib_path = (
-            venv.site_package
-            / dist_package_name()
-            / "resources"
-            / "nested"
-            / "data.json"
-        )
-        assert_that(purelib_path.exists()).is_true()
-        purelib_path = (
-            venv.site_package
-            / dist_package_name()
-            / "resources"
-            / "nested"
-            / "deeper"
-            / "deep.txt"
-        )
-        assert_that(purelib_path.exists()).is_true()
-        binary_path = venv.bin_path / package_name()
-        assert_that(binary_path.exists()).is_false()
+
+        venv_files = AssertPaths(expected_files)
+        prepare_venv_files(venv_files)
+        assert_venv_files(venv_files)
 
 
 def test_sdist(
     project,
     project_path,
     assert_sdist_build,
-    dist_package_name,
-    package_name,
-    venv: TestVirtualEnvironment,
+    assert_venv_files,
+    prepare_tar_files,
+    prepare_venv_files,
 ):
     with project(project_path):
         assert_tar_file = assert_sdist_build(project_path)
+
+        tar_files = AssertPaths(expected_files)
+        prepare_tar_files(tar_files)
+
         assert_tar_file(
-            [
-                Path("src") / "__init__.py",
-                Path("src") / "resources" / "data.txt",
-                Path("src") / "resources" / "nested" / "data.json",
-                Path("src") / "resources" / "nested" / "deeper" / "deep.txt",
-            ],
+            tar_files,
             strict=True,
         )
-        purelib_path = venv.site_package / dist_package_name() / "__init__.py"
-        assert_that(purelib_path.exists()).is_true()
-        purelib_path = (
-            venv.site_package / dist_package_name() / "resources" / "data.txt"
-        )
-        assert_that(purelib_path.exists()).is_true()
-        purelib_path = (
-            venv.site_package
-            / dist_package_name()
-            / "resources"
-            / "nested"
-            / "data.json"
-        )
-        assert_that(purelib_path.exists()).is_true()
-        purelib_path = (
-            venv.site_package
-            / dist_package_name()
-            / "resources"
-            / "nested"
-            / "deeper"
-            / "deep.txt"
-        )
-        assert_that(purelib_path.exists()).is_true()
-        binary_path = venv.bin_path / package_name()
-        assert_that(binary_path.exists()).is_false()
+
+        venv_files = AssertPaths(expected_files)
+        prepare_venv_files(venv_files)
+        assert_venv_files(venv_files)

@@ -10,7 +10,7 @@ from poexy_core.manifest.manifest import (
     RecordManifest,
     WheelManifest,
 )
-from poexy_core.packages.files import FORBIDDEN_DIRS
+from poexy_core.utils.constants import FORBIDDEN_DIRS
 
 
 @pytest.fixture()

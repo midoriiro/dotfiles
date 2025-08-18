@@ -4,8 +4,10 @@
 from conftests.assert_builds import *
 from conftests.assert_manifests import *
 from conftests.executable import *
+from conftests.files import *
 from conftests.logger import *
 from conftests.metadata import *
+from conftests.ordering import *
 from conftests.paths import *
 from conftests.pip import *
 from conftests.project import *
@@ -17,6 +19,9 @@ def pytest_configure(config):
         "markers", "prevent_venv_self_build: mark test to prevent venv self build"
     )
     config.addinivalue_line(
+        "markers", "prevent_venv_use: mark test to prevent venv use"
+    )
+    config.addinivalue_line(
         "markers", "use_http_server: mark test to run setup http server fixture"
     )
     config.addinivalue_line(
@@ -25,3 +30,4 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "file_operation: mark test to run setup file operation fixture"
     )
+    config.addinivalue_line("markers", "serial: mark test to run in serial")

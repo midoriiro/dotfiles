@@ -7,7 +7,7 @@ from assertpy import assert_that
 from filelock import FileLock
 
 from poexy_core import api
-from poexy_core.utils.pip import (
+from poexy_core.utils.pip.managers import (
     PackageInstallerProgram,
     PipWheelOptions,
     UvInstallOptions,
@@ -23,6 +23,7 @@ from tests.utils.venv import TestVirtualEnvironment
 @pytest.fixture(scope="session")
 def venv_self_build_usage(request, venv_usage_lock_path):
     prevent_venv_self_build = False
+    prevent_venv_use = False
     lock_path = venv_usage_lock_path / ".lock"
     lock = FileLock(lock_path)
 
@@ -34,14 +35,25 @@ def venv_self_build_usage(request, venv_usage_lock_path):
             modules = [item.module.__name__ for item in session.items]
             self_build_module = test_build_self.__name__.rsplit(".", 1)[-1]
             if all(self_build_module == module for module in modules):
+                prevent_venv_self_build = True
+            else:
+                prevent_venv_self_build_item_count = 0
+                prevent_venv_use_item_count = 0
                 for item in session.items:
                     for marker in item.own_markers:
                         if marker.name == "prevent_venv_self_build":
                             prevent_venv_self_build = True
-            else:
-                prevent_venv_self_build = False
+                            prevent_venv_self_build_item_count += 1
+                        if marker.name == "prevent_venv_use":
+                            prevent_venv_use = True
+                            prevent_venv_use_item_count += 1
+                if len(session.items) != prevent_venv_self_build_item_count:
+                    prevent_venv_self_build = False
+                if len(session.items) != prevent_venv_use_item_count:
+                    prevent_venv_use = False
             usage = {
                 "prevent_venv_self_build": prevent_venv_self_build,
+                "prevent_venv_use": prevent_venv_use,
             }
             marker_file.extra = usage
         else:
@@ -82,6 +94,10 @@ def create_venv_archive(
     self_project,
     log_info_section,
 ) -> Path:
+    if venv_self_build_usage["prevent_venv_use"]:
+        yield None
+        return
+
     lock_path = global_virtualenv_lock_path / ".lock"
     lock = FileLock(lock_path)
 

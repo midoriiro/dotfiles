@@ -17,7 +17,7 @@ includes = [
 
 [tool.poexy.wheel]
 includes = [
-    { path = "docs", destination = "share" }
+    { path = "docs", destination = "data" }
 ]
 excludes = [
     "docs/**/*.rst",

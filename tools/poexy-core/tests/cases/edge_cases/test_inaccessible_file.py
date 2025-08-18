@@ -26,7 +26,7 @@ developers identify and resolve permission-related build failures.
 
 import pytest
 
-from poexy_core.packages.files import FilePatternInaccessibleError
+from poexy_core.packages.files.resolvers.exceptions import InaccessiblePathError
 from tests.conftests.paths import SamplePaths
 from tests.utils.paths import InaccessiblePath
 
@@ -42,7 +42,7 @@ def project_path(sample_project):
 def test_wheel(project, project_path, assert_wheel_build):
     with project(project_path):
         with pytest.raises(
-            FilePatternInaccessibleError,
+            InaccessiblePathError,
             match="cannot be read: insufficient permissions",
         ):
             assert_wheel_build(project_path)
@@ -52,7 +52,7 @@ def test_wheel(project, project_path, assert_wheel_build):
 def test_sdist(project, project_path, assert_sdist_build):
     with project(project_path):
         with pytest.raises(
-            FilePatternInaccessibleError,
+            InaccessiblePathError,
             match="cannot be read: insufficient permissions",
         ):
             assert_sdist_build(project_path)

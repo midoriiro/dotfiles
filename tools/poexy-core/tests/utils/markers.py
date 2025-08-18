@@ -31,6 +31,10 @@ class MarkerFile:
         with open(self.path, "w", encoding="utf-8") as f:
             self.__data["counter"] = counter
             json.dump(self.__data, f, indent=2)
+            del self.__data["counter"]
+
+    def write(self):
+        self.__write(self.__counter)
 
     def exists(self) -> bool:
         return self.path.exists() and self.path.is_file()

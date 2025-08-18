@@ -9,21 +9,49 @@ from assertpy import assert_that
 from poexy_core import api
 from poexy_core.builders.wheel import WheelMetadata
 from poexy_core.packages.format import WheelFormat
+from tests.utils.asserts import (
+    AssertPathPackageTarget,
+    AssertPaths,
+    AssertPathsType,
+    assert_collections_equal,
+)
 from tests.utils.venv import TestVirtualEnvironment
 
 # pylint: disable=redefined-outer-name,dangerous-default-value
 
-__all__ = [
-    "assert_tar_file",
-    "assert_zip_file",
-    "assert_wheel_build",
-    "assert_sdist_build",
-]
+
+@pytest.fixture()
+def assert_venv_files() -> Callable[[AssertPathsType], None]:
+    def _assert(
+        expected_files: AssertPathsType,
+    ):
+        if not isinstance(expected_files, AssertPaths):
+            expected_files = AssertPaths(expected_files)
+
+        expected_files_target = AssertPathPackageTarget.All
+
+        for file in expected_files.included(expected_files_target):
+            assert_that(file.exists()).is_true()
+            assert_that(file.is_file()).is_true()
+
+        for file in expected_files.excluded(expected_files_target):
+            assert_that(file.exists()).is_false()
+
+    return _assert
 
 
 @pytest.fixture()
-def assert_tar_file() -> Callable[[Path, List[Path], bool], None]:
-    def _assert(archive_path: Path, expected_files: List[Path], strict: bool = False):
+def assert_tar_file() -> Callable[[Path, AssertPathsType, bool], None]:
+    def _assert(
+        archive_path: Path,
+        expected_files: AssertPathsType,
+        strict: bool = False,
+    ):
+        if not isinstance(expected_files, AssertPaths):
+            expected_files = AssertPaths(expected_files)
+
+        expected_files_target = AssertPathPackageTarget.Tar
+
         with tarfile.open(archive_path, "r:gz") as tar:
             members = tar.getmembers()
             assert_that(members).is_not_empty()
@@ -37,9 +65,16 @@ def assert_tar_file() -> Callable[[Path, List[Path], bool], None]:
 
             assert_that(root_folder).is_not_none()
 
-            archive_file_paths = [
-                Path(member.name).relative_to(root_folder) for member in members
-            ]
+            archive_file_paths = []
+            archive_file_infos = {}
+
+            for member in members:
+                member_name = Path(member.name).relative_to(root_folder)
+                archive_file_paths.append(member_name)
+                archive_file_infos[member_name] = {
+                    "info": member.get_info(),
+                    "is_symlink": member.issym(),
+                }
 
             if strict:
                 # Assert that all expected files are present and no extra files exist
@@ -48,26 +83,40 @@ def assert_tar_file() -> Callable[[Path, List[Path], bool], None]:
                     for path in archive_file_paths
                     if path.name not in ["PKG-INFO", "pyproject.toml"]
                 ]
-                assert_that(len(archive_file_paths)).is_equal_to(len(expected_files))
-                assert_that(sorted(archive_file_paths)).is_equal_to(
-                    sorted(expected_files)
+                assert_collections_equal(
+                    expected_files.included(expected_files_target), archive_file_paths
                 )
             else:
                 # Assert that all expected files are present (partial check)
-                for expected_file in expected_files:
+                for expected_file in expected_files.included(expected_files_target):
                     assert_that(archive_file_paths).contains(expected_file)
+
+            for unexpected_file in expected_files.excluded(expected_files_target):
+                assert_that(archive_file_paths).does_not_contain(unexpected_file)
+
+            for expected_link in expected_files.links(expected_files_target):
+                assert_that(archive_file_infos).contains_key(expected_link)
+                assert_that(archive_file_infos[expected_link]["is_symlink"]).is_true()
+                assert_that(
+                    archive_file_infos[expected_link]["info"]["linkname"]
+                ).is_not_empty()
 
     return _assert
 
 
 @pytest.fixture()
-def assert_zip_file() -> Callable[[Path, List[Path], bool], None]:
+def assert_zip_file() -> Callable[[Path, AssertPathsType, bool], None]:
     def _assert(
         archive_path: Path,
-        expected_files: List[Path],
+        expected_files: AssertPathsType,
         strict: bool = False,
         strip: bool = True,
     ):
+        if not isinstance(expected_files, AssertPaths):
+            expected_files = AssertPaths(expected_files)
+
+        expected_files_target = AssertPathPackageTarget.Wheel
+
         with zipfile.ZipFile(archive_path, "r") as zip_file:
             members = zip_file.namelist()
             assert_that(members).is_not_empty()
@@ -82,14 +131,16 @@ def assert_zip_file() -> Callable[[Path, List[Path], bool], None]:
                         for path in archive_file_paths
                         if path.name not in ["WHEEL", "METADATA", "RECORD"]
                     ]
-                assert_that(len(archive_file_paths)).is_equal_to(len(expected_files))
-                assert_that(sorted(archive_file_paths)).is_equal_to(
-                    sorted(expected_files)
+                assert_collections_equal(
+                    expected_files.included(expected_files_target), archive_file_paths
                 )
             else:
                 # Assert that all expected files are present (partial check)
-                for expected_file in expected_files:
+                for expected_file in expected_files.included(expected_files_target):
                     assert_that(archive_file_paths).contains(expected_file)
+
+            for unexpected_file in expected_files.excluded(expected_files_target):
+                assert_that(archive_file_paths).does_not_contain(unexpected_file)
 
     return _assert
 
@@ -153,17 +204,22 @@ def assert_wheel_build(
 
             if len(_format) == 1 and WheelFormat.Binary in _format:
                 assert_that(str(site_packages)).does_not_exist()
+
                 binary_path = venv.bin_path / package_name()
+
                 assert_that(binary_path.exists()).is_true()
+
                 dist_info_folder = metadata.dist_info_folder.name
+                expected_zip_files = [
+                    Path(dist_info_folder) / "WHEEL",
+                    Path(dist_info_folder) / "METADATA",
+                    Path(dist_info_folder) / "RECORD",
+                    wheel_data_scripts_folder(python_tag) / package_name(),
+                ]
+
                 assert_zip_file(
                     archive_path,
-                    [
-                        Path(dist_info_folder) / "WHEEL",
-                        Path(dist_info_folder) / "METADATA",
-                        Path(dist_info_folder) / "RECORD",
-                        wheel_data_scripts_folder(python_tag) / package_name(),
-                    ],
+                    AssertPaths(expected_zip_files),
                     strict=True,
                     strip=False,
                 )
@@ -175,22 +231,30 @@ def assert_wheel_build(
                     ).exists()
                 else:
                     assert_that(str(site_packages)).exists()
+
                 binary_path = venv.bin_path / package_name()
+
                 if WheelFormat.Binary in _format:
                     assert_that(binary_path.exists()).is_true()
                 else:
                     assert_that(binary_path.exists()).is_false()
+
                 dist_info_folder = metadata.dist_info_folder.name
                 expected_zip_files = [
                     Path(dist_info_folder) / "WHEEL",
                     Path(dist_info_folder) / "METADATA",
                     Path(dist_info_folder) / "RECORD",
                 ]
+
                 if WheelFormat.Binary in _format:
                     expected_zip_files.append(
                         wheel_data_scripts_folder(python_tag) / package_name()
                     )
-                assert_zip_file(archive_path, expected_zip_files)
+
+                assert_zip_file(
+                    archive_path,
+                    AssertPaths(expected_zip_files),
+                )
 
             def _assert_zip_file(expected_files: List[Path], strict: bool = False):
                 assert_zip_file(archive_path, expected_files, strict)
@@ -244,14 +308,18 @@ def assert_sdist_build(
             else:
                 assert_that(str(site_packages)).exists()
                 binary_path = venv.bin_path / package_name()
+
                 if WheelFormat.Binary in _format:
                     assert_that(binary_path.exists()).is_true()
                 else:
                     assert_that(binary_path.exists()).is_false()
 
-            assert_tar_file(archive_path, [Path("pyproject.toml"), Path("PKG-INFO")])
+            assert_tar_file(
+                archive_path,
+                AssertPaths([Path("pyproject.toml"), Path("PKG-INFO")]),
+            )
 
-            def _assert_tar_file(expected_files: List[Path], strict: bool = False):
+            def _assert_tar_file(expected_files: AssertPaths, strict: bool = False):
                 assert_tar_file(archive_path, expected_files, strict)
 
             return _assert_tar_file

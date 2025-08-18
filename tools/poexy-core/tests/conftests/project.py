@@ -1,6 +1,7 @@
 import contextlib
 import os
 from contextlib import _GeneratorContextManager
+from functools import cache
 from pathlib import Path
 from typing import Callable
 
@@ -12,12 +13,13 @@ from poexy_core.pyproject.toml import PyProjectTOML
 
 @pytest.fixture(scope="session")
 def self_project() -> Path:
-    project_path = Path(api.__file__).resolve().parent.parent
+    project_path = Path(api.__file__).absolute().parent.parent
     return project_path
 
 
 @pytest.fixture()
 def sample_project(samples_path) -> Callable[[str], Path]:
+    @cache
     def _sample_project(name: str):
         project_path = samples_path / name
         return project_path
@@ -45,6 +47,7 @@ def project() -> Callable[[Path], _GeneratorContextManager[None, None, None]]:
 
 @pytest.fixture()
 def pyproject():
+    @cache
     def _pyproject():
         cwd = Path.cwd()
         return PyProjectTOML(path=cwd)

@@ -48,6 +48,7 @@ def test_prepare_metadata_for_build_wheel(tmp_path, dist_package_name, package_v
 
 
 @pytest.mark.prevent_venv_self_build()
+@pytest.mark.serial
 def test_wheel(
     self_project,
     dist_package_name,
@@ -66,6 +67,7 @@ def test_wheel(
 
 
 @pytest.mark.prevent_venv_self_build()
+@pytest.mark.serial
 def test_sdist(
     self_project,
     dist_package_name,

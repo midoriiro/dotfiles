@@ -1,27 +1,32 @@
 """
-Test case: Excluding entire directories with recursive content
+Test case: Include a file from a non-source project subfolder into the platform data
+directory
 
-This test verifies that poexy-core correctly handles excludes that specify
-entire directories, ensuring all subdirectories and files are recursively
-excluded. This tests recursive directory exclusion behavior and completeness.
+This test specifies the behavior of include patterns that point to a single file
+located under the project root but outside the "src/" tree (for example,
+"some_folder/file_to.include").
 
 Test scenario:
-- A pyproject.toml file specifies entire directories in excludes section
-- The directories contain nested subdirectories and various file types
-- The build system should recursively exclude all directory contents
-- Excluded directories should not appear in the final package
+- The `pyproject.toml` declares an include rule targeting that file.
+- The project contains the targeted file.
+- The build process must bundle the file and install it into the platform data
+  directory.
 
 Expected behavior:
-- All files and subdirectories are recursively excluded from specified directories
-- No trace of excluded directory structure remains in the package
-- Exclusion applies to all nested content without manual specification
-- Both immediate files and deeply nested content are excluded
+- The targeted file is bundled into both sdist and wheel artifacts.
+- In the wheel, the file is placed under the platform data directory path.
+- Path resolution is safe and deterministic.
+- Only the explicitly included file is added; no unintended traversal or directory
+  leakage occurs.
 
-Edge case significance:
-This tests recursive directory exclusion which is important for removing
-test directories, development files, or unwanted resource directories. Complete
-directory exclusion ensures that sensitive or irrelevant directory structures
-are completely omitted from packages without requiring individual file exclusions.
+Scope:
+- This test focuses on including a single file into the platform data directory.
+  It does not validate root-level includes or broader globbing patterns.
+
+Security and edge considerations:
+- No directory traversal beyond the project boundary is allowed.
+- Absolute paths are either rejected or normalized according to policy.
+- Globs referencing parent directories are evaluated with an explicit allow-list.
 """
 
 import pytest
@@ -33,13 +38,15 @@ from tests.utils.asserts import AssertPaths
 
 expected_files = [
     "__init__.py",
+    "some_folder/file_to.include:plat:data",
+    "!:$BINARY:bin",
 ]
 
 
 @pytest.fixture()
 def project_path(sample_project):
     return sample_project(
-        SamplePaths.FileManagementInclusions / "exclude_entire_directory"
+        SamplePaths.FileManagementInclusions / "include_file_to_platform_directory"
     )
 
 

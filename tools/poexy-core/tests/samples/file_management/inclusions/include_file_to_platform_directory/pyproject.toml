@@ -1,0 +1,13 @@
+[project]
+name = "include-file-to-platform-directory"
+version = "1.0.0"
+
+[build-system]
+requires = ["poexy-core"]
+build-backend = "poexy_core.api"
+
+[tool.poexy.package.include_file_to_platform_directory]
+source = "src"
+includes = [
+    "some_folder/file_to.include"
+]

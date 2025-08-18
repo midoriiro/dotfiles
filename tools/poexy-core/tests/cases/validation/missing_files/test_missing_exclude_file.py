@@ -41,7 +41,7 @@ def test_wheel(project, project_path, assert_wheel_build, caplog):
     with project(project_path):
         assert_wheel_build(project_path)
         assert_that(caplog.text).contains(
-            "No files resolved for exclude pattern 'missing-exclude-file.txt'"
+            "Pattern 'missing-exclude-file.txt' resolved nothing"
         )
 
 
@@ -49,5 +49,5 @@ def test_sdist(project, project_path, assert_sdist_build, caplog):
     with project(project_path):
         assert_sdist_build(project_path)
         assert_that(caplog.text).contains(
-            "No files resolved for exclude pattern 'missing-exclude-file.txt'"
+            "Pattern 'missing-exclude-file.txt' resolved nothing"
         )

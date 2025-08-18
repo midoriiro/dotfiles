@@ -1,4 +1,5 @@
 import sys
+from functools import cache
 from pathlib import Path
 from typing import Callable
 
@@ -9,6 +10,8 @@ from poetry.core.masonry.utils.helpers import distribution_name
 from poexy_core.builders.builder import PythonTag
 from poexy_core.builders.sdist import SdistMetadata
 from poexy_core.builders.wheel import WheelMetadata
+from poexy_core.packages.package import ModulePackage
+from poexy_core.pyproject.toml import PyProjectTOML
 
 # pylint: disable=redefined-outer-name
 
@@ -25,6 +28,7 @@ def current_python_tag():
 
 @pytest.fixture()
 def package_name(pyproject) -> Callable[[], str]:
+    @cache
     def _package_name():
         return pyproject().poetry.package.name
 
@@ -33,6 +37,7 @@ def package_name(pyproject) -> Callable[[], str]:
 
 @pytest.fixture()
 def dist_package_name(pyproject) -> Callable[[], str]:
+    @cache
     def _dist_package_name():
         return distribution_name(pyproject().poetry.package.name)
 
@@ -41,6 +46,7 @@ def dist_package_name(pyproject) -> Callable[[], str]:
 
 @pytest.fixture()
 def package_version(pyproject) -> Callable[[], str]:
+    @cache
     def _package_version():
         return pyproject().poetry.package.version.to_string()
 
@@ -48,9 +54,19 @@ def package_version(pyproject) -> Callable[[], str]:
 
 
 @pytest.fixture()
+def package(pyproject: Callable[[], PyProjectTOML]) -> Callable[[], ModulePackage]:
+    @cache
+    def _package():
+        return pyproject().poexy.package
+
+    return _package
+
+
+@pytest.fixture()
 def wheel_metadata(
     dist_temp_path, dist_package_name, package_version
 ) -> Callable[[PythonTag], WheelMetadata]:
+    @cache
     def _wheel_metadata(python_tag: PythonTag) -> WheelMetadata:
         metadata = WheelMetadata(
             dist_temp_path, dist_package_name(), package_version(), python_tag
@@ -62,7 +78,10 @@ def wheel_metadata(
 
 
 @pytest.fixture()
-def wheel_dist_info_folder(wheel_metadata) -> Callable[[PythonTag], Path]:
+def wheel_dist_info_folder(
+    wheel_metadata: Callable[[PythonTag], WheelMetadata],
+) -> Callable[[PythonTag], Path]:
+    @cache
     def _wheel_dist_info_folder(python_tag: PythonTag):
         metadata = wheel_metadata(python_tag)
         dist_info_folder = metadata.dist_info_folder
@@ -73,7 +92,10 @@ def wheel_dist_info_folder(wheel_metadata) -> Callable[[PythonTag], Path]:
 
 
 @pytest.fixture()
-def wheel_data_purelib_folder(wheel_metadata) -> Callable[[PythonTag], Path]:
+def wheel_data_purelib_folder(
+    wheel_metadata: Callable[[PythonTag], WheelMetadata],
+) -> Callable[[PythonTag], Path]:
+    @cache
     def _wheel_data_purelib_folder(python_tag: PythonTag):
         metadata = wheel_metadata(python_tag)
         data_purelib_folder = metadata.data_purelib_folder
@@ -84,7 +106,24 @@ def wheel_data_purelib_folder(wheel_metadata) -> Callable[[PythonTag], Path]:
 
 
 @pytest.fixture()
-def wheel_data_data_folder(wheel_metadata) -> Callable[[PythonTag], Path]:
+def wheel_data_platlib_folder(
+    wheel_metadata: Callable[[PythonTag], WheelMetadata],
+) -> Callable[[PythonTag], Path]:
+    @cache
+    def _wheel_data_platlib_folder(python_tag: PythonTag):
+        metadata = wheel_metadata(python_tag)
+        data_platlib_folder = metadata.data_platlib_folder
+        data_platlib_folder = data_platlib_folder.relative_to(metadata.root_folder)
+        return data_platlib_folder
+
+    return _wheel_data_platlib_folder
+
+
+@pytest.fixture()
+def wheel_data_data_folder(
+    wheel_metadata: Callable[[PythonTag], WheelMetadata],
+) -> Callable[[PythonTag], Path]:
+    @cache
     def _wheel_data_data_folder(python_tag: PythonTag):
         metadata = wheel_metadata(python_tag)
         data_data_folder = metadata.data_data_folder
@@ -95,7 +134,10 @@ def wheel_data_data_folder(wheel_metadata) -> Callable[[PythonTag], Path]:
 
 
 @pytest.fixture()
-def wheel_data_scripts_folder(wheel_metadata) -> Callable[[PythonTag], Path]:
+def wheel_data_scripts_folder(
+    wheel_metadata: Callable[[PythonTag], WheelMetadata],
+) -> Callable[[PythonTag], Path]:
+    @cache
     def _wheel_data_scripts_folder(python_tag: PythonTag):
         metadata = wheel_metadata(python_tag)
         data_scripts_folder = metadata.data_scripts_folder
@@ -109,6 +151,7 @@ def wheel_data_scripts_folder(wheel_metadata) -> Callable[[PythonTag], Path]:
 def sdist_metadata(
     dist_temp_path, dist_package_name, package_version
 ) -> Callable[[], SdistMetadata]:
+    @cache
     def _sdist_metadata():
         metadata = SdistMetadata(dist_temp_path, dist_package_name(), package_version())
         assert_that(str(metadata.archive_path)).exists()

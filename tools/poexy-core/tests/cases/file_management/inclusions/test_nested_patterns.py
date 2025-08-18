@@ -24,15 +24,24 @@ contents but require robust pattern matching implementation. Proper handling
 ensures that advanced users can create sophisticated inclusion/exclusion rules.
 """
 
-from pathlib import Path
-
 import pytest
-from assertpy import assert_that
 
 from tests.conftests.paths import SamplePaths
-from tests.utils.venv import TestVirtualEnvironment
+from tests.utils.asserts import AssertPaths
 
 # pylint: disable=redefined-outer-name
+
+expected_files = [
+    "__init__.py",
+    "resources/a.txt:purelib",
+    "resources/b.txt:purelib",
+    "resources/c.txt:purelib",
+    "resources/nested/a_deep.txt:purelib",
+    "resources/nested/b_deep.txt:purelib",
+    "resources/nested/deeper/a_very_deep.txt:purelib",
+    "resources/images/icon1.png:purelib",
+    "resources/images/icon2.png:purelib",
+]
 
 
 @pytest.fixture()
@@ -44,120 +53,45 @@ def test_wheel(
     project,
     project_path,
     assert_wheel_build,
-    wheel_data_purelib_folder,
-    default_python_tag,
-    dist_package_name,
-    package_name,
-    venv: TestVirtualEnvironment,
+    assert_venv_files,
+    prepare_zip_files,
+    prepare_venv_files,
 ):
     with project(project_path):
         assert_zip_file = assert_wheel_build(project_path)
-        # Positive presence checks in the archive (non-strict)
+
+        zip_files = AssertPaths(expected_files)
+        prepare_zip_files(zip_files)
+
         assert_zip_file(
-            [
-                wheel_data_purelib_folder(default_python_tag)
-                / dist_package_name()
-                / "__init__.py",
-                wheel_data_purelib_folder(default_python_tag)
-                / dist_package_name()
-                / "resources"
-                / "a.txt",
-                wheel_data_purelib_folder(default_python_tag)
-                / dist_package_name()
-                / "resources"
-                / "b.txt",
-                wheel_data_purelib_folder(default_python_tag)
-                / dist_package_name()
-                / "resources"
-                / "c.txt",
-                wheel_data_purelib_folder(default_python_tag)
-                / dist_package_name()
-                / "resources"
-                / "nested"
-                / "a_deep.txt",
-                wheel_data_purelib_folder(default_python_tag)
-                / dist_package_name()
-                / "resources"
-                / "nested"
-                / "b_deep.txt",
-                wheel_data_purelib_folder(default_python_tag)
-                / dist_package_name()
-                / "resources"
-                / "nested"
-                / "deeper"
-                / "a_very_deep.txt",
-                wheel_data_purelib_folder(default_python_tag)
-                / dist_package_name()
-                / "resources"
-                / "images"
-                / "icon1.png",
-                wheel_data_purelib_folder(default_python_tag)
-                / dist_package_name()
-                / "resources"
-                / "images"
-                / "icon2.png",
-            ],
+            zip_files,
             strict=True,
         )
-        base = venv.site_package / dist_package_name()
-        for rel in [
-            Path("__init__.py"),
-            Path("resources/a.txt"),
-            Path("resources/b.txt"),
-            Path("resources/c.txt"),
-            Path("resources/nested/a_deep.txt"),
-            Path("resources/nested/b_deep.txt"),
-            Path("resources/nested/deeper/a_very_deep.txt"),
-            Path("resources/images/icon1.png"),
-            Path("resources/images/icon2.png"),
-        ]:
-            assert_that((base / rel).exists()).is_true()
-        for rel in [
-            Path("resources/temp1.txt"),
-            Path("resources/nested/temp2.txt"),
-            Path("resources/nested/deeper/draft1.md"),
-        ]:
-            assert_that((base / rel).exists()).is_false()
-        binary_path = venv.bin_path / package_name()
-        assert_that(binary_path.exists()).is_false()
+
+        venv_files = AssertPaths(expected_files)
+        prepare_venv_files(venv_files)
+        assert_venv_files(venv_files)
 
 
 def test_sdist(
     project,
     project_path,
     assert_sdist_build,
-    dist_package_name,
-    package_name,
-    venv: TestVirtualEnvironment,
+    assert_venv_files,
+    prepare_tar_files,
+    prepare_venv_files,
 ):
     with project(project_path):
         assert_tar_file = assert_sdist_build(project_path)
+
+        tar_files = AssertPaths(expected_files)
+        prepare_tar_files(tar_files)
+
         assert_tar_file(
-            [
-                Path("src") / "__init__.py",
-                Path("src") / "resources" / "a.txt",
-                Path("src") / "resources" / "b.txt",
-                Path("src") / "resources" / "c.txt",
-                Path("src") / "resources" / "nested" / "a_deep.txt",
-                Path("src") / "resources" / "nested" / "b_deep.txt",
-                Path("src") / "resources" / "nested" / "deeper" / "a_very_deep.txt",
-                Path("src") / "resources" / "images" / "icon1.png",
-                Path("src") / "resources" / "images" / "icon2.png",
-            ],
+            tar_files,
             strict=True,
         )
-        base = venv.site_package / dist_package_name()
-        for rel in [
-            Path("__init__.py"),
-            Path("resources/a.txt"),
-            Path("resources/b.txt"),
-            Path("resources/c.txt"),
-            Path("resources/nested/a_deep.txt"),
-            Path("resources/nested/b_deep.txt"),
-            Path("resources/nested/deeper/a_very_deep.txt"),
-            Path("resources/images/icon1.png"),
-            Path("resources/images/icon2.png"),
-        ]:
-            assert_that((base / rel).exists()).is_true()
-        binary_path = venv.bin_path / package_name()
-        assert_that(binary_path.exists()).is_false()
+
+        venv_files = AssertPaths(expected_files)
+        prepare_venv_files(venv_files)
+        assert_venv_files(venv_files)

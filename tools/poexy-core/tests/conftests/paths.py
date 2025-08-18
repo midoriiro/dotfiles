@@ -2,12 +2,14 @@ import os
 import shutil
 import uuid
 from enum import Enum
+from functools import cache
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Callable, Dict, List, Optional
 
 import pytest
 from filelock import FileLock
 
+from poexy_core.utils import platformdirs
 from tests.utils.markers import MarkerFile
 from tests.utils.paths import TestPath
 
@@ -50,7 +52,10 @@ def self_project_dist_path(tmpdir_factory) -> Path:
 
 
 @pytest.fixture(scope="function")
-def tmp_root(tmpdir_factory):
+def tmp_root(tmpdir_factory: pytest.TempdirFactory) -> Path:
+    base = Path(tmpdir_factory.getbasetemp())
+    if not base.exists():
+        base.mkdir(parents=True, exist_ok=True)
     path = tmpdir_factory.mktemp(f"test_{uuid.uuid4().hex[:8]}")
     return Path(path)
 
@@ -165,6 +170,13 @@ def venv_usage_lock_path(global_tmp_root: Path) -> Path:
     return path
 
 
+@pytest.fixture(scope="session")
+def serial_lock_path(global_tmp_root: Path) -> Path:
+    path = global_tmp_root / "serial-lock"
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
 @pytest.fixture(scope="function")
 def virtualenv_path(tmp_root):
     return tmp_root / "venv"
@@ -174,6 +186,17 @@ def virtualenv_path(tmp_root):
 def pyinstaller_path(tmp_root):
     path = tmp_root / "pyinstaller"
     os.environ["PYINSTALLER_CONFIG_DIR"] = str(path)
+
+
+@pytest.fixture(scope="function")
+def platform_directories(
+    dist_package_name,
+) -> Callable[[], platformdirs.GenericPlatformDirectories]:
+    @cache
+    def _platform_directories():
+        return platformdirs.GenericPlatformDirectories(dist_package_name())
+
+    return _platform_directories
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -227,25 +250,41 @@ def file_operations(
 
 
 @pytest.fixture(scope="function", autouse=True)
-def file_operation(request: pytest.FixtureRequest, file_operations, samples_lock_path):
+def file_operation(
+    request: pytest.FixtureRequest,
+    file_operations,
+    samples_lock_path,
+    serial_test_coordinator,  # pylint: disable=unused-argument
+):
+    # Ignore serial_test_coordinator fixture. For the same reason explained in
+    # file_operations
+
     function: pytest.Function = request.node
+
     if len(function.own_markers) == 0:
         yield
         return
+
     marker_names = [marker.name for marker in function.own_markers]
+
     if not any(marker_name == "file_operation" for marker_name in marker_names):
         yield
         return
-    selected_file_operation: TestPath | None = None
+
+    selected_file_operation: Optional[TestPath] = None
+
     for file_operation in file_operations:
         if file_operation.node_id == function.nodeid:
             selected_file_operation = file_operation
             break
+
     if selected_file_operation is None:
         raise ValueError(f"No file operation found for {function.nodeid}")
+
     sample_path = selected_file_operation.sample_path
     lock_path = samples_lock_path / (sample_path.name + ".lock")
     lock = FileLock(lock_path)
+
     try:
         # Block test execution (and other tests) until the file operation is complete.
         # This should have minimal impact on other tests since we typically have only
