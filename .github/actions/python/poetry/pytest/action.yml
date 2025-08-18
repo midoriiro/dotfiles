@@ -23,6 +23,14 @@ inputs:
       - loadfile
       - loadscope
       - load
+  process-mode:
+    description: 'Process mode'
+    required: false
+    default: 'auto'
+    type: choice
+    options:
+      - auto
+      - logical
   maximum-scheduled-chunk:
     description: 'Maximum scheduled chunk'
     required: false

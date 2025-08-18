@@ -12,6 +12,11 @@ inputs:
     required: false
     default: worksteal
     type: string
+  process-mode:
+    description: 'Process mode'
+    required: false
+    default: auto
+    type: string
   maximum-scheduled-chunk:
     description: 'Maximum scheduled chunk'
     required: false
@@ -93,6 +98,7 @@ runs:
         test-path: ${{ inputs.test-path }}
         run-in-parallel: ${{ inputs.run-in-parallel }}
         distribution-mode: ${{ inputs.distribution-mode }}
+        process-mode: ${{ inputs.process-mode }}
         maximum-scheduled-chunk: ${{ inputs.maximum-scheduled-chunk }}
         fail-fast: ${{ inputs.fail-fast }}
         capture-output: ${{ inputs.capture-output }}

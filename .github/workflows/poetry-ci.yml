@@ -123,6 +123,7 @@ jobs:
           upload-to-codecov: false
           run-in-parallel: true
           distribution-mode: worksteal
+          process-mode: logical
           maximum-scheduled-chunk: 1
           fail-fast: true
           capture-output: false
