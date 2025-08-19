@@ -6,7 +6,8 @@ specified as Git repositories with specific branch references. Git dependencies
 with branches are commonly used for development versions or feature branches.
 
 Test scenario:
-- A project specifies a Git dependency with a specific branch (e.g., "@main", "@develop")
+- A project specifies a Git dependency with a specific branch
+  (e.g., "@main", "@develop")
 - The build system processes the Git dependency during package creation
 - The correct branch should be accessed and dependency content retrieved
 - Both wheel and binary builds should handle Git branch dependencies

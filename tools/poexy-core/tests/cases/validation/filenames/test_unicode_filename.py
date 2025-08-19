@@ -6,7 +6,8 @@ characters in their names. Unicode file names are increasingly common and
 should be properly encoded and preserved in package distributions.
 
 Test scenario:
-- A project contains files with Unicode characters in their names (e.g., "café.py", "测试.txt")
+- A project contains files with Unicode characters in their names
+  (e.g., "café.py", "测试.txt")
 - The build system encounters these files during package creation
 - Unicode file names should be properly encoded and preserved
 - Both wheel and sdist should handle Unicode names correctly

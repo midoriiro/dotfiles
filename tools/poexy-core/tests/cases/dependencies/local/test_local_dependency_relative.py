@@ -6,7 +6,8 @@ specified as local packages using relative paths. Local dependencies are
 commonly used for development of related packages or monorepo setups.
 
 Test scenario:
-- A project specifies a local dependency using a relative path (e.g., "../sibling-package")
+- A project specifies a local dependency using a relative path
+  (e.g., "../sibling-package")
 - The build system processes the local dependency during package creation
 - The dependency should be resolved relative to the project root
 - Package builds should include the local dependency appropriately
