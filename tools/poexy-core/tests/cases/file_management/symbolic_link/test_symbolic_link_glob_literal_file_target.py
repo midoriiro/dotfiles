@@ -7,7 +7,7 @@ is included via a literal glob pattern that matches the symlink by its exact nam
 
 Test scenario:
 - A symlink exists in the source directory pointing to a regular file
-- The inclusion glob pattern is literal, matching the symlink by its exact name 
+- The inclusion glob pattern is literal, matching the symlink by its exact name
   (e.g., "mylink")
 - No wildcard patterns or glob expansions are used, just the literal name of the symlink
 

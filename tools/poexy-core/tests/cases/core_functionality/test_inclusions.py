@@ -13,7 +13,7 @@ Test scenario:
 
 Expected behavior:
 - Python files (.py) are correctly placed in purelib directories
-- Documentation files (.md) are correctly placed in data directories 
+- Documentation files (.md) are correctly placed in data directories
 - File inclusion/exclusion rules are properly applied during packaging
 - Forbidden directories are correctly excluded from package contents
 
