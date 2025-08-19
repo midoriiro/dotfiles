@@ -7,7 +7,6 @@ from hypothesis import strategies as st
 
 from poexy_core.utils.glob.core import (
     CharClass,
-    CharLiteralClassItem,
     GlobStar,
     Pattern,
     PosixClass,
