@@ -110,7 +110,7 @@ class TestPath:
     def prepare(self):
         raise NotImplementedError("This method should be implemented by the subclass")
 
-    def cleanup(self):
+    def cleanup(self, force: bool = False):
         raise NotImplementedError("This method should be implemented by the subclass")
 
 
@@ -131,7 +131,7 @@ class InaccessiblePath(TestPath):
             os.chmod(path, new_mode)
 
     @override
-    def cleanup(self):
+    def cleanup(self, force: bool = False):
         path = self._path
 
         if not path.exists() or (not path.is_file() and not path.is_dir()):
@@ -179,8 +179,8 @@ class EmptyDirectoryPath(TestPath):
         self.__created = True
 
     @override
-    def cleanup(self):
-        if not self.__created:
+    def cleanup(self, force: bool = False):
+        if not self.__created and not force:
             return
         shutil.rmtree(self._path, ignore_errors=True)
 
@@ -254,8 +254,8 @@ class SymlinkPath(TestPath):
             self._target = self._target.relative_to(self._base_path)
 
     @override
-    def cleanup(self):
-        if not self._created:
+    def cleanup(self, force: bool = False):
+        if not self._created and not force:
             return
         if self._relative:
             self._path = self._base_path / self._path
@@ -365,14 +365,14 @@ class SymlinkChainCyclePath(SymlinkPath):
             os.chdir(current_cwd)
 
     @override
-    def cleanup(self):
-        if not self._created:
+    def cleanup(self, force: bool = False):
+        if not self._created and not force:
             return
         current_cwd = Path.cwd()
         try:
             os.chdir(self._base_path)
             for target in self.__link_chain():
-                target.unlink()
+                target.unlink(missing_ok=True)
         except (OSError, NotImplementedError) as exc:
             # On some Windows setups, symlink creation may be restricted
             msg = f"Symlink creation not supported on this platform: {exc}"
@@ -510,8 +510,8 @@ class SymlinkEscapeMidwayPath(SymlinkPath):
             os.chdir(current_cwd)
 
     @override
-    def cleanup(self):
-        if not self._created:
+    def cleanup(self, force: bool = False):
+        if not self._created and not force:
             return
         current_cwd = Path.cwd()
         try:
@@ -521,7 +521,7 @@ class SymlinkEscapeMidwayPath(SymlinkPath):
                 self._target.unlink()
             os.chdir(self._base_path)
             for target in self.__link_chain():
-                target.unlink()
+                target.unlink(missing_ok=True)
         except (OSError, NotImplementedError) as exc:
             # On some Windows setups, symlink creation may be restricted
             msg = f"Symlink creation not supported on this platform: {exc}"
@@ -529,8 +529,8 @@ class SymlinkEscapeMidwayPath(SymlinkPath):
         finally:
             os.chdir(current_cwd)
             midway_symlink_path = self.__midway_symlink_path()
+            midway_symlink_path.unlink(missing_ok=True)
             if midway_symlink_path.parent.exists():
-                midway_symlink_path.unlink()
                 midway_symlink_path.parent.rmdir()
         super().cleanup()
 
@@ -596,8 +596,8 @@ class SymlinkPointToUnreadablePath(SymlinkPath):
             os.chdir(current_cwd)
 
     @override
-    def cleanup(self):
-        if not self._created:
+    def cleanup(self, force: bool = False):
+        if not self._created and not force:
             return
         current_cwd = Path.cwd()
         try:

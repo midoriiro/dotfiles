@@ -239,6 +239,8 @@ def file_operations(
                         file_operations.append(path)
             json = [file_operation.to_json() for file_operation in file_operations]
             marker_file.extra = {"operations": json}
+            for file_operation in file_operations:
+                file_operation.cleanup(force=True)
         else:
             file_operations_data = marker_file.read()
             operations: List[Dict[str, Any]] = file_operations_data["operations"]
