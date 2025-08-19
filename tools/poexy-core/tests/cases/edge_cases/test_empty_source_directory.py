@@ -28,6 +28,7 @@ import pytest
 from pydantic import ValidationError
 
 from tests.conftests.paths import SamplePaths
+from tests.utils.paths import EmptyDirectoryPath
 
 # pylint: disable=redefined-outer-name
 
@@ -37,6 +38,7 @@ def project_path(sample_project):
     return sample_project(SamplePaths.EdgeCases / "empty_source_directory")
 
 
+@pytest.mark.file_operation(path=EmptyDirectoryPath("src"))
 def test_wheel(project, project_path, assert_wheel_build):
     with project(project_path):
         with pytest.raises(
@@ -46,6 +48,7 @@ def test_wheel(project, project_path, assert_wheel_build):
             assert_wheel_build(project_path)
 
 
+@pytest.mark.file_operation(path=EmptyDirectoryPath("src"))
 def test_sdist(project, project_path, assert_sdist_build):
     with project(project_path):
         with pytest.raises(
