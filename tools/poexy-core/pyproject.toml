@@ -61,7 +61,8 @@ omit = [
     "*/__pycache__/*",
     "*/.?*/*",
     "*/venv/*",
-    "*/.venv/*"
+    "*/.venv/*",
+    "poexy_core/utils/glob/*"
 ]
 
 [tool.coverage.report]
