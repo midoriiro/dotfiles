@@ -1,4 +1,5 @@
 import os
+import shutil
 import stat
 import sys
 import tempfile
@@ -32,22 +33,22 @@ class TestPath:
         path: str,
     ):
         self._path = Path(path)
-        self.__sample_path = None
-        self.__sample_src_path = None
+        self._sample_path = None
+        self._sample_src_path = None
         self.__node_id = None
 
     def to_json(self) -> Dict[str, Any]:
-        if self.__sample_path is None:
+        if self._sample_path is None:
             raise ValueError("Sample path not set")
-        if self.__sample_src_path is None:
+        if self._sample_src_path is None:
             raise ValueError("Sample src path not set")
         if self.__node_id is None:
             raise ValueError("Node id not set")
         return {
             "type": self.__class__.__name__,
             "path": str(self._path),
-            "sample_path": str(self.__sample_path),
-            "sample_src_path": str(self.__sample_src_path),
+            "sample_path": str(self._sample_path),
+            "sample_src_path": str(self._sample_src_path),
             "node_id": self.__node_id,
         }
 
@@ -63,35 +64,35 @@ class TestPath:
     # pylint: disable=protected-access,unused-private-member
     def from_json(self, data: Dict[str, Any]):
         self._path = Path(data["path"])
-        self.__sample_path = Path(data["sample_path"])
-        self.__sample_src_path = Path(data["sample_src_path"])
+        self._sample_path = Path(data["sample_path"])
+        self._sample_src_path = Path(data["sample_src_path"])
         self.__node_id = data["node_id"]
 
     def _prefix(self, path: LocalPath) -> Path:
-        if self.__sample_path is None:
-            self.__sample_path = _transform_case_path_to_sample_path(
+        if self._sample_path is None:
+            self._sample_path = _transform_case_path_to_sample_path(
                 Path(path.dirname), path.purebasename
             )
-            sample_name = self.__sample_path.name
-            if (self.__sample_path / "src").exists():
-                self.__sample_src_path = self.__sample_path / "src"
-            elif (self.__sample_path / sample_name).exists():
-                self.__sample_src_path = self.__sample_path / sample_name
+            sample_name = self._sample_path.name
+            if (self._sample_path / "src").exists():
+                self._sample_src_path = self._sample_path / "src"
+            elif (self._sample_path / sample_name).exists():
+                self._sample_src_path = self._sample_path / sample_name
             else:
-                raise ValueError(f"No src directory found in {self.__sample_path}")
-        return self.__sample_path
+                raise ValueError(f"No src directory found in {self._sample_path}")
+        return self._sample_path
 
     @property
     def sample_path(self) -> Path:
-        if self.__sample_path is None:
+        if self._sample_path is None:
             raise ValueError("Sample path not set")
-        return self.__sample_path
+        return self._sample_path
 
     @property
     def sample_src_path(self) -> Path:
-        if self.__sample_src_path is None:
+        if self._sample_src_path is None:
             raise ValueError("Sample src path not set")
-        return self.__sample_src_path
+        return self._sample_src_path
 
     @property
     def node_id(self) -> str:
@@ -143,6 +144,45 @@ class InaccessiblePath(TestPath):
             os.chmod(path, new_mode, follow_symlinks=False)
         except (NotImplementedError, TypeError):
             os.chmod(path, new_mode)
+
+
+class EmptyDirectoryPath(TestPath):
+    def __init__(self, path: str):
+        super().__init__(path)
+        self.__created = False
+
+    @override
+    def to_json(self) -> dict[str, Any]:
+        data = super().to_json()
+        data["created"] = self.__created
+        return data
+
+    @override
+    def from_json(self, data: Dict[str, Any]):
+        super().from_json(data)
+        self.__created = data["created"]
+
+    @override
+    def _prefix(self, path: LocalPath):
+        if self._sample_path is None:
+            self._sample_path = _transform_case_path_to_sample_path(
+                Path(path.dirname), path.purebasename
+            )
+            self._sample_src_path = self._sample_path / "src"
+        return self._sample_path
+
+    @override
+    def prepare(self):
+        if self._path.exists():
+            shutil.rmtree(self._path, ignore_errors=True)
+        self._path.mkdir(parents=True, exist_ok=True)
+        self.__created = True
+
+    @override
+    def cleanup(self):
+        if not self.__created:
+            return
+        shutil.rmtree(self._path, ignore_errors=True)
 
 
 class SymlinkPath(TestPath):
